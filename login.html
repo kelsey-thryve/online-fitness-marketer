@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Log in — Trainer Launch</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="style.css" />
+<script src="config.js"></script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      <img src="logo.svg" alt="Trainer Launch" />
+      <span class="brand-text">Trainer Launch</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html">← Back to site</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container-narrow">
+  <div class="auth-wrap">
+
+    <div class="auth-tabs">
+      <div class="auth-tab active" data-mode="signin" onclick="switchMode('signin')">Log in</div>
+      <div class="auth-tab" data-mode="signup" onclick="switchMode('signup')">Sign up</div>
+    </div>
+
+    <div id="alert"></div>
+
+    <form id="auth-form" onsubmit="return submitAuth(event)">
+      <div class="signup-only hidden">
+        <div class="field-row">
+          <div class="field">
+            <label>First name</label>
+            <input type="text" name="firstName" autocomplete="given-name">
+          </div>
+          <div class="field">
+            <label>Last name</label>
+            <input type="text" name="lastName" autocomplete="family-name">
+          </div>
+        </div>
+        <div class="field">
+          <label>Business name</label>
+          <input type="text" name="businessName" autocomplete="organization">
+        </div>
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" name="email" required autocomplete="email" value="kelsey@thryvegrowth.com">
+      </div>
+      <div class="field">
+        <label id="password-label">Password</label>
+        <input type="password" name="password" required minlength="6" autocomplete="current-password">
+        <span class="field-hint">At least 6 characters.</span>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 100%;" id="submit-btn">Log in</button>
+    </form>
+
+    <p style="text-align: center; margin-top: 20px; font-size: 0.88rem; color: var(--text-dim);">
+      <span id="mode-toggle-text">Need an account?</span>
+      <a href="#" onclick="switchMode('signup'); return false;" style="color: var(--accent);" id="mode-toggle-link">Sign up</a>
+    </p>
+  </div>
+</div>
+
+<script type="module">
+  import { signIn, signUp, requireGuest } from './auth.js';
+
+  // Redirect already-logged-in users to dashboard
+  requireGuest();
+
+  let mode = 'signin';
+
+  window.switchMode = function(newMode) {
+    mode = newMode;
+    document.querySelectorAll('.auth-tab').forEach(t =>
+      t.classList.toggle('active', t.dataset.mode === mode)
+    );
+    document.getElementById('submit-btn').textContent = mode === 'signin' ? 'Log in' : 'Create account';
+    document.getElementById('mode-toggle-text').textContent =
+      mode === 'signin' ? 'Need an account?' : 'Already have an account?';
+    document.getElementById('mode-toggle-link').textContent =
+      mode === 'signin' ? 'Sign up' : 'Log in';
+    document.getElementById('mode-toggle-link').onclick = () => { switchMode(mode === 'signin' ? 'signup' : 'signin'); return false; };
+    document.querySelector('[name=password]').autocomplete = mode === 'signin' ? 'current-password' : 'new-password';
+    document.getElementById('password-label').textContent = mode === 'signin' ? 'Password' : 'Create password';
+
+    // Show / hide signup-only fields
+    document.querySelectorAll('.signup-only').forEach(el => el.classList.toggle('hidden', mode !== 'signup'));
+    ['firstName','lastName','businessName'].forEach(n => {
+      const el = document.querySelector(`[name=${n}]`);
+      if (el) el.required = (mode === 'signup');
+    });
+
+    clearAlert();
+  };
+
+  function showAlert(type, msg) {
+    document.getElementById('alert').innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+  }
+  function clearAlert() {
+    document.getElementById('alert').innerHTML = '';
+  }
+
+  window.submitAuth = async function(e) {
+    e.preventDefault();
+    clearAlert();
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = 'Working…';
+
+    const formEl = document.getElementById('auth-form');
+    const email = formEl.email.value.trim();
+    const password = formEl.password.value;
+
+    try {
+      if (mode === 'signin') {
+        const { error } = await signIn(email, password);
+        if (error) throw error;
+        window.location.href = 'dashboard.html';
+      } else {
+        const firstName    = formEl.firstName.value.trim();
+        const lastName     = formEl.lastName.value.trim();
+        const businessName = formEl.businessName.value.trim();
+        if (!firstName || !lastName || !businessName) {
+          throw new Error('Please fill in your first name, last name and business name.');
+        }
+        const metadata = {
+          first_name: firstName,
+          last_name: lastName,
+          business_name: businessName,
+          full_name: `${firstName} ${lastName}`
+        };
+        const { data, error } = await signUp(email, password, metadata);
+        if (error) throw error;
+        if (data.user && !data.session) {
+          showAlert('success', 'Account created. Check your email to confirm, then log in.');
+          window.switchMode('signin');
+        } else {
+          window.location.href = 'dashboard.html';
+        }
+      }
+    } catch (err) {
+      showAlert('error', err.message || 'Something went wrong.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
+    return false;
+  };
+</script>
+
+</body>
+</html>

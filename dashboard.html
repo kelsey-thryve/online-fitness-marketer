@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard — Trainer Launch</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="style.css" />
+<script src="config.js"></script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="dashboard.html" class="nav-brand">
+      <img src="logo.svg" alt="Trainer Launch" />
+      <span class="brand-text">Trainer Launch</span>
+    </a>
+    <div class="nav-links">
+      <span id="nav-email" style="color: var(--text-muted); font-size: 0.9rem;"></span>
+      <a href="#" onclick="doSignOut(); return false;" class="btn btn-ghost btn-sm">Sign out</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="dash-header">
+    <div>
+      <h1 id="dash-greeting">Welcome back</h1>
+      <p id="dash-subtitle">Build a new launch or pick up where you left off.</p>
+    </div>
+    <a href="challenge.html" class="btn btn-primary">+ New launch</a>
+  </div>
+
+  <div class="dash-stats">
+    <div class="stat-card">
+      <div class="stat-label">Total launches</div>
+      <div class="stat-value" id="stat-total">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">This month</div>
+      <div class="stat-value" id="stat-month">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">API status</div>
+      <div class="stat-value" id="stat-api" style="font-size: 1rem;">Checking…</div>
+    </div>
+  </div>
+
+  <div class="dash-challenges">
+    <div class="dash-challenges-header">
+      <h2>Your launches</h2>
+      <a href="challenge.html" class="btn btn-secondary btn-sm">+ New</a>
+    </div>
+    <div id="challenge-list">
+      <div class="empty-state">
+        <h3>No launches yet</h3>
+        <p>Hit "New launch" to build your first challenge kit.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="api-test" style="margin: 40px 0;">
+    <div class="card">
+      <h3 style="margin-bottom: 10px;">Test your API connection</h3>
+      <p style="margin-bottom: 18px;">Verify the server-side Anthropic key (set as a Netlify env var) is reachable through the <code style="background: var(--bg-input); padding: 2px 6px; border-radius: 4px;">/api/claude</code> proxy.</p>
+      <button class="btn btn-secondary" id="test-btn" onclick="testApi()">Run test</button>
+      <div id="test-result" style="margin-top: 18px;"></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    © 2026 Trainer Launch
+  </div>
+</footer>
+
+<script type="module">
+  import { requireAuth, signOut, listChallenges, getAccessToken } from './auth.js';
+
+  const user = await requireAuth();
+  if (!user) { /* redirected */ }
+
+  document.getElementById('nav-email').textContent = user.email;
+
+  // Personalised greeting from user_metadata
+  const meta = user.user_metadata || {};
+  if (meta.first_name) {
+    document.getElementById('dash-greeting').textContent = `Welcome back, ${meta.first_name}`;
+  }
+  if (meta.business_name) {
+    document.getElementById('dash-subtitle').textContent = `${meta.business_name} · build a new launch or pick up where you left off.`;
+  }
+
+  // Stats
+  const challenges = listChallenges(user.id);
+  document.getElementById('stat-total').textContent = challenges.length;
+  const now = new Date();
+  const thisMonth = challenges.filter(c => {
+    const d = new Date(c.createdAt);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length;
+  document.getElementById('stat-month').textContent = thisMonth;
+
+  // API status — key lives server-side now, so we just show "Tap test"
+  const cfg = window.TRAINER_LAUNCH_CONFIG || {};
+  const statEl = document.getElementById('stat-api');
+  statEl.textContent = 'Tap test to verify';
+  statEl.style.fontSize = '0.95rem';
+
+  // Render list
+  const listEl = document.getElementById('challenge-list');
+  if (challenges.length > 0) {
+    listEl.innerHTML = '';
+    challenges.forEach(c => {
+      const row = document.createElement('a');
+      row.className = 'challenge-row';
+      row.href = `challenge.html?id=${encodeURIComponent(c.id)}`;
+      row.innerHTML = `
+        <div>
+          <div class="challenge-row-name">${escapeHtml(c.name || 'Untitled launch')}</div>
+          <div class="challenge-row-meta">${new Date(c.createdAt).toLocaleString()} · ${c.deliverableCount || 7} deliverables</div>
+        </div>
+        <span style="color: var(--text-muted);">View →</span>
+      `;
+      listEl.appendChild(row);
+    });
+  }
+
+  window.doSignOut = signOut;
+
+  /* --- API test --- */
+  window.testApi = async function() {
+    const btn = document.getElementById('test-btn');
+    const out = document.getElementById('test-result');
+    btn.disabled = true;
+    btn.textContent = 'Testing…';
+    out.innerHTML = '';
+
+    try {
+      const token = await getAccessToken();
+      if (!token) throw new Error('Not signed in.');
+
+      const res = await fetch(cfg.CLAUDE_PROXY_PATH || '/api/claude', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          model: cfg.MODEL || 'claude-opus-4-5',
+          max_tokens: 64,
+          messages: [{ role: 'user', content: 'Reply with exactly: TRAINER LAUNCH OK' }]
+        })
+      });
+      const errClone = res.clone();
+      let data;
+      try {
+        data = await res.json();
+      } catch (_) {
+        const raw = await errClone.text();
+        throw new Error(`Non-JSON response from proxy (${res.status}): ${raw.slice(0, 300)}`);
+      }
+      if (!res.ok) throw new Error(data.error || JSON.stringify(data));
+      const text = (data.content || []).map(b => b.text || '').join('').trim();
+      out.innerHTML = `<div class="alert alert-success">Connection OK · model: <strong>${data.model || cfg.MODEL}</strong> · reply: "${escapeHtml(text)}"</div>`;
+    } catch (err) {
+      out.innerHTML = `<div class="alert alert-error">Test failed: ${escapeHtml(err.message)}</div>`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Run test';
+    }
+  };
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+</script>
+
+</body>
+</html>
