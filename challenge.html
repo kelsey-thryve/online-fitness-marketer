@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>New launch — Trainer Launch</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="style.css" />
+<script src="config.js"></script>
+<style>
+  /* Page-specific styles for new fields */
+  .tier-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .tier-grid { grid-template-columns: 1fr; } }
+  .tier-card {
+    background: var(--bg-input); border: 2px solid var(--border);
+    border-radius: var(--radius); padding: 22px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .tier-card:hover { border-color: var(--border-strong); }
+  .tier-card.selected { border-color: var(--accent); background: var(--accent-soft); }
+  .tier-card h4 { font-size: 1.1rem; margin-bottom: 6px; }
+  .tier-card .tier-price { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; }
+  .tier-card ul { list-style: none; padding: 0; font-size: 0.88rem; color: var(--text-muted); }
+  .tier-card li { padding: 4px 0; padding-left: 16px; position: relative; }
+  .tier-card li::before { content: '·'; position: absolute; left: 4px; color: var(--accent); }
+
+  .color-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .color-row { grid-template-columns: 1fr; } }
+  .color-picker {
+    display: flex; gap: 10px; align-items: center;
+    background: var(--bg-input); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 10px;
+  }
+  .color-picker input[type="color"] {
+    width: 44px; height: 44px; border: none; border-radius: 8px;
+    background: transparent; cursor: pointer; padding: 0;
+  }
+  .color-picker input[type="text"] {
+    background: transparent; border: none; flex: 1; color: var(--text);
+    font-family: monospace; font-size: 0.95rem;
+  }
+
+  .upload-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 880px) { .upload-row { grid-template-columns: 1fr; } }
+  .upload-tile {
+    background: var(--bg-input); border: 1px dashed var(--border-strong);
+    border-radius: var(--radius); padding: 18px;
+    text-align: center; cursor: pointer;
+    transition: all 0.15s; position: relative; min-height: 180px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .upload-tile:hover { border-color: var(--accent); background: var(--bg-card); }
+  .upload-tile input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .upload-tile-title { font-weight: 600; font-size: 0.95rem; }
+  .upload-tile-sub { font-size: 0.82rem; color: var(--text-dim); margin-top: 4px; }
+  .upload-tile.has-image { border-style: solid; padding: 0; overflow: hidden; }
+  .upload-tile .preview {
+    width: 100%; height: 180px; object-fit: cover; border-radius: var(--radius);
+  }
+  .upload-tile .replace-btn {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(0,0,0,0.7); color: white; border: none;
+    padding: 4px 10px; border-radius: 6px; font-size: 0.75rem;
+    cursor: pointer; font-family: inherit;
+  }
+  .upload-tile.uploading::after {
+    content: 'Uploading…'; position: absolute; inset: 0;
+    background: rgba(10,10,15,0.85); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; font-weight: 500;
+  }
+
+  .graphics-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px;
+    padding: 24px;
+  }
+  @media (max-width: 640px) { .graphics-grid { grid-template-columns: 1fr; } }
+  .graphic-card {
+    background: var(--bg-input); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+  }
+  .graphic-card img { width: 100%; display: block; background: #000; }
+  .graphic-card-footer { padding: 14px; display: flex; gap: 8px; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+  .graphic-card-title { font-size: 0.9rem; font-weight: 600; }
+  .graphic-card-actions { display: flex; gap: 6px; }
+
+  .tier-badge {
+    display: inline-block; padding: 2px 10px; border-radius: 100px;
+    background: var(--accent-gradient); color: white;
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; margin-left: 8px; vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="dashboard.html" class="nav-brand">
+      <img src="logo.svg" alt="Trainer Launch" />
+      <span class="brand-text">Trainer Launch</span>
+    </a>
+    <div class="nav-links">
+      <a href="dashboard.html">← Dashboard</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ====== FORM ====== -->
+<section id="form-section">
+  <div class="container-narrow">
+    <div class="form-wrap">
+      <div class="form-progress" id="form-progress"></div>
+
+      <!-- Step 1: Campaign tier (NEW) -->
+      <div class="step-panel" data-step="1">
+        <div class="step-label" data-step-label></div>
+        <h2 class="step-title">Campaign tier</h2>
+        <p class="step-desc">Pick the tier — we'll tune the entire kit (offer framing, email tone, ad angles, CTA flow) accordingly.</p>
+        <div class="tier-grid">
+          <div class="tier-card" data-tier="high">
+            <h4>High-ticket</h4>
+            <div class="tier-price">~$1,500+ / call-then-buy flow</div>
+            <ul>
+              <li>Discovery / application call CTA</li>
+              <li>Long nurture, relationship-first</li>
+              <li>Identity shift + ROI framing</li>
+              <li>Premium / cohort positioning</li>
+            </ul>
+          </div>
+          <div class="tier-card" data-tier="low">
+            <h4>Low-ticket</h4>
+            <div class="tier-price">~$47–$497 / direct buy</div>
+            <ul>
+              <li>Direct buy / checkout CTA</li>
+              <li>Punchier, urgency-driven emails</li>
+              <li>Quick-win, speed framing</li>
+              <li>Open enrollment, no gatekeeping</li>
+            </ul>
+          </div>
+        </div>
+        <input type="hidden" name="campaignTier" required>
+      </div>
+
+      <!-- Step 2: The challenge -->
+      <div class="step-panel" data-step="2">
+        <div class="step-label" data-step-label></div>
+        <h2 class="step-title">The challenge</h2>
+        <p class="step-desc">Tell us about the launch you're building.</p>
+        <div class="field"><label>Challenge name *</label>
+          <input type="text" name="challengeName" placeholder="e.g. The 6-Week Fat Loss Reset" required></div>
+        <div class="field"><label>One-line promise *</label>
+          <input type="text" name="promise" placeholder='e.g. "Lose 10 lbs and keep it off without giving up wine"' required></div>
+        <div class="field-row">
+          <div class="field"><label>Duration *</label>
+            <select name="duration" required>
+              <option value="">Select…</option>
+              <option>4 weeks</option><option>6 weeks</option><option>8 weeks</option>
+              <option>12 weeks</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field"><label>Format *</label>
+            <select name="format" required>
+              <option value="">Select…</option>
+              <option>1:1 coaching</option><option>Small group</option>
+              <option>Large group / cohort</option><option>Self-paced</option>
+              <option>Hybrid (course + coaching)</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Spots available *</label>
+            <input type="text" name="spots" placeholder="e.g. 25" required></div>
+          <div class="field"><label>Launch / start date *</label>
+            <input type="date" name="startDate" required></div>
+        </div>
+      </div>
+
+      <!-- Step 3: Audience & transformation -->
+      <div class="step-panel" data-step="3">
+        <div class="step-label" data-step-label></div>
+        <h2 class="step-title">Audience & transformation</h2>
+        <p class="step-desc">Who is this for, and what changes for them?</p>
+        <div class="field"><label>Ideal client nickname *</label>
+          <input type="text" name="avatarNickname" placeholder='e.g. "The time-poor mum"' required></div>
+        <div class="field-row">
+          <div class="field"><label>Age range *</label><input type="text" name="ageRange" placeholder="e.g. 32-45" required></div>
+          <div class="field"><label>Gender split *</label><input type="text" name="gender" placeholder="e.g. 90% women" required></div>
+        </div>
+        <div class="field"><label>Biggest pain / frustration *</label><textarea name="biggestPain" required></textarea></div>
+        <div class="field"><label>Top desired outcome *</label><textarea name="topDesire" required></textarea></div>
+        <div class="field"><label>What have they already tried (that didn't work)? *</label><textarea name="alreadyTried" required></textarea></div>
+      </div>
+
+      <!-- Step 4: About you -->
+      <div class="step-panel" data-step="4">
+        <div class="step-label" data-step-label></div>
+        <h2 class="step-title">About you</h2>
+        <p class="step-desc">A bit about the coach behind the launch.</p>
+        <div class="field-row">
+          <div class="field"><label>Your full name *</label><input type="text" name="fullName" required></div>
+          <div class="field"><label>Business / brand name *</label><input type="text" name="businessName" required></div>
+        </div>
+        <div class="field"><label>Social handle *</label><input type="text" name="handle" placeholder="e.g. @yourbrand" required></div>
+        <div class="field"><label>Your fitness niche *</label><input type="text" name="niche" placeholder="e.g. strength for women over 40" required></div>
+        <div class="field"><label>Your credentials / qualifications *</label><textarea name="credentials" placeholder="Certs, education, athletic background" required></textarea></div>
+        <div class="field"><label>Strongest client testimonial / case study *</label><textarea name="topTestimonial" placeholder="Name, transformation, key numbers" required></textarea></div>
+      </div>
+
+      <!-- Step 5: Offer -->
+      <div class="step-panel" data-step="5">
+        <div class="step-label" data-step-label></div>
+        <h2 class="step-title">The offer</h2>
+        <p class="step-desc">Price, structure, and what's inside.</p>
+        <div class="field-row">
+          <div class="field"><label>Price (USD) *</label><input type="text" name="price" placeholder="e.g. $497" required></div>
+          <div class="field"><label>Payment options</label><input type="text" name="paymentOptions" placeholder="e.g. PIF or 3x $179"></div>
+        </div>
+        <div class="field"><label>What's included? *</label><textarea name="included" placeholder="Calls, app, meal plan, community, etc." required></textarea></div>
+        <div class="field"><label>Bonuses</label><textarea name="bonuses" placeholder="Fast-action or scarcity bonuses"></textarea></div>
+        <div class="field"><label>Guarantee / refund policy</label><input type="text" name="guarantee" placeholder='e.g. "14-day refund"'></div>
+        <div class="field"><label>Biggest objection you expect *</label><textarea name="biggestObjection" placeholder='e.g. "I don\'t have time"' required></textarea></div>
+      </div>
+
+      <!-- Step 6: Voice & positioning -->
+      <div class="step-panel" data-step="6">
+        <div class="step-label" data-step-label></div>
+        <h2 class="step-title">Voice & positioning</h2>
+        <p class="step-desc">How you sound — and what makes this different.</p>
+        <div class="field"><label>Tone words *</label>
+          <div class="checkbox-group" data-name="tone">
+            <label class="check-pill"><input type="checkbox" value="Direct"> Direct</label>
+            <label class="check-pill"><input type="checkbox" value="Warm"> Warm</label>
+            <label class="check-pill"><input type="checkbox" value="Bold"> Bold</label>
+            <label class="check-pill"><input type="checkbox" value="Playful"> Playful</label>
+            <label class="check-pill"><input type="checkbox" value="Technical"> Technical</label>
+            <label class="check-pill"><input type="checkbox" value="No-BS"> No-BS</label>
+            <label class="check-pill"><input type="checkbox" value="Empathetic"> Empathetic</label>
+            <label class="check-pill"><input type="checkbox" value="Funny"> Funny</label>
+            <label class="check-pill"><input type="checkbox" value="Contrarian"> Contrarian</label>
+            <label class="check-pill"><input type="checkbox" value="Inspirational"> Inspirational</label>
+          </div>
+        </div>
+        <div class="field"><label>Words / vibes to AVOID *</label><textarea name="avoidWords" required></textarea></div>
+        <div class="field"><label>Unique mechanism *</label><textarea name="uniqueMechanism" placeholder="The method, system or angle that's yours" required></textarea></div>
+        <div class="field"><label>Contrarian belief *</label><textarea name="contrarianBelief" placeholder="What does the industry get wrong?" required></textarea></div>
+      </div>
+
+      <!-- Step 7: Brand visuals (NEW) -->
+      <div class="step-panel" data-step="7">
+        <div class="step-label" data-step-label></div>
+        <h2 class="step-title">Brand visuals</h2>
+        <p class="step-desc">Colours + images for your ad graphics. Used to render 4 ready-to-share creatives at the end.</p>
+
+        <div class="field">
+          <label>Brand colours *</label>
+          <div class="color-row">
+            <div class="color-picker">
+              <input type="color" data-color-target="brandPrimary" value="#6366f1">
+              <input type="text" data-color-text="brandPrimary" value="#6366f1">
+            </div>
+            <div class="color-picker">
+              <input type="color" data-color-target="brandSecondary" value="#10b981">
+              <input type="text" data-color-text="brandSecondary" value="#10b981">
+            </div>
+            <div class="color-picker">
+              <input type="color" data-color-target="brandAccent" value="#ffffff">
+              <input type="text" data-color-text="brandAccent" value="#ffffff">
+            </div>
+          </div>
+          <span class="field-hint">Primary · Secondary · Accent. Used in every generated graphic.</span>
+          <input type="hidden" name="brandPrimary"   value="#6366f1">
+          <input type="hidden" name="brandSecondary" value="#10b981">
+          <input type="hidden" name="brandAccent"    value="#ffffff">
+        </div>
+
+        <div class="field">
+          <label>Upload brand images (optional)</label>
+          <div class="upload-row">
+            <label class="upload-tile" data-slot="logoUrl">
+              <input type="file" accept="image/*">
+              <div class="upload-tile-title">Logo / brand mark</div>
+              <div class="upload-tile-sub">PNG · ideally transparent</div>
+            </label>
+            <label class="upload-tile" data-slot="photoUrl">
+              <input type="file" accept="image/*">
+              <div class="upload-tile-title">Photo of you</div>
+              <div class="upload-tile-sub">JPG / PNG · square works best</div>
+            </label>
+            <label class="upload-tile" data-slot="appUrl">
+              <input type="file" accept="image/*">
+              <div class="upload-tile-title">App / product screenshot</div>
+              <div class="upload-tile-sub">PNG · portrait works best</div>
+            </label>
+          </div>
+          <span class="field-hint">All optional — but adding a photo dramatically improves the announcement graphic.</span>
+        </div>
+      </div>
+
+      <!-- Step 8: Marketing -->
+      <div class="step-panel" data-step="8">
+        <div class="step-label" data-step-label></div>
+        <h2 class="step-title">Marketing strategy</h2>
+        <p class="step-desc">How you'll promote this launch.</p>
+        <div class="field"><label>Primary platform *</label>
+          <select name="primaryPlatform" required>
+            <option value="">Select…</option>
+            <option>Instagram</option><option>TikTok</option><option>YouTube</option>
+            <option>Email / Newsletter</option><option>Facebook</option><option>LinkedIn</option>
+          </select>
+        </div>
+        <div class="field"><label>Primary lead source for this launch *</label>
+          <select name="primaryLeadSource" required>
+            <option value="">Select…</option>
+            <option>Organic short-form video</option><option>Email list</option>
+            <option>Paid ads (Meta/IG)</option><option>Paid ads (YouTube/TikTok)</option>
+            <option>Referrals / word of mouth</option><option>DMs / inbound</option>
+            <option>Webinars / lives</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Launch timeline *</label>
+            <select name="launchTimeline" required>
+              <option value="">Select…</option>
+              <option>1 week pre-launch</option><option>2 weeks pre-launch</option>
+              <option>3 weeks pre-launch</option><option>4 weeks pre-launch</option>
+            </select>
+          </div>
+          <div class="field"><label>Cart open length *</label>
+            <select name="cartOpen" required>
+              <option value="">Select…</option>
+              <option>3 days</option><option>5 days</option><option>7 days</option>
+              <option>10 days</option><option>14 days</option><option>Evergreen</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Typical CTA you use *</label>
+          <input type="text" name="ctaStyle" placeholder='e.g. "DM me RESET"' required></div>
+        <div class="field"><label>Success metric for this launch *</label>
+          <input type="text" name="successMetric" placeholder='e.g. "Fill all 25 spots"' required></div>
+      </div>
+
+      <div id="form-alert"></div>
+
+      <div class="form-nav">
+        <button type="button" class="btn btn-ghost" id="prev-btn" onclick="prevStep()">Back</button>
+        <button type="button" class="btn btn-primary" id="next-btn" onclick="nextStep()">Continue</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== GENERATING ====== -->
+<section id="generating-section" class="hidden">
+  <div class="container-narrow">
+    <div class="loader">
+      <div class="spinner"></div>
+      <h2>Building your launch…</h2>
+      <p style="margin: 12px 0 32px;">3-5 minutes. Text first, then graphics.</p>
+      <div id="task-list"></div>
+      <div id="gen-error" class="alert alert-error hidden" style="max-width: 460px; margin: 24px auto;"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== RESULTS ====== -->
+<section id="dashboard-section" class="hidden">
+  <div class="container">
+    <div class="section-header" style="margin-bottom: 32px;">
+      <div class="section-eyebrow">Launch ready</div>
+      <h2 id="result-title">Your launch kit <span id="result-tier-badge"></span></h2>
+      <p>Review each asset, copy what you need, or download the full kit.</p>
+      <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <button class="btn btn-primary" onclick="downloadAll()">⇩ Download all (.txt)</button>
+        <a href="dashboard.html" class="btn btn-secondary">← Back to dashboard</a>
+      </div>
+    </div>
+
+    <div class="dashboard">
+      <aside class="sidebar">
+        <h4>Deliverables</h4>
+        <div id="tabs-list"></div>
+      </aside>
+      <div id="docs-container"></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    © 2026 Trainer Launch
+  </div>
+</footer>
+
+<script type="module">
+  import { requireAuth, saveChallenge, getChallenge, getAccessToken, uploadImage } from './auth.js';
+  import { TEMPLATES, renderGraphic, downloadCanvas, canvasToBlob } from './graphics.js';
+
+  const user = await requireAuth();
+  if (!user) { /* redirected */ }
+
+  const cfg = window.TRAINER_LAUNCH_CONFIG || {};
+  const TOTAL_STEPS = 8;
+
+  const DELIVERABLES = [
+    { id: 'positioning', title: 'Positioning Brief',         icon: '01' },
+    { id: 'sales',       title: 'Sales Page Copy',           icon: '02' },
+    { id: 'emails',      title: 'Pre-launch Email Sequence', icon: '03' },
+    { id: 'scripts',     title: '3 Video Scripts',           icon: '04' },
+    { id: 'ads',         title: '5 Ad Variations',           icon: '05' },
+    { id: 'manychat',    title: 'ManyChat DM Flow',          icon: '06' },
+    { id: 'plan',        title: 'Launch-week Plan',          icon: '07' }
+  ];
+
+  let currentStep = 1;
+  const formData = {};
+  const generatedDocs = {};
+  const generatedGraphics = {};  // { templateId: dataURL }
+
+  /* ----- existing record? ----- */
+  const params = new URLSearchParams(window.location.search);
+  const existingId = params.get('id');
+
+  if (existingId) {
+    const record = getChallenge(user.id, existingId);
+    if (record) {
+      Object.assign(formData, record.intake || {});
+      Object.assign(generatedDocs, record.docs || {});
+      Object.assign(generatedGraphics, record.graphics || {});
+      document.getElementById('result-title').firstChild.textContent = (record.name || 'Your launch kit') + ' ';
+      updateTierBadge(record.intake?.campaignTier);
+      showSection('dashboard-section');
+      renderDashboard();
+    } else {
+      showSection('form-section'); showStep(1);
+    }
+  } else {
+    showSection('form-section'); showStep(1);
+  }
+
+  /* ================================================================
+     NAVIGATION
+     ================================================================ */
+
+  function showSection(id) {
+    ['form-section','generating-section','dashboard-section'].forEach(s =>
+      document.getElementById(s).classList.toggle('hidden', s !== id));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function renderProgress() {
+    const wrap = document.getElementById('form-progress');
+    wrap.innerHTML = '';
+    for (let i = 1; i <= TOTAL_STEPS; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'form-progress-bar';
+      if (i < currentStep) bar.classList.add('done');
+      if (i === currentStep) bar.classList.add('active');
+      wrap.appendChild(bar);
+    }
+  }
+
+  function showStep(n) {
+    currentStep = n;
+    document.querySelectorAll('.step-panel').forEach(p =>
+      p.classList.toggle('active', Number(p.dataset.step) === n));
+    document.querySelectorAll('[data-step-label]').forEach((el, i) => {
+      el.textContent = `Step ${i + 1} of ${TOTAL_STEPS}`;
+    });
+    document.getElementById('prev-btn').style.visibility = n === 1 ? 'hidden' : 'visible';
+    document.getElementById('next-btn').textContent = n === TOTAL_STEPS ? 'Generate launch' : 'Continue';
+    renderProgress();
+  }
+
+  function getCurrentPanel() { return document.querySelector(`.step-panel[data-step="${currentStep}"]`); }
+
+  function validateStep() {
+    const panel = getCurrentPanel();
+    const missing = [];
+    panel.querySelectorAll('input[required], textarea[required], select[required]').forEach(el => {
+      if (!el.value.trim()) missing.push(el);
+    });
+    let needsCheck = false;
+    panel.querySelectorAll('label').forEach(l => {
+      if (l.textContent.trim().endsWith('*') && l.nextElementSibling?.classList?.contains('checkbox-group')) {
+        const any = l.nextElementSibling.querySelectorAll('input[type="checkbox"]:checked').length > 0;
+        if (!any) needsCheck = true;
+      }
+    });
+    if (missing.length) {
+      missing[0].focus();
+      showFormAlert('Please fill in the required fields before continuing.');
+      return false;
+    }
+    if (needsCheck) {
+      showFormAlert('Please select at least one option.');
+      return false;
+    }
+    clearFormAlert();
+    return true;
+  }
+
+  function captureStep() {
+    const panel = getCurrentPanel();
+    panel.querySelectorAll('input, textarea, select').forEach(el => {
+      if (el.type === 'checkbox') {
+        const groupEl = el.closest('.checkbox-group');
+        if (!groupEl) return;
+        const groupName = groupEl.dataset.name;
+        if (!formData[groupName]) formData[groupName] = [];
+        el.parentElement.classList.toggle('checked', el.checked);
+        if (el.checked && !formData[groupName].includes(el.value)) formData[groupName].push(el.value);
+        else if (!el.checked) formData[groupName] = formData[groupName].filter(v => v !== el.value);
+      } else if (el.name) {
+        formData[el.name] = el.value.trim();
+      }
+    });
+  }
+
+  window.nextStep = function() {
+    if (!validateStep()) return;
+    captureStep();
+    if (currentStep === TOTAL_STEPS) submitForm();
+    else showStep(currentStep + 1);
+  };
+  window.prevStep = function() {
+    captureStep();
+    if (currentStep > 1) showStep(currentStep - 1);
+  };
+
+  function showFormAlert(msg) { document.getElementById('form-alert').innerHTML = `<div class="alert alert-error">${msg}</div>`; }
+  function clearFormAlert() { document.getElementById('form-alert').innerHTML = ''; }
+
+  document.addEventListener('change', e => {
+    if (e.target.matches('.check-pill input[type="checkbox"]')) {
+      e.target.parentElement.classList.toggle('checked', e.target.checked);
+    }
+  });
+
+  /* ---------- Tier card selection ---------- */
+  document.querySelectorAll('.tier-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      const hidden = document.querySelector('input[name="campaignTier"]');
+      hidden.value = card.dataset.tier;
+    });
+  });
+
+  /* ---------- Brand colour pickers ---------- */
+  document.querySelectorAll('input[type="color"][data-color-target]').forEach(picker => {
+    const targetName = picker.dataset.colorTarget;
+    const textInput = document.querySelector(`input[data-color-text="${targetName}"]`);
+    const hidden = document.querySelector(`input[name="${targetName}"]`);
+    picker.addEventListener('input', () => {
+      textInput.value = picker.value;
+      hidden.value = picker.value;
+    });
+    textInput.addEventListener('change', () => {
+      if (/^#[0-9a-fA-F]{6}$/.test(textInput.value)) {
+        picker.value = textInput.value;
+        hidden.value = textInput.value;
+      }
+    });
+  });
+
+  /* ---------- Image upload tiles ---------- */
+  document.querySelectorAll('.upload-tile').forEach(tile => {
+    const slot = tile.dataset.slot;
+    const fileInput = tile.querySelector('input[type="file"]');
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      tile.classList.add('uploading');
+      try {
+        const url = await uploadImage(file, user.id);
+        formData[slot] = url;
+        tile.classList.remove('uploading');
+        tile.classList.add('has-image');
+        tile.innerHTML = `<img class="preview" src="${url}" alt=""><button type="button" class="replace-btn">Replace</button><input type="file" accept="image/*">`;
+        const newInput = tile.querySelector('input[type="file"]');
+        const replaceBtn = tile.querySelector('.replace-btn');
+        replaceBtn.addEventListener('click', (ev) => { ev.preventDefault(); newInput.click(); });
+        newInput.addEventListener('change', (ev) => fileInput.dispatchEvent(new Event('change')));
+      } catch (err) {
+        tile.classList.remove('uploading');
+        alert('Upload failed: ' + err.message);
+      }
+    });
+  });
+
+  /* ================================================================
+     INTAKE & PROMPTS
+     ================================================================ */
+
+  function buildIntakeBlock() {
+    const f = formData;
+    return `
+# LAUNCH INTAKE
+
+## Campaign tier
+- Tier: ${f.campaignTier === 'high' ? 'HIGH-TICKET (call/application flow)' : 'LOW-TICKET (direct buy / checkout)'}
+
+## Challenge
+- Name: ${f.challengeName}
+- One-line promise: ${f.promise}
+- Duration: ${f.duration}   Format: ${f.format}
+- Spots available: ${f.spots}   Start date: ${f.startDate}
+
+## Audience
+- Ideal client: ${f.avatarNickname}
+- Age: ${f.ageRange}   Gender: ${f.gender}
+- Biggest pain: ${f.biggestPain}
+- Top desire: ${f.topDesire}
+- Already tried: ${f.alreadyTried}
+
+## Coach
+- Name: ${f.fullName}
+- Brand: ${f.businessName}
+- Handle: ${f.handle}
+- Niche: ${f.niche}
+- Credentials: ${f.credentials}
+- Top testimonial: ${f.topTestimonial}
+
+## Offer
+- Price: ${f.price}   Payment options: ${f.paymentOptions || 'n/a'}
+- Included: ${f.included}
+- Bonuses: ${f.bonuses || 'n/a'}
+- Guarantee: ${f.guarantee || 'n/a'}
+- Biggest objection: ${f.biggestObjection}
+
+## Voice & positioning
+- Tone: ${(f.tone || []).join(', ')}
+- Avoid: ${f.avoidWords}
+- Unique mechanism: ${f.uniqueMechanism}
+- Contrarian belief: ${f.contrarianBelief}
+
+## Brand visuals
+- Primary / Secondary / Accent: ${f.brandPrimary} · ${f.brandSecondary} · ${f.brandAccent}
+
+## Marketing
+- Primary platform: ${f.primaryPlatform}
+- Primary lead source: ${f.primaryLeadSource}
+- Launch timeline: ${f.launchTimeline}
+- Cart open length: ${f.cartOpen}
+- CTA style: ${f.ctaStyle}
+- Success metric: ${f.successMetric}
+`.trim();
+  }
+
+  function tierDirective() {
+    if (formData.campaignTier === 'high') {
+      return `
+# CAMPAIGN TIER: HIGH-TICKET
+This launch is high-ticket (~$1,500+). Tune every asset accordingly:
+- Primary CTA is a discovery/application call, NOT direct checkout
+- Emails are longer, more personal, relationship-led
+- Heavy emphasis on transformation, identity shift, and ROI
+- Use scarcity around cohort size and call slots, not coupon deadlines
+- Social proof should lean on detailed case studies with numbers
+- Voice should feel premium, considered, exclusive`;
+    }
+    return `
+# CAMPAIGN TIER: LOW-TICKET
+This launch is low-ticket (~$47–$497). Tune every asset accordingly:
+- Primary CTA is direct buy / checkout — frictionless
+- Emails are punchier and shorter; urgency-driven
+- Heavy emphasis on quick wins, speed, simplicity
+- Use price-based scarcity (early-bird, cohort filling, fast-action bonuses)
+- Social proof should lean on quantity, relatability, before/afters
+- Voice should feel energetic, accessible, action-oriented`;
+  }
+
+  function buildPrompt(deliverableId, intake, priorOutputs) {
+    const ctx = `You are a senior direct-response launch strategist who has run dozens of sold-out challenges for online fitness coaches.
+
+Use the intake below as the SINGLE SOURCE OF TRUTH. Match the coach's voice, audience, offer and positioning exactly. Don't invent facts.
+
+${intake}
+
+${tierDirective()}
+`;
+    const priorBlock = Object.keys(priorOutputs).length
+      ? `\n# PREVIOUS DELIVERABLES (use for consistency)\n\n` +
+        Object.entries(priorOutputs).map(([k,v]) => `## ${k.toUpperCase()}\n${v}`).join('\n\n---\n\n')
+      : '';
+
+    const tier = formData.campaignTier;
+    const ctaPrimary = tier === 'high' ? 'a discovery / application call' : 'direct checkout';
+
+    const tasks = {
+      positioning: `# YOUR TASK: POSITIONING BRIEF
+
+One-page strategic brief for this challenge. Sections:
+1. Positioning statement (one sentence)
+2. Perfect-fit client (age, life context, top 3 frustrations, top 3 desires)
+3. The mechanism (in coach-friendly language)
+4. Offer architecture (name, format, price, promise, included, bonuses, guarantee)
+5. Voice & tone rules (4-6 bullets)
+6. Three core messages
+
+Tier note: tune positioning toward ${tier === 'high' ? 'premium / exclusive cohort framing' : 'accessible / open-enrollment framing'}.
+Clean Markdown.`,
+
+      sales: `# YOUR TASK: SALES PAGE COPY
+
+Long-form direct-response sales page. Sections in order:
+1. Pre-headline · 2. Headline (BIG promise) · 3. Sub-headline · 4. CTA #1 (button copy for ${ctaPrimary})
+5. Opening "you" section · 6. The problem · 7. The mechanism · 8. Offer stack
+9. Social proof (case study from the testimonial) · 10. About the coach
+11. Objection-handling block · 12. FAQ (5) · 13. Final CTA + scarcity
+
+${tier === 'high' ? 'Frame the CTA as booking a call / submitting an application; never reveal a checkout link.' : 'Frame the CTA as buying / enrolling now; show the price clearly and reduce friction.'}
+Use the coach's voice. Avoid the listed words. Paste-ready Markdown.`,
+
+      emails: `# YOUR TASK: PRE-LAUNCH EMAIL SEQUENCE
+
+${tier === 'high' ? 'Write a 6-email pre-launch sequence' : 'Write a 5-email pre-launch sequence'} for this challenge.
+
+For each email: Email # + day, Subject (≤50 chars), Preview (≤90 chars), Body (${tier === 'high' ? '300-500' : '200-350'} words), CTA.
+
+Arc:
+1. Reframe the problem
+2. Origin / story
+3. The unique mechanism (educate)
+4. Case study / proof
+5. ${tier === 'high' ? 'Invitation to apply (book a call)' : 'Direct offer + scarcity'}
+${tier === 'high' ? '6. Last call to apply before doors close' : ''}
+
+Clean Markdown.`,
+
+      scripts: `# YOUR TASK: 3 SHORT-FORM VIDEO SCRIPTS
+
+Three 30-60s scripts for ${formData.primaryPlatform}. Each: HOOK / SETUP / PAYOFF / CTA, dialogue + [bracketed visual cues]. End with the coach's CTA ("${formData.ctaStyle}").
+
+Angles:
+1. Myth-bust (contrarian belief)
+2. Transformation moment (use testimonial)
+3. Behind the mechanism
+
+Tier note: CTAs should point to ${tier === 'high' ? 'DM/call booking' : 'direct sign-up / link in bio'}.
+Clean Markdown.`,
+
+      ads: `# YOUR TASK: 5 PAID-AD VARIATIONS
+
+For each: Angle name, Hook line, Primary text (3-6 paragraphs), Headline, CTA button text, Creative direction.
+
+Angles: (1) Pain-aware · (2) Contrarian / mechanism · (3) Social proof · (4) Urgency · (5) Personality-led story.
+
+Tier note: ${tier === 'high' ? 'Optimise for application form fills / call bookings. CTA buttons should say "Apply now", "Book a call", "See if you qualify".' : 'Optimise for direct purchases. CTA buttons should say "Get instant access", "Join now", "Save my spot".'}
+Clean Markdown.`,
+
+      manychat: `# YOUR TASK: MANYCHAT DM FLOW
+
+Keyword-triggered ManyChat flow that captures leads from short-form video CTAs.
+
+Node-by-node script. Each node: Name, Trigger, Bot message (exact copy), User options, Next node.
+
+Include: keyword trigger, opener + opt-in, 1-2 qualification questions, asset delivery, next-step ask, tagging logic.
+
+Tier note: ${tier === 'high' ? 'The final ask is "book a 15-min call" — link to a Calendly / scheduler.' : 'The final ask is "grab your spot" — link straight to the checkout / sales page.'}
+Clean Markdown.`,
+
+      plan: `# YOUR TASK: LAUNCH-WEEK PLAN
+
+Day-by-day plan covering "${formData.launchTimeline}" pre-launch + "${formData.cartOpen}" cart-open. Goal: hit "${formData.successMetric}".
+
+Structure:
+- Phase overview (pre-launch, cart-open, cart-close)
+- Daily plan: primary action, content, email/DM activity, KPI to log
+- Weekly KPIs (5 metrics)
+- End-of-launch review checklist
+
+Tier note: ${tier === 'high' ? 'Focus daily actions on filling discovery-call slots; KPIs include calls booked, applications submitted, close rate.' : 'Focus daily actions on driving checkout; KPIs include link clicks, add-to-carts, purchases.'}
+Realistic for a solo coach. Clean Markdown.`
+    };
+
+    return ctx + priorBlock + '\n\n' + tasks[deliverableId];
+  }
+
+  /* ================================================================
+     CLAUDE PROXY CALL
+     ================================================================ */
+
+  async function callClaude(prompt, maxTokens = 4096) {
+    const token = await getAccessToken();
+    if (!token) throw new Error('Not signed in.');
+    const res = await fetch(cfg.CLAUDE_PROXY_PATH || '/api/claude', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        model: cfg.MODEL || 'claude-opus-4-5',
+        max_tokens: maxTokens,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!res.ok) {
+      let detail = '';
+      try { detail = JSON.stringify(await res.json()); } catch (_) { detail = await res.text(); }
+      throw new Error(`Claude proxy ${res.status}: ${detail}`);
+    }
+    const data = await res.json();
+    return (data.content || []).map(b => b.text || '').join('').trim();
+  }
+
+  /* ================================================================
+     GENERATION
+     ================================================================ */
+
+  function renderTasks() {
+    const list = document.getElementById('task-list');
+    list.innerHTML = '';
+    DELIVERABLES.forEach(d => {
+      const row = document.createElement('div');
+      row.className = 'loader-task';
+      row.id = `task-${d.id}`;
+      row.innerHTML = `<span class="loader-task-status">○</span><span>${d.title}</span>`;
+      list.appendChild(row);
+    });
+    // Graphics row
+    const row = document.createElement('div');
+    row.className = 'loader-task';
+    row.id = 'task-graphics';
+    row.innerHTML = `<span class="loader-task-status">○</span><span>Ad graphics (4 templates)</span>`;
+    list.appendChild(row);
+  }
+
+  function markTask(id, state) {
+    const row = document.getElementById(`task-${id}`);
+    if (!row) return;
+    const status = row.querySelector('.loader-task-status');
+    row.classList.remove('active','done');
+    if (state === 'active') { row.classList.add('active'); status.textContent = '▸'; }
+    if (state === 'done')   { row.classList.add('done');   status.textContent = '✓'; }
+  }
+
+  async function generateAllGraphics() {
+    const graphicsCtx = {
+      brandPrimary:    formData.brandPrimary || '#6366f1',
+      brandSecondary:  formData.brandSecondary || '#10b981',
+      brandAccent:     formData.brandAccent || '#ffffff',
+      challengeName:   formData.challengeName,
+      promise:         formData.promise,
+      contrarianBelief: formData.contrarianBelief,
+      duration:        formData.duration,
+      format:          formData.format,
+      spots:           formData.spots,
+      startDate:       formData.startDate,
+      price:           formData.price,
+      ctaStyle:        formData.ctaStyle,
+      fullName:        formData.fullName,
+      businessName:    formData.businessName,
+      handle:          formData.handle,
+      topTestimonial:  formData.topTestimonial,
+      photoUrl:        formData.photoUrl,
+      logoUrl:         formData.logoUrl,
+      appUrl:          formData.appUrl
+    };
+    for (const tpl of TEMPLATES) {
+      const canvas = await renderGraphic(tpl.id, graphicsCtx);
+      generatedGraphics[tpl.id] = canvas.toDataURL('image/png');
+    }
+  }
+
+  async function submitForm() {
+    showSection('generating-section');
+    renderTasks();
+    const intake = buildIntakeBlock();
+    const errEl = document.getElementById('gen-error');
+    errEl.classList.add('hidden');
+
+    try {
+      for (const d of DELIVERABLES) {
+        markTask(d.id, 'active');
+        const prompt = buildPrompt(d.id, intake, generatedDocs);
+        const maxTokens = (d.id === 'plan' || d.id === 'sales') ? 8000 : 4096;
+        const output = await callClaude(prompt, maxTokens);
+        generatedDocs[d.id] = output;
+        markTask(d.id, 'done');
+      }
+
+      markTask('graphics', 'active');
+      await generateAllGraphics();
+      markTask('graphics', 'done');
+
+      const record = {
+        id: 'launch_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+        name: formData.challengeName,
+        tier: formData.campaignTier,
+        createdAt: new Date().toISOString(),
+        deliverableCount: DELIVERABLES.length,
+        intake: formData,
+        docs: generatedDocs,
+        graphics: generatedGraphics
+      };
+      saveChallenge(user.id, record);
+
+      document.getElementById('result-title').firstChild.textContent = (formData.challengeName || 'Your launch kit') + ' ';
+      updateTierBadge(formData.campaignTier);
+      renderDashboard();
+      showSection('dashboard-section');
+      history.replaceState({}, '', `challenge.html?id=${encodeURIComponent(record.id)}`);
+    } catch (err) {
+      errEl.textContent = 'Generation failed: ' + err.message;
+      errEl.classList.remove('hidden');
+    }
+  }
+
+  function updateTierBadge(tier) {
+    const el = document.getElementById('result-tier-badge');
+    if (!tier) { el.textContent = ''; return; }
+    el.outerHTML = `<span id="result-tier-badge" class="tier-badge">${tier === 'high' ? 'High-ticket' : 'Low-ticket'}</span>`;
+  }
+
+  /* ================================================================
+     RESULTS DASHBOARD
+     ================================================================ */
+
+  function renderDashboard() {
+    const tabsList = document.getElementById('tabs-list');
+    const docsContainer = document.getElementById('docs-container');
+    tabsList.innerHTML = '';
+    docsContainer.innerHTML = '';
+
+    // Text deliverable tabs
+    DELIVERABLES.forEach((d, i) => {
+      const tab = document.createElement('div');
+      tab.className = 'tab' + (i === 0 ? ' active' : '');
+      tab.dataset.target = d.id;
+      tab.innerHTML = `<span class="tab-icon">${d.icon}</span><span>${d.title}</span>`;
+      tab.onclick = () => selectTab(d.id);
+      tabsList.appendChild(tab);
+
+      const panel = document.createElement('div');
+      panel.className = 'doc-panel' + (i === 0 ? ' active' : '');
+      panel.id = `panel-${d.id}`;
+      panel.innerHTML = `
+        <div class="doc-header">
+          <h3>${d.title}</h3>
+          <button class="btn btn-secondary btn-sm" data-doc="${d.id}">Copy</button>
+        </div>
+        <div class="doc-body">${escapeHtml(generatedDocs[d.id] || '')}</div>
+      `;
+      docsContainer.appendChild(panel);
+    });
+
+    // Graphics tab
+    const gTab = document.createElement('div');
+    gTab.className = 'tab';
+    gTab.dataset.target = 'graphics';
+    gTab.innerHTML = `<span class="tab-icon">08</span><span>Ad graphics</span>`;
+    gTab.onclick = () => selectTab('graphics');
+    tabsList.appendChild(gTab);
+
+    const gPanel = document.createElement('div');
+    gPanel.className = 'doc-panel';
+    gPanel.id = 'panel-graphics';
+
+    let cards = '';
+    TEMPLATES.forEach(tpl => {
+      const url = generatedGraphics[tpl.id];
+      if (!url) return;
+      cards += `
+        <div class="graphic-card">
+          <img src="${url}" alt="${tpl.title}" />
+          <div class="graphic-card-footer">
+            <div class="graphic-card-title">${tpl.title}</div>
+            <div class="graphic-card-actions">
+              <button class="btn btn-secondary btn-sm" data-download="${tpl.id}">Download</button>
+              <a class="btn btn-ghost btn-sm" href="https://www.canva.com/design/play?type=instagram-post" target="_blank" rel="noopener">Canva →</a>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    gPanel.innerHTML = `
+      <div class="doc-header">
+        <h3>Ad graphics</h3>
+        <button class="btn btn-secondary btn-sm" id="download-all-graphics">Download all</button>
+      </div>
+      <div style="padding: 0 28px; padding-top: 18px; font-size: 0.88rem; color: var(--text-muted);">
+        Rendered with your brand colours${formData.photoUrl ? ' + uploaded photo' : ''}.
+        Download each PNG, then upload to your Canva account to keep editing — Canva remembers your brand kit and lets you save these as templates.
+      </div>
+      <div class="graphics-grid">${cards}</div>
+    `;
+    docsContainer.appendChild(gPanel);
+
+    docsContainer.querySelectorAll('button[data-doc]').forEach(btn => {
+      btn.onclick = () => copyDoc(btn.dataset.doc, btn);
+    });
+    docsContainer.querySelectorAll('button[data-download]').forEach(btn => {
+      btn.onclick = () => downloadSingleGraphic(btn.dataset.download);
+    });
+    const dlAll = document.getElementById('download-all-graphics');
+    if (dlAll) dlAll.onclick = downloadAllGraphics;
+  }
+
+  function selectTab(id) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.target === id));
+    document.querySelectorAll('.doc-panel').forEach(p => p.classList.toggle('active', p.id === `panel-${id}`));
+  }
+
+  function copyDoc(id, btn) {
+    navigator.clipboard.writeText(generatedDocs[id] || '').then(() => {
+      const original = btn.textContent;
+      btn.textContent = 'Copied ✓';
+      setTimeout(() => { btn.textContent = original; }, 1600);
+    });
+  }
+
+  function downloadSingleGraphic(tplId) {
+    const dataUrl = generatedGraphics[tplId];
+    if (!dataUrl) return;
+    const a = document.createElement('a');
+    const safe = (formData.challengeName || 'launch').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+    a.href = dataUrl;
+    a.download = `${safe}-${tplId}.png`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }
+
+  function downloadAllGraphics() {
+    TEMPLATES.forEach(tpl => downloadSingleGraphic(tpl.id));
+  }
+
+  window.downloadAll = function() {
+    const f = formData;
+    let out = `TRAINER LAUNCH KIT\n${f.challengeName || 'Untitled launch'}\nTier: ${f.campaignTier === 'high' ? 'High-ticket' : 'Low-ticket'}\nCoach: ${f.fullName || ''} — ${f.businessName || ''}\n${new Date().toLocaleString()}\n\n`;
+    out += '='.repeat(72) + '\n\n';
+    DELIVERABLES.forEach(d => {
+      out += `\n\n${'#'.repeat(72)}\n# ${d.title.toUpperCase()}\n${'#'.repeat(72)}\n\n`;
+      out += (generatedDocs[d.id] || '') + '\n';
+    });
+    const blob = new Blob([out], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const safe = (f.challengeName || 'launch').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+    a.href = url; a.download = `${safe}.txt`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,14 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <defs>
+    <linearGradient id="tl-grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+  </defs>
+  <!-- rocket / upward arrow mark -->
+  <path d="M32 6 L50 30 L40 30 L40 48 L24 48 L24 30 L14 30 Z" fill="url(#tl-grad)"/>
+  <!-- launchpad base -->
+  <rect x="14" y="54" width="36" height="4" rx="2" fill="url(#tl-grad)"/>
+  <!-- exhaust flicker -->
+  <path d="M28 50 L32 60 L36 50 Z" fill="url(#tl-grad)" opacity="0.55"/>
+</svg>
