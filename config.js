@@ -17,7 +17,7 @@ window.TRAINER_LAUNCH_CONFIG = {
 
   /* Anthropic model to use (server uses this hint).
      Override per-environment if you ever want to test a different one. */
-  MODEL: 'claude-opus-4-5',
+  MODEL: 'claude-opus-4-7',
 
   /* Endpoint of the Netlify Edge proxy. Same-origin by default
      ("/api/claude"). Only change if you host the proxy elsewhere. */

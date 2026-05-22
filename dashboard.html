@@ -149,7 +149,7 @@
           'authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          model: cfg.MODEL || 'claude-opus-4-5',
+          model: cfg.MODEL || 'claude-opus-4-7',
           max_tokens: 64,
           messages: [{ role: 'user', content: 'Reply with exactly: TRAINER LAUNCH OK' }]
         })
