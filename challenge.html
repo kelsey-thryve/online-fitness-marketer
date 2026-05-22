@@ -785,6 +785,8 @@ Realistic for a solo coach. Clean Markdown.`
   async function callClaude(prompt, maxTokens = 4096) {
     const token = await getAccessToken();
     if (!token) throw new Error('Not signed in.');
+    // Stream: true keeps bytes flowing through the Netlify Edge proxy so
+    // long generations don't hit the 40s time-to-first-byte timeout.
     const res = await fetch(cfg.CLAUDE_PROXY_PATH || '/api/claude', {
       method: 'POST',
       headers: {
@@ -794,29 +796,50 @@ Realistic for a solo coach. Clean Markdown.`
       body: JSON.stringify({
         model: cfg.MODEL || 'claude-opus-4-7',
         max_tokens: maxTokens,
+        stream: true,
         messages: [{ role: 'user', content: prompt }]
       })
     });
-    // Read the body exactly once. Clone before the first read so the
-    // error-path fallback has its own untouched stream — otherwise calling
-    // res.text() after res.json() throws "body stream already read".
-    const fallbackBody = res.clone();
-    let bodyText = '';
-    let bodyJson = null;
-    try {
-      bodyText = await res.text();
-      try { bodyJson = JSON.parse(bodyText); } catch (_) { /* not JSON */ }
-    } catch (_) {
-      try { bodyText = await fallbackBody.text(); } catch (_) { bodyText = ''; }
-    }
+
     if (!res.ok) {
-      const detail = bodyJson ? (bodyJson.error || JSON.stringify(bodyJson)) : (bodyText || '(empty response)');
+      let detail = '';
+      try {
+        const raw = await res.text();
+        try { detail = JSON.parse(raw).error || raw; } catch (_) { detail = raw; }
+      } catch (_) { detail = '(could not read body)'; }
       throw new Error(`Claude proxy ${res.status}: ${detail}`);
     }
-    if (!bodyJson) {
-      throw new Error(`Claude proxy returned non-JSON response: ${bodyText.slice(0, 300)}`);
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let text = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      let idx;
+      while ((idx = buffer.indexOf('\n\n')) !== -1) {
+        const rawEvent = buffer.slice(0, idx);
+        buffer = buffer.slice(idx + 2);
+        for (const line of rawEvent.split('\n')) {
+          if (!line.startsWith('data:')) continue;
+          const data = line.slice(5).trim();
+          if (!data) continue;
+          let evt;
+          try { evt = JSON.parse(data); } catch (_) { continue; }
+          if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
+            text += evt.delta.text || '';
+          } else if (evt.type === 'error') {
+            throw new Error(evt.error?.message || JSON.stringify(evt.error));
+          }
+        }
+      }
     }
-    return (bodyJson.content || []).map(b => b.text || '').join('').trim();
+
+    return text.trim();
   }
 
   /* ================================================================
