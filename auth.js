@@ -54,17 +54,48 @@ export async function signOut() {
 /* --- Supabase Storage upload (bucket "uploads", public) --- */
 
 export async function uploadImage(file, userId) {
-  const ext = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '');
+  return uploadAsset(file, userId, 'images');
+}
+
+export async function uploadAsset(file, userId, folder = 'images') {
+  const ext = (file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '');
   const rand = Math.random().toString(36).slice(2, 10);
-  const path = `${userId}/${Date.now()}-${rand}.${ext}`;
+  const path = `${userId}/${folder}/${Date.now()}-${rand}.${ext}`;
   const { error } = await supabase.storage.from('uploads').upload(path, file, {
     cacheControl: '3600',
     upsert: false,
-    contentType: file.type || 'image/png'
+    contentType: file.type || 'application/octet-stream'
   });
   if (error) throw error;
   const { data } = supabase.storage.from('uploads').getPublicUrl(path);
   return data.publicUrl;
+}
+
+/* --- Profile (Supabase `profiles` table) --- */
+
+export async function getProfile() {
+  const user = await getUser();
+  if (!user) return null;
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('user_id', user.id)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function saveProfile(updates) {
+  const user = await getUser();
+  if (!user) throw new Error('Not signed in.');
+  const row = { user_id: user.id, ...updates };
+  const { data, error } = await supabase
+    .from('profiles')
+    .upsert(row, { onConflict: 'user_id' })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
 }
 
 /* --- Challenge storage (localStorage, scoped by user id) --- */

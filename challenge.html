@@ -7,6 +7,7 @@
 <link rel="icon" href="logo.svg" type="image/svg+xml" />
 <link rel="stylesheet" href="style.css" />
 <script src="config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
   /* Page-specific styles for new fields */
   .tier-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -192,23 +193,8 @@
         <div class="field"><label>What have they already tried (that didn't work)? *</label><textarea name="alreadyTried" required></textarea></div>
       </div>
 
-      <!-- Step 4: About you -->
+      <!-- Step 4: Offer -->
       <div class="step-panel" data-step="4">
-        <div class="step-label" data-step-label></div>
-        <h2 class="step-title">About you</h2>
-        <p class="step-desc">A bit about the coach behind the launch.</p>
-        <div class="field-row">
-          <div class="field"><label>Your full name *</label><input type="text" name="fullName" required></div>
-          <div class="field"><label>Business / brand name *</label><input type="text" name="businessName" required></div>
-        </div>
-        <div class="field"><label>Social handle *</label><input type="text" name="handle" placeholder="e.g. @yourbrand" required></div>
-        <div class="field"><label>Your fitness niche *</label><input type="text" name="niche" placeholder="e.g. strength for women over 40" required></div>
-        <div class="field"><label>Your credentials / qualifications *</label><textarea name="credentials" placeholder="Certs, education, athletic background" required></textarea></div>
-        <div class="field"><label>Strongest client testimonial / case study *</label><textarea name="topTestimonial" placeholder="Name, transformation, key numbers" required></textarea></div>
-      </div>
-
-      <!-- Step 5: Offer -->
-      <div class="step-panel" data-step="5">
         <div class="step-label" data-step-label></div>
         <h2 class="step-title">The offer</h2>
         <p class="step-desc">Price, structure, and what's inside.</p>
@@ -222,83 +208,8 @@
         <div class="field"><label>Biggest objection you expect *</label><textarea name="biggestObjection" placeholder='e.g. "I don\'t have time"' required></textarea></div>
       </div>
 
-      <!-- Step 6: Voice & positioning -->
-      <div class="step-panel" data-step="6">
-        <div class="step-label" data-step-label></div>
-        <h2 class="step-title">Voice & positioning</h2>
-        <p class="step-desc">How you sound — and what makes this different.</p>
-        <div class="field"><label>Tone words *</label>
-          <div class="checkbox-group" data-name="tone">
-            <label class="check-pill"><input type="checkbox" value="Direct"> Direct</label>
-            <label class="check-pill"><input type="checkbox" value="Warm"> Warm</label>
-            <label class="check-pill"><input type="checkbox" value="Bold"> Bold</label>
-            <label class="check-pill"><input type="checkbox" value="Playful"> Playful</label>
-            <label class="check-pill"><input type="checkbox" value="Technical"> Technical</label>
-            <label class="check-pill"><input type="checkbox" value="No-BS"> No-BS</label>
-            <label class="check-pill"><input type="checkbox" value="Empathetic"> Empathetic</label>
-            <label class="check-pill"><input type="checkbox" value="Funny"> Funny</label>
-            <label class="check-pill"><input type="checkbox" value="Contrarian"> Contrarian</label>
-            <label class="check-pill"><input type="checkbox" value="Inspirational"> Inspirational</label>
-          </div>
-        </div>
-        <div class="field"><label>Words / vibes to AVOID *</label><textarea name="avoidWords" required></textarea></div>
-        <div class="field"><label>Unique mechanism *</label><textarea name="uniqueMechanism" placeholder="The method, system or angle that's yours" required></textarea></div>
-        <div class="field"><label>Contrarian belief *</label><textarea name="contrarianBelief" placeholder="What does the industry get wrong?" required></textarea></div>
-      </div>
-
-      <!-- Step 7: Brand visuals (NEW) -->
-      <div class="step-panel" data-step="7">
-        <div class="step-label" data-step-label></div>
-        <h2 class="step-title">Brand visuals</h2>
-        <p class="step-desc">Colours + images for your ad graphics. Used to render 4 ready-to-share creatives at the end.</p>
-
-        <div class="field">
-          <label>Brand colours *</label>
-          <div class="color-row">
-            <div class="color-picker">
-              <input type="color" data-color-target="brandPrimary" value="#6366f1">
-              <input type="text" data-color-text="brandPrimary" value="#6366f1">
-            </div>
-            <div class="color-picker">
-              <input type="color" data-color-target="brandSecondary" value="#10b981">
-              <input type="text" data-color-text="brandSecondary" value="#10b981">
-            </div>
-            <div class="color-picker">
-              <input type="color" data-color-target="brandAccent" value="#ffffff">
-              <input type="text" data-color-text="brandAccent" value="#ffffff">
-            </div>
-          </div>
-          <span class="field-hint">Primary · Secondary · Accent. Used in every generated graphic.</span>
-          <input type="hidden" name="brandPrimary"   value="#6366f1">
-          <input type="hidden" name="brandSecondary" value="#10b981">
-          <input type="hidden" name="brandAccent"    value="#ffffff">
-        </div>
-
-        <div class="field">
-          <label>Upload brand images (optional)</label>
-          <div class="upload-row">
-            <label class="upload-tile" data-slot="logoUrl">
-              <input type="file" accept="image/*">
-              <div class="upload-tile-title">Logo / brand mark</div>
-              <div class="upload-tile-sub">PNG · ideally transparent</div>
-            </label>
-            <label class="upload-tile" data-slot="photoUrl">
-              <input type="file" accept="image/*">
-              <div class="upload-tile-title">Photo of you</div>
-              <div class="upload-tile-sub">JPG / PNG · square works best</div>
-            </label>
-            <label class="upload-tile" data-slot="appUrl">
-              <input type="file" accept="image/*">
-              <div class="upload-tile-title">App / product screenshot</div>
-              <div class="upload-tile-sub">PNG · portrait works best</div>
-            </label>
-          </div>
-          <span class="field-hint">All optional — but adding a photo dramatically improves the announcement graphic.</span>
-        </div>
-      </div>
-
-      <!-- Step 8: Marketing -->
-      <div class="step-panel" data-step="8">
+      <!-- Step 5: Marketing -->
+      <div class="step-panel" data-step="5">
         <div class="step-label" data-step-label></div>
         <h2 class="step-title">Marketing strategy</h2>
         <p class="step-desc">How you'll promote this launch.</p>
@@ -393,14 +304,26 @@
 </footer>
 
 <script type="module">
-  import { requireAuth, saveChallenge, getChallenge, getAccessToken, uploadImage } from './auth.js';
+  import { requireAuth, saveChallenge, getChallenge, getAccessToken, getProfile } from './auth.js';
   import { TEMPLATES, renderGraphic, downloadCanvas, canvasToBlob } from './graphics.js';
 
   const user = await requireAuth();
   if (!user) { /* redirected */ }
 
   const cfg = window.TRAINER_LAUNCH_CONFIG || {};
-  const TOTAL_STEPS = 8;
+  const TOTAL_STEPS = 5;
+
+  // Block "New launch" if the brand profile isn't filled in — without it
+  // the prompts and graphics have nothing to personalise with.
+  let profile = null;
+  try { profile = await getProfile(); } catch (_) { /* table may not exist */ }
+  const params0 = new URLSearchParams(window.location.search);
+  if (!params0.get('id')) {
+    const incomplete = !profile || !profile.full_name || !profile.business_name;
+    if (incomplete) {
+      window.location.href = 'profile.html';
+    }
+  }
 
   const DELIVERABLES = [
     { id: 'positioning', title: 'Positioning Brief',         icon: '01' },
@@ -547,47 +470,7 @@
     });
   });
 
-  /* ---------- Brand colour pickers ---------- */
-  document.querySelectorAll('input[type="color"][data-color-target]').forEach(picker => {
-    const targetName = picker.dataset.colorTarget;
-    const textInput = document.querySelector(`input[data-color-text="${targetName}"]`);
-    const hidden = document.querySelector(`input[name="${targetName}"]`);
-    picker.addEventListener('input', () => {
-      textInput.value = picker.value;
-      hidden.value = picker.value;
-    });
-    textInput.addEventListener('change', () => {
-      if (/^#[0-9a-fA-F]{6}$/.test(textInput.value)) {
-        picker.value = textInput.value;
-        hidden.value = textInput.value;
-      }
-    });
-  });
-
-  /* ---------- Image upload tiles ---------- */
-  document.querySelectorAll('.upload-tile').forEach(tile => {
-    const slot = tile.dataset.slot;
-    const fileInput = tile.querySelector('input[type="file"]');
-    fileInput.addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      tile.classList.add('uploading');
-      try {
-        const url = await uploadImage(file, user.id);
-        formData[slot] = url;
-        tile.classList.remove('uploading');
-        tile.classList.add('has-image');
-        tile.innerHTML = `<img class="preview" src="${url}" alt=""><button type="button" class="replace-btn">Replace</button><input type="file" accept="image/*">`;
-        const newInput = tile.querySelector('input[type="file"]');
-        const replaceBtn = tile.querySelector('.replace-btn');
-        replaceBtn.addEventListener('click', (ev) => { ev.preventDefault(); newInput.click(); });
-        newInput.addEventListener('change', (ev) => fileInput.dispatchEvent(new Event('change')));
-      } catch (err) {
-        tile.classList.remove('uploading');
-        alert('Upload failed: ' + err.message);
-      }
-    });
-  });
+  // Brand visuals + colour pickers now live on profile.html — nothing to bind here.
 
   /* ================================================================
      INTAKE & PROMPTS
@@ -595,50 +478,57 @@
 
   function buildIntakeBlock() {
     const f = formData;
+    const p = profile || {};
+    const topT = (Array.isArray(p.testimonials) && p.testimonials[0])
+      ? `${p.testimonials[0].name || ''} — ${p.testimonials[0].quote || ''}${p.testimonials[0].numbers ? ' (' + p.testimonials[0].numbers + ')' : ''}`
+      : '';
     return `
-# LAUNCH INTAKE
+LAUNCH INTAKE
 
-## Campaign tier
+Campaign tier
 - Tier: ${f.campaignTier === 'high' ? 'HIGH-TICKET (call/application flow)' : 'LOW-TICKET (direct buy / checkout)'}
 
-## Challenge
+Challenge
 - Name: ${f.challengeName}
 - One-line promise: ${f.promise}
 - Duration: ${f.duration}   Format: ${f.format}
 - Spots available: ${f.spots}   Start date: ${f.startDate}
 
-## Audience
+Audience
 - Ideal client: ${f.avatarNickname}
 - Age: ${f.ageRange}   Gender: ${f.gender}
 - Biggest pain: ${f.biggestPain}
 - Top desire: ${f.topDesire}
 - Already tried: ${f.alreadyTried}
 
-## Coach
-- Name: ${f.fullName}
-- Brand: ${f.businessName}
-- Handle: ${f.handle}
-- Niche: ${f.niche}
-- Credentials: ${f.credentials}
-- Top testimonial: ${f.topTestimonial}
+Coach (from brand profile)
+- Name: ${p.full_name || ''}
+- Brand: ${p.business_name || ''}
+- Handle: ${p.handle || ''}
+- Niche: ${p.niche || ''}
+- Credentials: ${p.credentials || ''}
+- History as a trainer: ${p.history || ''}
+- What sets them apart: ${p.what_sets_apart || ''}
+- Brand messaging: ${p.brand_messaging || ''}
+- Top testimonial: ${topT}
 
-## Offer
+Offer
 - Price: ${f.price}   Payment options: ${f.paymentOptions || 'n/a'}
 - Included: ${f.included}
 - Bonuses: ${f.bonuses || 'n/a'}
 - Guarantee: ${f.guarantee || 'n/a'}
 - Biggest objection: ${f.biggestObjection}
 
-## Voice & positioning
-- Tone: ${(f.tone || []).join(', ')}
-- Avoid: ${f.avoidWords}
-- Unique mechanism: ${f.uniqueMechanism}
-- Contrarian belief: ${f.contrarianBelief}
+Voice & positioning (from brand profile)
+- Tone: ${(p.tone || []).join(', ')}
+- Avoid: ${p.avoid_words || ''}
+- Unique mechanism: ${p.unique_mechanism || ''}
+- Contrarian belief: ${p.contrarian_belief || ''}
 
-## Brand visuals
-- Primary / Secondary / Accent: ${f.brandPrimary} · ${f.brandSecondary} · ${f.brandAccent}
+Brand visuals
+- Primary / Secondary / Accent: ${p.brand_primary || '#6366f1'} · ${p.brand_secondary || '#10b981'} · ${p.brand_accent || '#ffffff'}
 
-## Marketing
+Marketing
 - Primary platform: ${f.primaryPlatform}
 - Primary lead source: ${f.primaryLeadSource}
 - Launch timeline: ${f.launchTimeline}
@@ -745,7 +635,7 @@ Each script MUST follow this exact 5-line structure, one line per stage, labels 
 (Hook) — Ask a relatable question. Must begin with a personable opener like "Are you struggling to..." NOT a sentence fragment like "Struggling to...".
 (Interest) — Tease the solution.
 (Desire) — Describe the offer and the outcome.
-(Qualifying) — One short line establishing the creator's credibility, drawing on their actual credentials: ${formData.credentials}
+(Qualifying) — One short line establishing the creator's credibility, drawing on their actual credentials: ${(profile && profile.credentials) || ''}
 (Offer) — The call to action. Use the creator's CTA style: "${formData.ctaStyle}". CTA should point to ${tier === 'high' ? 'DM/call booking' : 'direct sign-up / link in bio'}.
 
 Rules:
@@ -925,27 +815,45 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
   }
 
   async function generateAllGraphics() {
+    const p = profile || {};
+    const firstTestimonial = (Array.isArray(p.testimonials) && p.testimonials[0]) || {};
     const graphicsCtx = {
-      brandPrimary:    formData.brandPrimary || '#6366f1',
-      brandSecondary:  formData.brandSecondary || '#10b981',
-      brandAccent:     formData.brandAccent || '#ffffff',
+      brandPrimary:    p.brand_primary   || '#6366f1',
+      brandSecondary:  p.brand_secondary || '#10b981',
+      brandAccent:     p.brand_accent    || '#ffffff',
+      brandFontUrl:    p.font_url        || null,
+      brandFontName:   p.font_name       || null,
       challengeName:   formData.challengeName,
       promise:         formData.promise,
-      contrarianBelief: formData.contrarianBelief,
+      contrarianBelief: p.contrarian_belief,
       duration:        formData.duration,
       format:          formData.format,
       spots:           formData.spots,
       startDate:       formData.startDate,
       price:           formData.price,
       ctaStyle:        formData.ctaStyle,
-      fullName:        formData.fullName,
-      businessName:    formData.businessName,
-      handle:          formData.handle,
-      topTestimonial:  formData.topTestimonial,
-      photoUrl:        formData.photoUrl,
-      logoUrl:         formData.logoUrl,
-      appUrl:          formData.appUrl
+      included:        formData.included,
+      bonuses:         formData.bonuses,
+      fullName:        p.full_name,
+      businessName:    p.business_name,
+      handle:          p.handle,
+      topTestimonial:  firstTestimonial.quote || '',
+      testimonialName: firstTestimonial.name || '',
+      testimonialPhotoUrl: firstTestimonial.photo_url || '',
+      testimonialNumbers:  firstTestimonial.numbers || '',
+      testimonialPhotos:   (p.testimonials || []).map(t => t.photo_url).filter(Boolean),
+      photoUrl:        p.photo_url || '',
+      logoUrl:         p.logo_url  || '',
+      appUrl:          p.app_url   || ''
     };
+    // Load the brand font (if any) once before rendering so each canvas uses it.
+    if (graphicsCtx.brandFontUrl && graphicsCtx.brandFontName) {
+      try {
+        const font = new FontFace(graphicsCtx.brandFontName, `url("${graphicsCtx.brandFontUrl}")`);
+        await font.load();
+        document.fonts.add(font);
+      } catch (_) { /* fall back to Inter */ }
+    }
     for (const tpl of TEMPLATES) {
       const canvas = await renderGraphic(tpl.id, graphicsCtx);
       generatedGraphics[tpl.id] = canvas.toDataURL('image/png');
@@ -1024,10 +932,16 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
       const panel = document.createElement('div');
       panel.className = 'doc-panel' + (i === 0 ? ' active' : '');
       panel.id = `panel-${d.id}`;
+      const pdfBtn = d.id === 'plan'
+        ? `<button class="btn btn-secondary btn-sm" data-pdf="${d.id}">⇩ PDF</button>`
+        : '';
       panel.innerHTML = `
         <div class="doc-header">
           <h3>${d.title}</h3>
-          <button class="btn btn-secondary btn-sm" data-doc="${d.id}">Copy</button>
+          <div style="display:flex; gap:8px;">
+            ${pdfBtn}
+            <button class="btn btn-secondary btn-sm" data-doc="${d.id}">Copy</button>
+          </div>
         </div>
         <div class="doc-body">${escapeHtml(generatedDocs[d.id] || '')}</div>
       `;
@@ -1070,7 +984,7 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
         <button class="btn btn-secondary btn-sm" id="download-all-graphics">Download all</button>
       </div>
       <div style="padding: 0 28px; padding-top: 18px; font-size: 0.88rem; color: var(--text-muted);">
-        Rendered with your brand colours${formData.photoUrl ? ' + uploaded photo' : ''}.
+        Rendered with your brand colours${(profile && profile.photo_url) ? ' + your uploaded photo' : ''}.
         Download each PNG, then upload to your Canva account to keep editing — Canva remembers your brand kit and lets you save these as templates.
       </div>
       <div class="graphics-grid">${cards}</div>
@@ -1079,6 +993,9 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
 
     docsContainer.querySelectorAll('button[data-doc]').forEach(btn => {
       btn.onclick = () => copyDoc(btn.dataset.doc, btn);
+    });
+    docsContainer.querySelectorAll('button[data-pdf]').forEach(btn => {
+      btn.onclick = () => downloadLaunchPlanPdf();
     });
     docsContainer.querySelectorAll('button[data-download]').forEach(btn => {
       btn.onclick = () => downloadSingleGraphic(btn.dataset.download);
@@ -1116,7 +1033,8 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
 
   window.downloadAll = function() {
     const f = formData;
-    let out = `TRAINER LAUNCH KIT\n${f.challengeName || 'Untitled launch'}\nTier: ${f.campaignTier === 'high' ? 'High-ticket' : 'Low-ticket'}\nCoach: ${f.fullName || ''} — ${f.businessName || ''}\n${new Date().toLocaleString()}\n\n`;
+    const p = profile || {};
+    let out = `TRAINER LAUNCH KIT\n${f.challengeName || 'Untitled launch'}\nTier: ${f.campaignTier === 'high' ? 'High-ticket' : 'Low-ticket'}\nCoach: ${p.full_name || ''} — ${p.business_name || ''}\n${new Date().toLocaleString()}\n\n`;
     out += '='.repeat(72) + '\n\n';
     DELIVERABLES.forEach(d => {
       out += `\n\n${'#'.repeat(72)}\n# ${d.title.toUpperCase()}\n${'#'.repeat(72)}\n\n`;
@@ -1130,6 +1048,98 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+
+  function downloadLaunchPlanPdf() {
+    const plan = generatedDocs.plan || '';
+    if (!plan) { alert('Launch plan not generated yet.'); return; }
+    const p = profile || {};
+    const primary   = p.brand_primary   || '#6366f1';
+    const secondary = p.brand_secondary || '#10b981';
+    const brandName = p.business_name   || 'Trainer Launch';
+
+    // Build a styled HTML node, then convert to PDF.
+    // Each "☐ ..." line becomes an actual checkbox row; uppercase lines are
+    // treated as phase headings.
+    const rows = plan.split('\n').map(raw => {
+      const line = raw.trim();
+      if (!line) return '<div style="height:8px;"></div>';
+      if (/^☐\s+/.test(line)) {
+        const text = line.replace(/^☐\s+/, '');
+        return `<div class="row"><span class="cb"></span><span class="txt">${escapeHtml(text)}</span></div>`;
+      }
+      if (/^[A-Z0-9 \-—·,&/]+$/.test(line) && line.length >= 4 && line.length <= 80) {
+        return `<h2 class="phase">${escapeHtml(line)}</h2>`;
+      }
+      return `<p class="body">${escapeHtml(line)}</p>`;
+    }).join('');
+
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:fixed; left:-99999px; top:0; width:794px; background:#ffffff; color:#0a0a0f; font-family: Inter, Helvetica, Arial, sans-serif;';
+    wrap.innerHTML = `
+      <style>
+        .pdf-wrap { padding: 56px 56px 64px; }
+        .pdf-head {
+          display: flex; justify-content: space-between; align-items: flex-end;
+          border-bottom: 4px solid ${primary}; padding-bottom: 18px; margin-bottom: 32px;
+        }
+        .pdf-head .eyebrow {
+          color: ${primary}; font-size: 11px; font-weight: 700;
+          letter-spacing: 0.18em; text-transform: uppercase;
+        }
+        .pdf-head .title { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; margin-top: 6px; }
+        .pdf-head .brand { color: #6b6b7a; font-size: 12px; }
+        .phase {
+          color: ${primary}; font-size: 15px; font-weight: 800; letter-spacing: 0.12em;
+          margin: 22px 0 10px; text-transform: uppercase;
+        }
+        .row {
+          display: flex; align-items: flex-start; gap: 12px;
+          padding: 9px 0; border-bottom: 1px solid #ececf2;
+        }
+        .cb {
+          width: 18px; height: 18px; min-width: 18px;
+          border: 2px solid ${primary}; border-radius: 4px;
+          margin-top: 2px; background: #fff;
+        }
+        .txt { font-size: 13px; line-height: 1.5; }
+        .body { font-size: 12px; color: #4a4a5a; margin: 6px 0; }
+        .pdf-foot {
+          margin-top: 36px; padding-top: 16px;
+          border-top: 1px solid #ececf2;
+          font-size: 10px; color: #9999a8; text-align: center;
+        }
+      </style>
+      <div class="pdf-wrap">
+        <div class="pdf-head">
+          <div>
+            <div class="eyebrow">Launch-week checklist</div>
+            <div class="title">${escapeHtml(formData.challengeName || 'Your launch')}</div>
+          </div>
+          <div class="brand">
+            <div style="font-weight:700; color:#0a0a0f;">${escapeHtml(brandName)}</div>
+            <div>${new Date().toLocaleDateString()}</div>
+          </div>
+        </div>
+        ${rows}
+        <div class="pdf-foot">Generated by Trainer Launch · Brand colours by ${escapeHtml(brandName)}</div>
+      </div>
+    `;
+    document.body.appendChild(wrap);
+
+    const safe = (formData.challengeName || 'launch').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+    html2pdf().set({
+      margin: 0,
+      filename: `${safe}-launch-plan.pdf`,
+      image: { type: 'jpeg', quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+      jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' }
+    }).from(wrap).save().then(() => {
+      document.body.removeChild(wrap);
+    }).catch(err => {
+      document.body.removeChild(wrap);
+      alert('PDF export failed: ' + err.message);
+    });
+  }
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

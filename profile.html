@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Brand profile — Trainer Launch</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="style.css" />
+<script src="config.js"></script>
+<style>
+  .profile-section {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 32px; margin-bottom: 22px;
+  }
+  .profile-section h2 { font-size: 1.3rem; margin-bottom: 6px; }
+  .profile-section .sect-desc { color: var(--text-muted); font-size: 0.92rem; margin-bottom: 22px; }
+
+  .color-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .color-row { grid-template-columns: 1fr; } }
+  .color-picker {
+    display: flex; gap: 10px; align-items: center;
+    background: var(--bg-input); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 10px;
+  }
+  .color-picker input[type="color"] {
+    width: 44px; height: 44px; border: none; border-radius: 8px;
+    background: transparent; cursor: pointer; padding: 0;
+  }
+  .color-picker input[type="text"] {
+    background: transparent; border: none; flex: 1; color: var(--text);
+    font-family: monospace; font-size: 0.95rem;
+  }
+
+  .upload-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 880px) { .upload-row { grid-template-columns: 1fr; } }
+  .upload-tile {
+    background: var(--bg-input); border: 1px dashed var(--border-strong);
+    border-radius: var(--radius); padding: 18px;
+    text-align: center; cursor: pointer;
+    transition: all 0.15s; position: relative; min-height: 180px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .upload-tile:hover { border-color: var(--accent); background: var(--bg-card); }
+  .upload-tile input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .upload-tile-title { font-weight: 600; font-size: 0.95rem; }
+  .upload-tile-sub { font-size: 0.82rem; color: var(--text-dim); margin-top: 4px; }
+  .upload-tile.has-image { border-style: solid; padding: 0; overflow: hidden; }
+  .upload-tile .preview {
+    width: 100%; height: 180px; object-fit: cover; border-radius: var(--radius);
+  }
+  .upload-tile .replace-btn {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(0,0,0,0.7); color: white; border: none;
+    padding: 4px 10px; border-radius: 6px; font-size: 0.75rem;
+    cursor: pointer; font-family: inherit;
+  }
+  .upload-tile.uploading::after {
+    content: 'Uploading…'; position: absolute; inset: 0;
+    background: rgba(10,10,15,0.85); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; font-weight: 500;
+  }
+
+  .font-tile {
+    background: var(--bg-input); border: 1px dashed var(--border-strong);
+    border-radius: var(--radius); padding: 18px; position: relative;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .font-tile .font-preview { font-size: 1.4rem; }
+  .font-tile input[type="file"] { display: none; }
+
+  .testimonial-row {
+    background: var(--bg-input); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px; margin-bottom: 14px;
+    display: grid; grid-template-columns: 140px 1fr auto; gap: 16px; align-items: start;
+  }
+  @media (max-width: 700px) { .testimonial-row { grid-template-columns: 1fr; } }
+  .testimonial-photo {
+    width: 140px; height: 140px; border-radius: var(--radius); overflow: hidden;
+    background: var(--bg-card); border: 1px dashed var(--border-strong);
+    display: flex; align-items: center; justify-content: center;
+    position: relative; cursor: pointer; font-size: 0.82rem; color: var(--text-dim);
+    text-align: center;
+  }
+  .testimonial-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .testimonial-photo input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .testimonial-photo.uploading::after {
+    content: 'Uploading…'; position: absolute; inset: 0;
+    background: rgba(10,10,15,0.85); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem;
+  }
+
+  .save-bar {
+    position: sticky; bottom: 0;
+    background: rgba(10, 10, 15, 0.92); backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    padding: 18px 24px; margin: 0 -24px;
+    display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  }
+  .save-status { font-size: 0.9rem; color: var(--text-muted); }
+  .save-status.success { color: #6ee7b7; }
+  .save-status.error { color: #fca5a5; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="dashboard.html" class="nav-brand">
+      <img src="logo.svg" alt="Trainer Launch" />
+      <span class="brand-text">Trainer Launch</span>
+    </a>
+    <div class="nav-links">
+      <a href="dashboard.html">← Dashboard</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container-narrow" style="padding-bottom: 40px;">
+  <div class="dash-header">
+    <div>
+      <h1>Brand profile</h1>
+      <p>Set this once. Every launch you create will inherit it — copy voice, brand colours, your photo, testimonials and font.</p>
+    </div>
+  </div>
+
+  <form id="profile-form" onsubmit="return submitProfile(event)">
+
+    <div class="profile-section">
+      <h2>About you</h2>
+      <p class="sect-desc">The basics every deliverable references.</p>
+      <div class="field-row">
+        <div class="field"><label>Your full name *</label><input type="text" name="full_name" required></div>
+        <div class="field"><label>Business / brand name *</label><input type="text" name="business_name" required></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Social handle *</label><input type="text" name="handle" placeholder="@yourbrand" required></div>
+        <div class="field"><label>Your fitness niche *</label><input type="text" name="niche" placeholder="strength for women over 40" required></div>
+      </div>
+      <div class="field"><label>Your credentials / qualifications *</label><textarea name="credentials" placeholder="Certs, education, athletic background" required></textarea></div>
+      <div class="field"><label>Your history as a trainer</label><textarea name="history" placeholder="How long you've been coaching, your journey, key milestones"></textarea></div>
+      <div class="field"><label>What sets you apart</label><textarea name="what_sets_apart" placeholder="The thing that makes your coaching different — your edge"></textarea></div>
+      <div class="field"><label>Brand messaging</label><textarea name="brand_messaging" placeholder="Tagline, mission, anything else you want every asset to echo"></textarea></div>
+    </div>
+
+    <div class="profile-section">
+      <h2>Voice & positioning</h2>
+      <p class="sect-desc">How you sound, the lines you draw and the angle that's yours.</p>
+      <div class="field"><label>Tone words</label>
+        <div class="checkbox-group" data-name="tone">
+          <label class="check-pill"><input type="checkbox" value="Direct"> Direct</label>
+          <label class="check-pill"><input type="checkbox" value="Warm"> Warm</label>
+          <label class="check-pill"><input type="checkbox" value="Bold"> Bold</label>
+          <label class="check-pill"><input type="checkbox" value="Playful"> Playful</label>
+          <label class="check-pill"><input type="checkbox" value="Technical"> Technical</label>
+          <label class="check-pill"><input type="checkbox" value="No-BS"> No-BS</label>
+          <label class="check-pill"><input type="checkbox" value="Empathetic"> Empathetic</label>
+          <label class="check-pill"><input type="checkbox" value="Funny"> Funny</label>
+          <label class="check-pill"><input type="checkbox" value="Contrarian"> Contrarian</label>
+          <label class="check-pill"><input type="checkbox" value="Inspirational"> Inspirational</label>
+        </div>
+      </div>
+      <div class="field"><label>Words / vibes to AVOID</label><textarea name="avoid_words"></textarea></div>
+      <div class="field"><label>Unique mechanism</label><textarea name="unique_mechanism" placeholder="The method, system or angle that's yours"></textarea></div>
+      <div class="field"><label>Contrarian belief</label><textarea name="contrarian_belief" placeholder="What does the industry get wrong?"></textarea></div>
+    </div>
+
+    <div class="profile-section">
+      <h2>Brand visuals</h2>
+      <p class="sect-desc">Used in every generated graphic.</p>
+      <div class="upload-row">
+        <label class="upload-tile" data-slot="photo_url">
+          <input type="file" accept="image/*">
+          <div class="upload-tile-title">Photo of you</div>
+          <div class="upload-tile-sub">JPG / PNG · square works best</div>
+        </label>
+        <label class="upload-tile" data-slot="logo_url">
+          <input type="file" accept="image/*">
+          <div class="upload-tile-title">Logo / brand mark</div>
+          <div class="upload-tile-sub">PNG · ideally transparent</div>
+        </label>
+        <label class="upload-tile" data-slot="app_url">
+          <input type="file" accept="image/*">
+          <div class="upload-tile-title">App / product screenshot</div>
+          <div class="upload-tile-sub">PNG · portrait works best</div>
+        </label>
+      </div>
+    </div>
+
+    <div class="profile-section">
+      <h2>Brand colours</h2>
+      <p class="sect-desc">Primary · Secondary · Accent. Used as the colour palette in every graphic.</p>
+      <div class="color-row">
+        <div class="color-picker">
+          <input type="color" data-color-target="brand_primary" value="#6366f1">
+          <input type="text" data-color-text="brand_primary" value="#6366f1">
+        </div>
+        <div class="color-picker">
+          <input type="color" data-color-target="brand_secondary" value="#10b981">
+          <input type="text" data-color-text="brand_secondary" value="#10b981">
+        </div>
+        <div class="color-picker">
+          <input type="color" data-color-target="brand_accent" value="#ffffff">
+          <input type="text" data-color-text="brand_accent" value="#ffffff">
+        </div>
+      </div>
+      <input type="hidden" name="brand_primary"   value="#6366f1">
+      <input type="hidden" name="brand_secondary" value="#10b981">
+      <input type="hidden" name="brand_accent"    value="#ffffff">
+    </div>
+
+    <div class="profile-section">
+      <h2>Brand font</h2>
+      <p class="sect-desc">Upload a .ttf, .otf or .woff2. Used as the headline font in your generated graphics. Optional.</p>
+      <div class="font-tile">
+        <div>
+          <div class="upload-tile-title" id="font-status">No font uploaded</div>
+          <div class="upload-tile-sub font-preview" id="font-preview" style="margin-top: 6px;">The quick brown fox jumps over the lazy dog</div>
+        </div>
+        <label class="btn btn-secondary btn-sm" style="cursor: pointer;">
+          Upload font
+          <input type="file" accept=".ttf,.otf,.woff,.woff2,font/*">
+        </label>
+      </div>
+      <div class="field" style="margin-top: 14px;">
+        <label>Font display name</label>
+        <input type="text" name="font_name" placeholder="e.g. Helvetica Neue Bold">
+      </div>
+      <input type="hidden" name="font_url">
+    </div>
+
+    <div class="profile-section">
+      <h2>Testimonials</h2>
+      <p class="sect-desc">Add as many as you like. The strongest one is used on the sales page; the photos appear in your ad graphics.</p>
+      <div id="testimonials-list"></div>
+      <button type="button" class="btn btn-secondary btn-sm" id="add-testimonial-btn">+ Add testimonial</button>
+    </div>
+
+    <div id="form-alert"></div>
+
+    <div class="save-bar">
+      <div class="save-status" id="save-status"></div>
+      <div style="display: flex; gap: 10px;">
+        <a href="dashboard.html" class="btn btn-ghost">Cancel</a>
+        <button type="submit" class="btn btn-primary" id="save-btn">Save profile</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<footer>
+  <div class="container">
+    © 2026 Trainer Launch
+  </div>
+</footer>
+
+<script type="module">
+  import { requireAuth, getProfile, saveProfile, uploadAsset } from './auth.js';
+
+  const user = await requireAuth();
+  if (!user) { /* redirected */ }
+
+  const form = document.getElementById('profile-form');
+  const statusEl = document.getElementById('save-status');
+  let testimonials = [];
+
+  /* ---------- Load existing profile ---------- */
+  let existing = null;
+  try {
+    existing = await getProfile();
+  } catch (err) {
+    showAlert('Failed to load profile: ' + err.message);
+  }
+
+  function applyProfile(p) {
+    if (!p) return;
+    for (const k of [
+      'full_name','business_name','handle','niche','credentials','history',
+      'what_sets_apart','brand_messaging','avoid_words','unique_mechanism',
+      'contrarian_belief','brand_primary','brand_secondary','brand_accent',
+      'font_url','font_name'
+    ]) {
+      const el = form.querySelector(`[name="${k}"]`);
+      if (el && p[k] != null) el.value = p[k];
+    }
+    // Colour pickers
+    ['brand_primary','brand_secondary','brand_accent'].forEach(name => {
+      const picker = document.querySelector(`input[type=color][data-color-target="${name}"]`);
+      const text = document.querySelector(`input[data-color-text="${name}"]`);
+      if (picker && p[name]) picker.value = p[name];
+      if (text && p[name]) text.value = p[name];
+    });
+    // Tone checkboxes
+    const tone = Array.isArray(p.tone) ? p.tone : [];
+    form.querySelectorAll('.checkbox-group[data-name="tone"] input[type=checkbox]').forEach(cb => {
+      cb.checked = tone.includes(cb.value);
+      cb.parentElement.classList.toggle('checked', cb.checked);
+    });
+    // Image tiles
+    ['photo_url','logo_url','app_url'].forEach(slot => {
+      if (p[slot]) markTileLoaded(document.querySelector(`.upload-tile[data-slot="${slot}"]`), p[slot]);
+    });
+    // Font
+    if (p.font_url && p.font_name) {
+      document.getElementById('font-status').textContent = `Loaded: ${p.font_name}`;
+      loadBrandFont(p.font_url, p.font_name).then(applied => {
+        if (applied) document.getElementById('font-preview').style.fontFamily = `'${p.font_name}', Inter, sans-serif`;
+      });
+    }
+    // Testimonials
+    testimonials = Array.isArray(p.testimonials) ? p.testimonials : [];
+    renderTestimonials();
+  }
+  applyProfile(existing);
+  if (!existing) renderTestimonials();
+
+  /* ---------- Tone checkbox visual ---------- */
+  document.addEventListener('change', e => {
+    if (e.target.matches('.check-pill input[type="checkbox"]')) {
+      e.target.parentElement.classList.toggle('checked', e.target.checked);
+    }
+  });
+
+  /* ---------- Colour pickers ---------- */
+  document.querySelectorAll('input[type="color"][data-color-target]').forEach(picker => {
+    const targetName = picker.dataset.colorTarget;
+    const textInput = document.querySelector(`input[data-color-text="${targetName}"]`);
+    const hidden = document.querySelector(`input[name="${targetName}"]`);
+    picker.addEventListener('input', () => {
+      textInput.value = picker.value;
+      hidden.value = picker.value;
+    });
+    textInput.addEventListener('change', () => {
+      if (/^#[0-9a-fA-F]{6}$/.test(textInput.value)) {
+        picker.value = textInput.value;
+        hidden.value = textInput.value;
+      }
+    });
+  });
+
+  /* ---------- Image upload tiles ---------- */
+  document.querySelectorAll('.upload-tile').forEach(tile => bindUploadTile(tile));
+
+  function bindUploadTile(tile) {
+    const slot = tile.dataset.slot;
+    const fileInput = tile.querySelector('input[type="file"]');
+    if (!fileInput) return;
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      tile.classList.add('uploading');
+      try {
+        const url = await uploadAsset(file, user.id, 'images');
+        markTileLoaded(tile, url);
+        // Save immediately on upload so the URL persists even if the user
+        // navigates away without hitting Save.
+        const updates = {};
+        updates[slot] = url;
+        await saveProfile(updates);
+        flashStatus(`Saved ${slot.replace('_url','').replace('_',' ')}`, 'success');
+      } catch (err) {
+        tile.classList.remove('uploading');
+        showAlert('Upload failed: ' + err.message);
+      }
+    });
+  }
+
+  function markTileLoaded(tile, url) {
+    if (!tile) return;
+    tile.classList.remove('uploading');
+    tile.classList.add('has-image');
+    tile.innerHTML = `<img class="preview" src="${url}" alt=""><button type="button" class="replace-btn">Replace</button><input type="file" accept="image/*">`;
+    const newInput = tile.querySelector('input[type="file"]');
+    const replaceBtn = tile.querySelector('.replace-btn');
+    replaceBtn.addEventListener('click', (ev) => { ev.preventDefault(); newInput.click(); });
+    bindUploadTile(tile);
+  }
+
+  /* ---------- Font upload ---------- */
+  const fontTile = document.querySelector('.font-tile');
+  const fontInput = fontTile.querySelector('input[type="file"]');
+  fontInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    document.getElementById('font-status').textContent = 'Uploading font…';
+    try {
+      const url = await uploadAsset(file, user.id, 'fonts');
+      document.querySelector('input[name="font_url"]').value = url;
+      const nameInput = document.querySelector('input[name="font_name"]');
+      if (!nameInput.value) {
+        nameInput.value = file.name.replace(/\.(ttf|otf|woff2?|font)$/i, '').replace(/[-_]/g, ' ');
+      }
+      document.getElementById('font-status').textContent = `Loaded: ${nameInput.value}`;
+      const applied = await loadBrandFont(url, nameInput.value);
+      if (applied) document.getElementById('font-preview').style.fontFamily = `'${nameInput.value}', Inter, sans-serif`;
+      await saveProfile({ font_url: url, font_name: nameInput.value });
+      flashStatus('Saved brand font', 'success');
+    } catch (err) {
+      document.getElementById('font-status').textContent = 'No font uploaded';
+      showAlert('Font upload failed: ' + err.message);
+    }
+  });
+
+  async function loadBrandFont(url, name) {
+    if (!url || !name) return false;
+    try {
+      const font = new FontFace(name, `url("${url}")`);
+      await font.load();
+      document.fonts.add(font);
+      return true;
+    } catch (e) {
+      console.warn('Font load failed:', e);
+      return false;
+    }
+  }
+
+  /* ---------- Testimonials ---------- */
+  document.getElementById('add-testimonial-btn').addEventListener('click', () => {
+    testimonials.push({ name: '', quote: '', numbers: '', photo_url: '' });
+    renderTestimonials();
+  });
+
+  function renderTestimonials() {
+    const list = document.getElementById('testimonials-list');
+    list.innerHTML = '';
+    if (!testimonials.length) {
+      list.innerHTML = `<p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 12px;">No testimonials yet. Add one to make your sales page and graphics far stronger.</p>`;
+      return;
+    }
+    testimonials.forEach((t, i) => {
+      const row = document.createElement('div');
+      row.className = 'testimonial-row';
+      row.innerHTML = `
+        <div class="testimonial-photo" data-idx="${i}">
+          ${t.photo_url ? `<img src="${t.photo_url}" alt="">` : `<span>+ Add photo</span>`}
+          <input type="file" accept="image/*">
+        </div>
+        <div>
+          <div class="field"><label>Client name *</label>
+            <input type="text" data-tn-field="name" data-idx="${i}" value="${escapeAttr(t.name || '')}" placeholder="Sarah K."></div>
+          <div class="field"><label>Their quote / story *</label>
+            <textarea data-tn-field="quote" data-idx="${i}" placeholder="What they said about working with you">${escapeAttr(t.quote || '')}</textarea></div>
+          <div class="field"><label>Numbers / transformation</label>
+            <input type="text" data-tn-field="numbers" data-idx="${i}" value="${escapeAttr(t.numbers || '')}" placeholder="Lost 25 lbs in 12 weeks"></div>
+        </div>
+        <button type="button" class="btn btn-danger btn-sm" data-remove="${i}">Remove</button>
+      `;
+      list.appendChild(row);
+    });
+    // Bind handlers
+    list.querySelectorAll('[data-tn-field]').forEach(el => {
+      el.addEventListener('input', () => {
+        const i = Number(el.dataset.idx);
+        testimonials[i][el.dataset.tnField] = el.value;
+      });
+    });
+    list.querySelectorAll('[data-remove]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        testimonials.splice(Number(btn.dataset.remove), 1);
+        renderTestimonials();
+      });
+    });
+    list.querySelectorAll('.testimonial-photo').forEach(box => {
+      const idx = Number(box.dataset.idx);
+      const fInput = box.querySelector('input[type="file"]');
+      fInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        box.classList.add('uploading');
+        try {
+          const url = await uploadAsset(file, user.id, 'testimonials');
+          testimonials[idx].photo_url = url;
+          renderTestimonials();
+        } catch (err) {
+          box.classList.remove('uploading');
+          showAlert('Upload failed: ' + err.message);
+        }
+      });
+    });
+  }
+
+  /* ---------- Save ---------- */
+  window.submitProfile = async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('save-btn');
+    btn.disabled = true;
+    statusEl.textContent = 'Saving…';
+    statusEl.className = 'save-status';
+
+    const tone = Array.from(form.querySelectorAll('.checkbox-group[data-name="tone"] input[type=checkbox]:checked')).map(cb => cb.value);
+    const payload = {
+      full_name:         form.full_name.value.trim(),
+      business_name:     form.business_name.value.trim(),
+      handle:            form.handle.value.trim(),
+      niche:             form.niche.value.trim(),
+      credentials:       form.credentials.value.trim(),
+      history:           form.history.value.trim(),
+      what_sets_apart:   form.what_sets_apart.value.trim(),
+      brand_messaging:   form.brand_messaging.value.trim(),
+      tone,
+      avoid_words:       form.avoid_words.value.trim(),
+      unique_mechanism:  form.unique_mechanism.value.trim(),
+      contrarian_belief: form.contrarian_belief.value.trim(),
+      brand_primary:     form.brand_primary.value,
+      brand_secondary:   form.brand_secondary.value,
+      brand_accent:      form.brand_accent.value,
+      font_url:          form.font_url.value || null,
+      font_name:         form.font_name.value.trim() || null,
+      testimonials
+    };
+
+    try {
+      await saveProfile(payload);
+      flashStatus('Saved ✓', 'success');
+    } catch (err) {
+      statusEl.textContent = 'Save failed: ' + err.message;
+      statusEl.className = 'save-status error';
+    } finally {
+      btn.disabled = false;
+    }
+    return false;
+  };
+
+  function flashStatus(msg, cls = '') {
+    statusEl.textContent = msg;
+    statusEl.className = 'save-status' + (cls ? ' ' + cls : '');
+    setTimeout(() => {
+      statusEl.textContent = '';
+      statusEl.className = 'save-status';
+    }, 2400);
+  }
+
+  function showAlert(msg) {
+    document.getElementById('form-alert').innerHTML = `<div class="alert alert-error" style="margin-top: 18px;">${escapeHtml(msg)}</div>`;
+  }
+
+  function escapeAttr(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+</script>
+
+</body>
+</html>

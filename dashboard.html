@@ -18,6 +18,7 @@
     </a>
     <div class="nav-links">
       <span id="nav-email" style="color: var(--text-muted); font-size: 0.9rem;"></span>
+      <a href="profile.html" class="btn btn-secondary btn-sm">Profile</a>
       <a href="#" onclick="doSignOut(); return false;" class="btn btn-ghost btn-sm">Sign out</a>
     </div>
   </div>
@@ -60,6 +61,13 @@
     </div>
   </div>
 
+  <div id="profile-banner" class="hidden" style="margin: 0 0 28px 0;">
+    <div class="alert alert-info" style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+      <span>Set up your brand profile so every launch inherits your voice, colours, photo and testimonials.</span>
+      <a href="profile.html" class="btn btn-secondary btn-sm">Set up profile</a>
+    </div>
+  </div>
+
   <div id="api-test" style="margin: 40px 0;">
     <div class="card">
       <h3 style="margin-bottom: 10px;">Test your API connection</h3>
@@ -77,7 +85,7 @@
 </footer>
 
 <script type="module">
-  import { requireAuth, signOut, listChallenges, getAccessToken } from './auth.js';
+  import { requireAuth, signOut, listChallenges, getAccessToken, getProfile } from './auth.js';
 
   const user = await requireAuth();
   if (!user) { /* redirected */ }
@@ -126,6 +134,13 @@
       listEl.appendChild(row);
     });
   }
+
+  // Show "set up profile" banner if profile is missing/empty
+  try {
+    const profile = await getProfile();
+    const needsSetup = !profile || !profile.full_name || !profile.business_name;
+    if (needsSetup) document.getElementById('profile-banner').classList.remove('hidden');
+  } catch (_) { /* table may not exist yet; quietly skip */ }
 
   window.doSignOut = signOut;
 
