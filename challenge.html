@@ -676,6 +676,14 @@ This launch is low-ticket (~$47–$497). Tune every asset accordingly:
 
 Use the intake below as the SINGLE SOURCE OF TRUTH. Match the coach's voice, audience, offer and positioning exactly. Don't invent facts.
 
+OUTPUT FORMAT — STRICT:
+- Plain text only. NO markdown.
+- Do NOT use # for headings. Use UPPERCASE for section titles instead.
+- Do NOT use * or _ for emphasis, bold, italics, or bullets.
+- Use a single "•" or "-" character for bullets when needed.
+- No code fences, no backticks.
+- Output should be ready to copy and paste directly into an email, doc or ad platform with no clean-up.
+
 ${intake}
 
 ${tierDirective()}
@@ -729,50 +737,93 @@ ${tier === 'high' ? '6. Last call to apply before doors close' : ''}
 
 Clean Markdown.`,
 
-      scripts: `# YOUR TASK: 3 SHORT-FORM VIDEO SCRIPTS
+      scripts: `YOUR TASK: 3 SHORT-FORM AD VIDEO SCRIPTS
 
-Three 30-60s scripts for ${formData.primaryPlatform}. Each: HOOK / SETUP / PAYOFF / CTA, dialogue + [bracketed visual cues]. End with the coach's CTA ("${formData.ctaStyle}").
+Write 3 compelling 30-second video advertisement scripts tailored to this creator and audience. Each script presents a problem then solves it, with a question-led hook in the first 3 seconds.
 
-Angles:
-1. Myth-bust (contrarian belief)
-2. Transformation moment (use testimonial)
-3. Behind the mechanism
+Each script MUST follow this exact 5-line structure, one line per stage, labels in parentheses at the start of the line:
+(Hook) — Ask a relatable question. Must begin with a personable opener like "Are you struggling to..." NOT a sentence fragment like "Struggling to...".
+(Interest) — Tease the solution.
+(Desire) — Describe the offer and the outcome.
+(Qualifying) — One short line establishing the creator's credibility, drawing on their actual credentials: ${formData.credentials}
+(Offer) — The call to action. Use the creator's CTA style: "${formData.ctaStyle}". CTA should point to ${tier === 'high' ? 'DM/call booking' : 'direct sign-up / link in bio'}.
 
-Tier note: CTAs should point to ${tier === 'high' ? 'DM/call booking' : 'direct sign-up / link in bio'}.
-Clean Markdown.`,
+Rules:
+- Personable, conversational language.
+- No camera transition notes.
+- No quotation marks inside the script lines.
+- No bracketed visual cues.
+- No markdown.
 
-      ads: `# YOUR TASK: 5 PAID-AD VARIATIONS
+Output exactly three scripts, separated by a blank line, each headed "SCRIPT 1", "SCRIPT 2", "SCRIPT 3". Then one labelled line per stage.
 
-For each: Angle name, Hook line, Primary text (3-6 paragraphs), Headline, CTA button text, Creative direction.
+Angles, one per script:
+1. Myth-bust the contrarian belief
+2. Transformation story drawn from the testimonial
+3. Behind the unique mechanism`,
 
-Angles: (1) Pain-aware · (2) Contrarian / mechanism · (3) Social proof · (4) Urgency · (5) Personality-led story.
+      ads: `YOUR TASK: 5 PAID-AD VARIATIONS
 
-Tier note: ${tier === 'high' ? 'Optimise for application form fills / call bookings. CTA buttons should say "Apply now", "Book a call", "See if you qualify".' : 'Optimise for direct purchases. CTA buttons should say "Get instant access", "Join now", "Save my spot".'}
-Clean Markdown.`,
+For each of the 5 ads, output exactly in this order:
 
-      manychat: `# YOUR TASK: MANYCHAT DM FLOW
+ANGLE: (Short angle name)
+BODY:
+(Open the body with the hook line as its FIRST line. The hook is part of the body — do not label or repeat it separately. Then 3-6 short paragraphs of primary text continuing from the hook.)
+CTA BUTTON: ${tier === 'high' ? 'Use "Apply now", "Book a call", or "See if you qualify".' : 'Use "Get instant access", "Join now", or "Save my spot".'}
+CREATIVE DIRECTION: (1-2 sentences on what the visual should be.)
 
-Keyword-triggered ManyChat flow that captures leads from short-form video CTAs.
+Angles, one per ad:
+1. Pain-aware
+2. Contrarian / mechanism
+3. Social proof
+4. Urgency
+5. Personality-led story
 
-Node-by-node script. Each node: Name, Trigger, Bot message (exact copy), User options, Next node.
+After all 5 ads, output a final section:
 
-Include: keyword trigger, opener + opt-in, 1-2 qualification questions, asset delivery, next-step ask, tagging logic.
+SUGGESTED HEADLINES
+List 5 headline options as a numbered list. Every headline MUST be 35 characters or fewer including spaces. Count strictly. If any headline exceeds 35 characters, rewrite it shorter before outputting.
 
-Tier note: ${tier === 'high' ? 'The final ask is "book a 15-min call" — link to a Calendly / scheduler.' : 'The final ask is "grab your spot" — link straight to the checkout / sales page.'}
-Clean Markdown.`,
+Tier note: ${tier === 'high' ? 'Optimise for application form fills / call bookings.' : 'Optimise for direct purchases.'}`,
 
-      plan: `# YOUR TASK: LAUNCH-WEEK PLAN
+      manychat: `YOUR TASK: MANYCHAT DM OPT-IN FLOW
 
-Day-by-day plan covering "${formData.launchTimeline}" pre-launch + "${formData.cartOpen}" cart-open. Goal: hit "${formData.successMetric}".
+Build a SIMPLE 2-step opt-in flow. No qualification branches, no objection handling, no follow-ups.
 
-Structure:
-- Phase overview (pre-launch, cart-open, cart-close)
-- Daily plan: primary action, content, email/DM activity, KPI to log
-- Weekly KPIs (5 metrics)
-- End-of-launch review checklist
+Output exactly:
 
-Tier note: ${tier === 'high' ? 'Focus daily actions on filling discovery-call slots; KPIs include calls booked, applications submitted, close rate.' : 'Focus daily actions on driving checkout; KPIs include link clicks, add-to-carts, purchases.'}
-Realistic for a solo coach. Clean Markdown.`
+KEYWORD TRIGGER
+(Suggest one short keyword based on the creator's CTA style: "${formData.ctaStyle}")
+
+STEP 1 — OPENER
+Bot message: A short, warm opener that asks "Are you ready to join the challenge?"
+Quick reply buttons: Yes / No
+
+STEP 2 — IF YES
+Bot message: A short confirmation, then deliver the link.
+For the link, use the literal placeholder template.link — do NOT generate or guess a real URL.
+
+STEP 3 — IF NO
+End the flow. No further message.`,
+
+      plan: `YOUR TASK: LAUNCH-WEEK CHECKLIST
+
+A simple actionable checklist the creator can tick off as they execute the launch. Cover both the "${formData.launchTimeline}" pre-launch and the "${formData.cartOpen}" cart-open period. Tailor items to this specific challenge, primary platform (${formData.primaryPlatform}) and lead source (${formData.primaryLeadSource}).
+
+Format every actionable item as a ticked-box line using the unicode character ☐ followed by a space, e.g.:
+☐ Edit and approve the sales page copy
+
+Use these base items as a starting point and expand/adapt them for this launch:
+☐ Edit and approve all the marketing documents
+☐ Film & edit launch videos
+☐ Load the sales page onto your website
+☐ Load the ManyChat flow
+☐ Load the email flow
+☐ Load advertising graphics & copy
+
+Group items under UPPERCASE phase or day headings (e.g. "PRE-LAUNCH — WEEK 1", "CART OPEN — DAY 1", "CART CLOSE"). Tier focus: ${tier === 'high' ? 'fill discovery-call slots; track calls booked, applications submitted, close rate.' : 'drive direct checkout; track link clicks, add-to-carts, purchases.'} Goal: hit "${formData.successMetric}".
+
+Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist only.`
     };
 
     return ctx + priorBlock + '\n\n' + tasks[deliverableId];
@@ -914,7 +965,7 @@ Realistic for a solo coach. Clean Markdown.`
         const prompt = buildPrompt(d.id, intake, generatedDocs);
         const maxTokens = (d.id === 'plan' || d.id === 'sales') ? 8000 : 4096;
         const output = await callClaude(prompt, maxTokens);
-        generatedDocs[d.id] = output;
+        generatedDocs[d.id] = plainify(output);
         markTask(d.id, 'done');
       }
 
@@ -1006,7 +1057,7 @@ Realistic for a solo coach. Clean Markdown.`
             <div class="graphic-card-title">${tpl.title}</div>
             <div class="graphic-card-actions">
               <button class="btn btn-secondary btn-sm" data-download="${tpl.id}">Download</button>
-              <a class="btn btn-ghost btn-sm" href="https://www.canva.com/design/play?type=instagram-post" target="_blank" rel="noopener">Canva →</a>
+              <a class="btn btn-ghost btn-sm" href="https://www.canva.com/create/instagram-posts/" target="_blank" rel="noopener">Canva →</a>
             </div>
           </div>
         </div>
@@ -1082,6 +1133,21 @@ Realistic for a solo coach. Clean Markdown.`
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // Strip residual markdown so deliverables are copy-paste ready.
+  function plainify(md) {
+    return String(md || '')
+      .replace(/```\w*\n?/g, '').replace(/```/g, '')
+      .replace(/^#{1,6}\s+/gm, '')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/__([^_]+)__/g, '$1')
+      .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1$2')
+      .replace(/(^|[^_])_([^_\n]+)_(?!_)/g, '$1$2')
+      .replace(/^\s*\*\s+/gm, '• ')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/^\s*---+\s*$/gm, '')
+      .trim();
   }
 </script>
 

@@ -86,11 +86,10 @@
 
   // Personalised greeting from user_metadata
   const meta = user.user_metadata || {};
-  if (meta.first_name) {
-    document.getElementById('dash-greeting').textContent = `Welcome back, ${meta.first_name}`;
-  }
   if (meta.business_name) {
-    document.getElementById('dash-subtitle').textContent = `${meta.business_name} · build a new launch or pick up where you left off.`;
+    document.getElementById('dash-greeting').textContent = `Welcome back, ${meta.business_name}`;
+  } else if (meta.first_name) {
+    document.getElementById('dash-greeting').textContent = `Welcome back, ${meta.first_name}`;
   }
 
   // Stats
