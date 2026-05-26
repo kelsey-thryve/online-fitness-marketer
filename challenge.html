@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="style.css" />
 <script src="config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
   /* Page-specific styles for new fields */
   .tier-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -281,7 +282,7 @@
       <h2 id="result-title">Your launch kit <span id="result-tier-badge"></span></h2>
       <p>Review each asset, copy what you need, or download the full kit.</p>
       <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-        <button class="btn btn-primary" onclick="downloadAll()">⇩ Download all (.txt)</button>
+        <button class="btn btn-primary" id="download-all-btn" onclick="downloadAll()">⇩ Download ZIP</button>
         <a href="dashboard.html" class="btn btn-secondary">← Back to dashboard</a>
       </div>
     </div>
@@ -1100,35 +1101,96 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
     TEMPLATES.forEach(tpl => downloadSingleGraphic(tpl.id));
   }
 
-  window.downloadAll = function() {
+  window.downloadAll = async function() {
     const f = formData;
     const p = profile || {};
-    let out = `TRAINER LAUNCH KIT\n${f.challengeName || 'Untitled launch'}\nTier: ${f.campaignTier === 'high' ? 'High-ticket' : 'Low-ticket'}\nCoach: ${p.full_name || ''} — ${p.business_name || ''}\n${new Date().toLocaleString()}\n\n`;
-    out += '='.repeat(72) + '\n\n';
-    DELIVERABLES.forEach(d => {
-      out += `\n\n${'#'.repeat(72)}\n# ${d.title.toUpperCase()}\n${'#'.repeat(72)}\n\n`;
-      out += (generatedDocs[d.id] || '') + '\n';
-    });
-    const blob = new Blob([out], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
     const safe = (f.challengeName || 'launch').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
-    a.href = url; a.download = `${safe}.txt`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const btn = document.getElementById('download-all-btn');
+    const originalLabel = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = 'Building ZIP…'; }
+
+    try {
+      const zip = new JSZip();
+
+      // README cover sheet
+      const cover = [
+        'TRAINER LAUNCH KIT',
+        f.challengeName || 'Untitled launch',
+        `Tier: ${f.campaignTier === 'high' ? 'High-ticket' : 'Low-ticket'}`,
+        `Coach: ${p.full_name || ''} — ${p.business_name || ''}`,
+        `Generated: ${new Date().toLocaleString()}`,
+        '',
+        'CONTENTS',
+        '- 01-positioning-brief.txt',
+        '- 02-sales-page.txt',
+        '- 03-pre-launch-emails.txt',
+        '- 04-video-scripts.txt',
+        '- 05-ad-variations.txt',
+        '- 06-manychat-flow.txt',
+        '- 07-launch-week-checklist.txt',
+        '- 07-launch-week-checklist.pdf',
+        '- graphics/<each template>.png'
+      ].join('\n');
+      zip.file('README.txt', cover);
+
+      // Text deliverables
+      const textFileNames = {
+        positioning: '01-positioning-brief.txt',
+        sales:       '02-sales-page.txt',
+        emails:      '03-pre-launch-emails.txt',
+        scripts:     '04-video-scripts.txt',
+        ads:         '05-ad-variations.txt',
+        manychat:    '06-manychat-flow.txt',
+        plan:        '07-launch-week-checklist.txt'
+      };
+      DELIVERABLES.forEach(d => {
+        zip.file(textFileNames[d.id] || `${d.id}.txt`, generatedDocs[d.id] || '');
+      });
+
+      // Launch plan PDF
+      try {
+        const pdfBlob = await buildLaunchPlanPdfBlob();
+        if (pdfBlob) zip.file('07-launch-week-checklist.pdf', pdfBlob);
+      } catch (e) {
+        console.warn('Could not add PDF to zip:', e);
+      }
+
+      // Graphics (decode dataURL → binary)
+      const graphicsFolder = zip.folder('graphics');
+      const graphicFileNames = {
+        announcement: '01-deal-split.png',
+        hero:         '02-photo-overlay.png',
+        offer:        '03-offer-split.png',
+        testimonial:  '04-polaroid-trust.png'
+      };
+      TEMPLATES.forEach(tpl => {
+        const dataUrl = generatedGraphics[tpl.id];
+        if (!dataUrl) return;
+        const base64 = dataUrl.split(',')[1];
+        if (!base64) return;
+        graphicsFolder.file(graphicFileNames[tpl.id] || `${tpl.id}.png`, base64, { base64: true });
+      });
+
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `${safe}-launch-kit.zip`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('ZIP build failed: ' + err.message);
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = originalLabel; }
+    }
   };
 
-  function downloadLaunchPlanPdf() {
+  function buildLaunchPlanPdfNode() {
     const plan = generatedDocs.plan || '';
-    if (!plan) { alert('Launch plan not generated yet.'); return; }
+    if (!plan) return null;
     const p = profile || {};
     const primary   = p.brand_primary   || '#6366f1';
-    const secondary = p.brand_secondary || '#10b981';
     const brandName = p.business_name   || 'Trainer Launch';
 
-    // Build a styled HTML node, then convert to PDF.
-    // Each "☐ ..." line becomes an actual checkbox row; uppercase lines are
-    // treated as phase headings.
     const rows = plan.split('\n').map(raw => {
       const line = raw.trim();
       if (!line) return '<div style="height:8px;"></div>';
@@ -1194,20 +1256,38 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
       </div>
     `;
     document.body.appendChild(wrap);
+    return wrap;
+  }
 
-    const safe = (formData.challengeName || 'launch').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
-    html2pdf().set({
-      margin: 0,
-      filename: `${safe}-launch-plan.pdf`,
-      image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-      jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' }
-    }).from(wrap).save().then(() => {
+  async function buildLaunchPlanPdfBlob() {
+    const wrap = buildLaunchPlanPdfNode();
+    if (!wrap) return null;
+    try {
+      const worker = html2pdf().set({
+        margin: 0,
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+        jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' }
+      }).from(wrap);
+      return await worker.output('blob');
+    } finally {
       document.body.removeChild(wrap);
-    }).catch(err => {
-      document.body.removeChild(wrap);
+    }
+  }
+
+  async function downloadLaunchPlanPdf() {
+    try {
+      const blob = await buildLaunchPlanPdfBlob();
+      if (!blob) { alert('Launch plan not generated yet.'); return; }
+      const safe = (formData.challengeName || 'launch').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `${safe}-launch-plan.pdf`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
       alert('PDF export failed: ' + err.message);
-    });
+    }
   }
 
   function escapeHtml(s) {
