@@ -1,0 +1,14 @@
+<svg viewBox="0 0 260 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+  </defs>
+  <g>
+    <path d="M32 8 L14 28 H24 V46 H40 V28 H50 Z" fill="url(#g)"/>
+    <rect x="10" y="52" width="44" height="6" rx="3" fill="url(#g)"/>
+    <polygon points="32,46 28,52 36,52" fill="url(#g)"/>
+  </g>
+  <text x="68" y="42" font-family="Inter, system-ui, -apple-system, sans-serif" font-weight="800" font-size="22" fill="url(#g)" letter-spacing="-0.5">Trainer Launch</text>
+</svg>
