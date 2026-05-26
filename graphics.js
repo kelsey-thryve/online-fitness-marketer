@@ -16,6 +16,59 @@ export const TEMPLATES = [
 
 const renderers = { announcement, hero, offer, testimonial };
 
+/* ---- Stock fitness photo fallbacks (Unsplash CDN) ----------
+   Used when the creator hasn't uploaded their own photo yet, so previews
+   and demo launches still look polished. The same launch always gets the
+   same fallback photo (deterministic seed by challenge name) so re-renders
+   don't surprise the user. Replace these URLs with your own curated set
+   any time — graphics will keep working if any URL fails (loadImage
+   returns null on error and the template falls back to a brand-colour
+   block).
+*/
+const UNSPLASH = (id, w = 1080) =>
+  `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=80&crop=entropy`;
+
+const FALLBACK_HERO_PHOTOS = [
+  UNSPLASH('photo-1534438327276-14e5300c3a48'),
+  UNSPLASH('photo-1518611012118-696072aa579a'),
+  UNSPLASH('photo-1571019613454-1cb2f99b2d8b'),
+  UNSPLASH('photo-1517836357463-d25dfeac3438'),
+  UNSPLASH('photo-1583500178690-f7fd39d108a3'),
+  UNSPLASH('photo-1540497077202-7c8a3999166f'),
+  UNSPLASH('photo-1599058917765-a780eda07a3e'),
+  UNSPLASH('photo-1546483875-ad9014c88eba')
+];
+
+const FALLBACK_TESTIMONIAL_PHOTOS = [
+  UNSPLASH('photo-1488426862026-3ee34a7d66df', 600),
+  UNSPLASH('photo-1524504388940-b1c1722653e1', 600),
+  UNSPLASH('photo-1546483875-ad9014c88eba', 600),
+  UNSPLASH('photo-1521146764736-56c929d59c83', 600),
+  UNSPLASH('photo-1583500178690-f7fd39d108a3', 600)
+];
+
+function hashSeed(s) {
+  let h = 0;
+  const str = String(s || 'launch');
+  for (let i = 0; i < str.length; i++) h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+function pickFallback(list, seed, offset = 0) {
+  if (!list.length) return null;
+  return list[(hashSeed(seed) + offset) % list.length];
+}
+
+// Returns ctx.photoUrl when set, otherwise a stable stock-photo fallback.
+function heroPhotoFor(ctx) {
+  return ctx.photoUrl || pickFallback(FALLBACK_HERO_PHOTOS, ctx.challengeName || ctx.businessName || '');
+}
+function sidePhotoFor(ctx, slotIdx) {
+  const photos = (ctx.testimonialPhotos || []).filter(Boolean);
+  if (photos[slotIdx]) return photos[slotIdx];
+  return pickFallback(FALLBACK_TESTIMONIAL_PHOTOS, ctx.challengeName || '', slotIdx + 1);
+}
+
 export async function renderGraphic(templateId, ctx) {
   const tpl = TEMPLATES.find(t => t.id === templateId);
   const canvas = document.createElement('canvas');
@@ -236,7 +289,7 @@ async function announcement(c, w, h, ctx) {
   // Right photo background
   c.fillStyle = '#1a1a22';
   c.fillRect(0, 0, w, h);
-  const photo = await loadImage(ctx.photoUrl);
+  const photo = await loadImage(heroPhotoFor(ctx));
   if (photo) coverDraw(c, photo, w * 0.4, 0, w * 0.6, h);
 
   // Brush accents in secondary on photo half
@@ -306,7 +359,7 @@ async function hero(c, w, h, ctx) {
   // Photo background
   c.fillStyle = '#1f1f28';
   c.fillRect(0, 0, w, h);
-  const photo = await loadImage(ctx.photoUrl);
+  const photo = await loadImage(heroPhotoFor(ctx));
   if (photo) coverDraw(c, photo, 0, 0, w, h);
 
   // Soft bottom gradient for legibility
@@ -349,7 +402,7 @@ async function offer(c, w, h, ctx) {
   // Left photo half
   c.fillStyle = '#1a1a22';
   c.fillRect(0, 0, w / 2, h);
-  const photo = await loadImage(ctx.photoUrl);
+  const photo = await loadImage(heroPhotoFor(ctx));
   if (photo) coverDraw(c, photo, 0, 0, w / 2, h);
 
   // Right brand panel
@@ -442,12 +495,12 @@ async function testimonial(c, w, h, ctx) {
   // 3 polaroids: centre primary, two side
   const polW = 340, polH = 420;
   const cyMid = h * 0.45;
-  const sideUrls = (ctx.testimonialPhotos || []).filter(Boolean);
-  const leftUrl  = sideUrls[0] || ctx.appUrl || ctx.logoUrl || '';
-  const rightUrl = sideUrls[1] || sideUrls[0] || ctx.photoUrl || '';
-  await drawPolaroid(c, leftUrl,  primary,   w * 0.25, cyMid + 20, polW, polH, -10);
-  await drawPolaroid(c, rightUrl, secondary, w * 0.75, cyMid + 20, polW, polH,  10);
-  await drawPolaroid(c, ctx.photoUrl, '#222', w * 0.5,  cyMid,      polW, polH,   0);
+  const leftUrl   = sidePhotoFor(ctx, 0);
+  const rightUrl  = sidePhotoFor(ctx, 1);
+  const centerUrl = heroPhotoFor(ctx);
+  await drawPolaroid(c, leftUrl,   primary,   w * 0.25, cyMid + 20, polW, polH, -10);
+  await drawPolaroid(c, rightUrl,  secondary, w * 0.75, cyMid + 20, polW, polH,  10);
+  await drawPolaroid(c, centerUrl, '#222',    w * 0.5,  cyMid,      polW, polH,   0);
 
   // Title block
   const title = (ctx.challengeName || 'YOUR CHALLENGE').toUpperCase();
