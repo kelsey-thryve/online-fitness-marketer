@@ -2,10 +2,13 @@
 -- TRAINER LAUNCH — profiles table migration
 --
 -- Run this in Supabase: SQL Editor → New query → paste → Run.
--- Safe to re-run (uses IF NOT EXISTS / DROP IF EXISTS).
+-- This drops any pre-existing public.profiles table and rebuilds it
+-- from scratch. Safe while the app has no real profile data.
 -- ============================================================
 
-create table if not exists public.profiles (
+drop table if exists public.profiles cascade;
+
+create table public.profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
 
   -- About
