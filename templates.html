@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ad templates — Trainer Launch</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="style.css" />
+<script src="config.js"></script>
+<style>
+  .templates-header {
+    padding: 40px 0 32px;
+  }
+  .templates-header h1 { font-size: 2rem; }
+  .templates-header p { margin-top: 6px; max-width: 720px; }
+
+  .templates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 18px;
+    padding-bottom: 80px;
+  }
+  .template-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: transform 0.15s, border-color 0.15s;
+    cursor: pointer;
+  }
+  .template-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .template-card .thumb {
+    width: 100%; aspect-ratio: 1080/1920;
+    background: #0a0a0f;
+    display: block; object-fit: cover;
+  }
+  .template-card .meta {
+    padding: 12px 14px;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .template-card .meta-title { font-size: 0.85rem; font-weight: 600; }
+  .template-card .meta-id {
+    font-size: 0.72rem; color: var(--text-dim); font-family: monospace;
+  }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(5, 5, 10, 0.85);
+    backdrop-filter: blur(6px);
+    z-index: 100;
+    display: none; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    max-width: 1100px; width: 100%;
+    max-height: 92vh; overflow: hidden;
+    display: grid; grid-template-columns: minmax(0,1fr) 320px;
+  }
+  @media (max-width: 880px) { .modal { grid-template-columns: 1fr; max-height: none; } }
+  .modal-preview {
+    background: #0a0a0f;
+    display: flex; align-items: center; justify-content: center;
+    overflow: auto;
+    padding: 24px;
+  }
+  .modal-preview img {
+    max-width: 100%; max-height: 80vh; object-fit: contain;
+    border-radius: var(--radius);
+    box-shadow: 0 24px 80px -20px rgba(0,0,0,0.7);
+  }
+  .modal-side {
+    padding: 28px;
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 18px;
+    overflow-y: auto;
+  }
+  @media (max-width: 880px) { .modal-side { border-left: none; border-top: 1px solid var(--border); } }
+  .modal-side h2 { font-size: 1.2rem; margin-bottom: 4px; }
+  .modal-side .modal-id {
+    color: var(--text-dim); font-family: monospace; font-size: 0.82rem;
+  }
+  .modal-side .note {
+    background: var(--bg-input); border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px; font-size: 0.85rem; color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .modal-actions { display: flex; flex-direction: column; gap: 10px; }
+  .modal-actions .btn { width: 100%; }
+  .modal-close {
+    position: absolute; top: 20px; right: 24px;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 100px;
+    padding: 6px 14px;
+    cursor: pointer;
+    font-family: inherit; font-size: 0.85rem;
+  }
+  .modal-close:hover { background: rgba(0,0,0,0.7); }
+
+  .empty-thumb {
+    background: linear-gradient(135deg, var(--accent-soft), transparent);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-dim); font-size: 0.8rem;
+    aspect-ratio: 1080/1920;
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="dashboard.html" class="nav-brand">
+      <img src="logo.svg" alt="Trainer Launch" />
+    </a>
+    <div class="nav-links">
+      <a href="dashboard.html">← Dashboard</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="templates-header">
+    <div class="section-eyebrow">Ad templates</div>
+    <h1>21 ad templates</h1>
+    <p>Plug-and-play wireframe-style ad creatives. Pick one, hit "Edit in Canva", and swap the placeholder slots (pain points, features, offers, logo, photo) with your brand. Or download the PNG and edit it anywhere.</p>
+  </div>
+
+  <div id="templates-grid" class="templates-grid"></div>
+</div>
+
+<div id="modal-backdrop" class="modal-backdrop" onclick="closeModalIfBackdrop(event)">
+  <div class="modal" id="modal">
+    <div class="modal-preview" style="position: relative;">
+      <button class="modal-close" onclick="closeModal()">✕ Close</button>
+      <img id="modal-img" src="" alt="" />
+    </div>
+    <div class="modal-side">
+      <div>
+        <div class="modal-id" id="modal-id"></div>
+        <h2 id="modal-title"></h2>
+      </div>
+      <div class="note">
+        Templates are 1080×1920 Instagram Story / Reel size. Open in Canva to fill in the labeled placeholder slots, or download the PNG to edit in any tool.
+      </div>
+      <div class="modal-actions">
+        <a id="modal-canva" class="btn btn-primary" target="_blank" rel="noopener">Edit in Canva →</a>
+        <a id="modal-download" class="btn btn-secondary" download>⇩ Download PNG</a>
+      </div>
+      <div class="note" id="modal-canva-pending" style="display: none;">
+        Canva edit link not yet wired for this template. Use the PNG download for now.
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    © 2026 Trainer Launch
+  </div>
+</footer>
+
+<script type="module">
+  import { requireAuth } from './auth.js';
+  import { AD_TEMPLATES } from './templates-config.js';
+
+  const user = await requireAuth();
+  if (!user) { /* redirected */ }
+
+  const grid = document.getElementById('templates-grid');
+  AD_TEMPLATES.forEach(tpl => {
+    const card = document.createElement('div');
+    card.className = 'template-card';
+    card.innerHTML = `
+      <img class="thumb" src="${tpl.file}" alt="${tpl.title}" loading="lazy"
+           onerror="this.outerHTML='<div class=\\'empty-thumb\\'>Preview missing</div>'" />
+      <div class="meta">
+        <span class="meta-title">${tpl.title}</span>
+        <span class="meta-id">#${tpl.id}</span>
+      </div>
+    `;
+    card.onclick = () => openModal(tpl);
+    grid.appendChild(card);
+  });
+
+  function openModal(tpl) {
+    document.getElementById('modal-img').src = tpl.file;
+    document.getElementById('modal-title').textContent = tpl.title;
+    document.getElementById('modal-id').textContent = `Template #${tpl.id}`;
+    const canva = document.getElementById('modal-canva');
+    const pending = document.getElementById('modal-canva-pending');
+    if (tpl.canvaUrl) {
+      canva.href = tpl.canvaUrl;
+      canva.style.display = '';
+      pending.style.display = 'none';
+    } else {
+      canva.style.display = 'none';
+      pending.style.display = '';
+    }
+    const dl = document.getElementById('modal-download');
+    dl.href = tpl.file;
+    dl.download = `${tpl.id}.png`;
+    document.getElementById('modal-backdrop').classList.add('open');
+  }
+
+  window.closeModal = function() {
+    document.getElementById('modal-backdrop').classList.remove('open');
+  };
+  window.closeModalIfBackdrop = function(e) {
+    if (e.target.id === 'modal-backdrop') window.closeModal();
+  };
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') window.closeModal(); });
+</script>
+
+</body>
+</html>
