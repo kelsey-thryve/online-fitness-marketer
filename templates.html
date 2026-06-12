@@ -8,11 +8,21 @@
 <link rel="stylesheet" href="style.css" />
 <script src="config.js"></script>
 <style>
-  .templates-header {
-    padding: 40px 0 32px;
-  }
+  .templates-header { padding: 40px 0 16px; }
   .templates-header h1 { font-size: 2rem; }
   .templates-header p { margin-top: 6px; max-width: 720px; }
+
+  .preview-source {
+    margin: 0 0 28px;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    font-size: 0.9rem; color: var(--text-muted);
+  }
+  .preview-source select {
+    background: var(--bg-input); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--text);
+    font-family: inherit; font-size: 0.9rem;
+    padding: 8px 12px;
+  }
 
   .templates-grid {
     display: grid;
@@ -21,18 +31,15 @@
     padding-bottom: 80px;
   }
   .template-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); overflow: hidden;
     transition: transform 0.15s, border-color 0.15s;
     cursor: pointer;
   }
   .template-card:hover { transform: translateY(-3px); border-color: var(--accent); }
   .template-card .thumb {
     width: 100%; aspect-ratio: 1080/1920;
-    background: #0a0a0f;
-    display: block; object-fit: cover;
+    background: #0a0a0f; display: block; object-fit: cover;
   }
   .template-card .meta {
     padding: 12px 14px;
@@ -42,11 +49,16 @@
   .template-card .meta-id {
     font-size: 0.72rem; color: var(--text-dim); font-family: monospace;
   }
+  .template-card .meta-badge {
+    font-size: 0.65rem; padding: 2px 8px; border-radius: 100px;
+    background: var(--accent-soft); color: #a5b4fc;
+    font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+  }
 
   /* Modal */
   .modal-backdrop {
     position: fixed; inset: 0;
-    background: rgba(5, 5, 10, 0.85);
+    background: rgba(5, 5, 10, 0.88);
     backdrop-filter: blur(6px);
     z-index: 100;
     display: none; align-items: center; justify-content: center;
@@ -57,21 +69,29 @@
     background: var(--bg-card);
     border: 1px solid var(--border-strong);
     border-radius: var(--radius-lg);
-    max-width: 1100px; width: 100%;
+    max-width: 1400px; width: 100%;
     max-height: 92vh; overflow: hidden;
     display: grid; grid-template-columns: minmax(0,1fr) 320px;
   }
-  @media (max-width: 880px) { .modal { grid-template-columns: 1fr; max-height: none; } }
+  @media (max-width: 980px) { .modal { grid-template-columns: 1fr; max-height: none; } }
   .modal-preview {
     background: #0a0a0f;
-    display: flex; align-items: center; justify-content: center;
-    overflow: auto;
-    padding: 24px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    overflow: auto; padding: 24px;
   }
-  .modal-preview img {
-    max-width: 100%; max-height: 80vh; object-fit: contain;
+  @media (max-width: 720px) { .modal-preview { grid-template-columns: 1fr; } }
+  .preview-col {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .preview-col .col-label {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.18em;
+    color: var(--text-dim); font-weight: 600;
+  }
+  .preview-col img, .preview-col canvas {
+    max-width: 100%; max-height: 72vh; object-fit: contain;
     border-radius: var(--radius);
     box-shadow: 0 24px 80px -20px rgba(0,0,0,0.7);
+    background: #0a0a0f;
   }
   .modal-side {
     padding: 28px;
@@ -79,7 +99,9 @@
     display: flex; flex-direction: column; gap: 18px;
     overflow-y: auto;
   }
-  @media (max-width: 880px) { .modal-side { border-left: none; border-top: 1px solid var(--border); } }
+  @media (max-width: 980px) {
+    .modal-side { border-left: none; border-top: 1px solid var(--border); }
+  }
   .modal-side h2 { font-size: 1.2rem; margin-bottom: 4px; }
   .modal-side .modal-id {
     color: var(--text-dim); font-family: monospace; font-size: 0.82rem;
@@ -87,20 +109,18 @@
   .modal-side .note {
     background: var(--bg-input); border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 12px 14px; font-size: 0.85rem; color: var(--text-muted);
+    padding: 12px 14px; font-size: 0.82rem; color: var(--text-muted);
     line-height: 1.5;
   }
   .modal-actions { display: flex; flex-direction: column; gap: 10px; }
   .modal-actions .btn { width: 100%; }
   .modal-close {
     position: absolute; top: 20px; right: 24px;
-    background: rgba(0,0,0,0.5);
-    color: white;
+    background: rgba(0,0,0,0.5); color: white;
     border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 100px;
-    padding: 6px 14px;
-    cursor: pointer;
-    font-family: inherit; font-size: 0.85rem;
+    border-radius: 100px; padding: 6px 14px;
+    cursor: pointer; font-family: inherit; font-size: 0.85rem;
+    z-index: 10;
   }
   .modal-close:hover { background: rgba(0,0,0,0.7); }
 
@@ -129,7 +149,12 @@
   <div class="templates-header">
     <div class="section-eyebrow">Ad templates</div>
     <h1>21 ad templates</h1>
-    <p>Plug-and-play wireframe-style ad creatives. Pick one, hit "Edit in Canva", and swap the placeholder slots (pain points, features, offers, logo, photo) with your brand. Or download the PNG and edit it anywhere.</p>
+    <p>Plug-and-play wireframe creatives. Click any template to preview it with your brand colours, photo and copy applied — then hit "Edit in Canva" to make the swaps, or download the rendered PNG directly.</p>
+  </div>
+
+  <div class="preview-source">
+    <label for="challenge-source">Preview slots populated from:</label>
+    <select id="challenge-source"></select>
   </div>
 
   <div id="templates-grid" class="templates-grid"></div>
@@ -139,22 +164,25 @@
   <div class="modal" id="modal">
     <div class="modal-preview" style="position: relative;">
       <button class="modal-close" onclick="closeModal()">✕ Close</button>
-      <img id="modal-img" src="" alt="" />
+      <div class="preview-col">
+        <span class="col-label">Original</span>
+        <img id="modal-img" src="" alt="" />
+      </div>
+      <div class="preview-col">
+        <span class="col-label" id="personalized-label">With your branding</span>
+        <canvas id="modal-canvas" width="1080" height="1920"></canvas>
+      </div>
     </div>
     <div class="modal-side">
       <div>
         <div class="modal-id" id="modal-id"></div>
         <h2 id="modal-title"></h2>
       </div>
-      <div class="note">
-        Templates are 1080×1920 Instagram Story / Reel size. Open in Canva to fill in the labeled placeholder slots, or download the PNG to edit in any tool.
-      </div>
+      <div class="note" id="modal-status"></div>
       <div class="modal-actions">
         <a id="modal-canva" class="btn btn-primary" target="_blank" rel="noopener">Edit in Canva →</a>
-        <a id="modal-download" class="btn btn-secondary" download>⇩ Download PNG</a>
-      </div>
-      <div class="note" id="modal-canva-pending" style="display: none;">
-        Canva edit link not yet wired for this template. Use the PNG download for now.
+        <button id="modal-download-personal" class="btn btn-secondary">⇩ Download personalized PNG</button>
+        <a id="modal-download" class="btn btn-ghost" download>⇩ Download blank template</a>
       </div>
     </div>
   </div>
@@ -167,50 +195,121 @@
 </footer>
 
 <script type="module">
-  import { requireAuth } from './auth.js';
+  import { requireAuth, getProfile, listChallenges } from './auth.js';
   import { AD_TEMPLATES } from './templates-config.js';
+  import { renderPersonalizedTemplate, buildRenderContext } from './templates-renderer.js';
 
   const user = await requireAuth();
   if (!user) { /* redirected */ }
+
+  let profile = null;
+  try { profile = await getProfile(); } catch (_) { /* table may not exist */ }
+
+  // Build the "preview source" challenge picker
+  const challenges = listChallenges(user.id) || [];
+  const sourceSelect = document.getElementById('challenge-source');
+  sourceSelect.innerHTML = '<option value="">Profile only (generic placeholders)</option>';
+  challenges.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.name || c.id;
+    sourceSelect.appendChild(opt);
+  });
+  // Default to the most recent challenge if any
+  if (challenges.length > 0) sourceSelect.value = challenges[0].id;
+  sourceSelect.addEventListener('change', () => {
+    // Re-render the current modal if open
+    if (currentTemplate) openModal(currentTemplate);
+  });
 
   const grid = document.getElementById('templates-grid');
   AD_TEMPLATES.forEach(tpl => {
     const card = document.createElement('div');
     card.className = 'template-card';
+    const personalised = tpl.slots && tpl.slots.length ? '<span class="meta-badge">Live preview</span>' : '';
     card.innerHTML = `
       <img class="thumb" src="${tpl.file}" alt="${tpl.title}" loading="lazy"
            onerror="this.outerHTML='<div class=\\'empty-thumb\\'>Preview missing</div>'" />
       <div class="meta">
         <span class="meta-title">${tpl.title}</span>
-        <span class="meta-id">#${tpl.id}</span>
+        ${personalised || `<span class="meta-id">#${tpl.id}</span>`}
       </div>
     `;
     card.onclick = () => openModal(tpl);
     grid.appendChild(card);
   });
 
-  function openModal(tpl) {
+  let currentTemplate = null;
+
+  async function openModal(tpl) {
+    currentTemplate = tpl;
     document.getElementById('modal-img').src = tpl.file;
     document.getElementById('modal-title').textContent = tpl.title;
     document.getElementById('modal-id').textContent = `Template #${tpl.id}`;
+
+    const status = document.getElementById('modal-status');
+    const canvas = document.getElementById('modal-canvas');
+    const personalLabel = document.getElementById('personalized-label');
+
+    document.getElementById('modal-backdrop').classList.add('open');
+
+    // Wire Canva link
     const canva = document.getElementById('modal-canva');
-    const pending = document.getElementById('modal-canva-pending');
-    if (tpl.canvaUrl) {
-      canva.href = tpl.canvaUrl;
-      canva.style.display = '';
-      pending.style.display = 'none';
-    } else {
-      canva.style.display = 'none';
-      pending.style.display = '';
-    }
+    canva.href = tpl.canvaUrl || '#';
+    canva.style.opacity = tpl.canvaUrl ? '1' : '0.4';
+    canva.style.pointerEvents = tpl.canvaUrl ? 'auto' : 'none';
+
+    // Wire blank-template download
     const dl = document.getElementById('modal-download');
     dl.href = tpl.file;
-    dl.download = `${tpl.id}.png`;
-    document.getElementById('modal-backdrop').classList.add('open');
+    dl.download = `${tpl.id}-blank.png`;
+
+    // Render personalized version
+    const selected = sourceSelect.value;
+    const challenge = challenges.find(c => c.id === selected) || null;
+    const ctx = buildRenderContext(profile, challenge);
+
+    if (tpl.slots && tpl.slots.length) {
+      personalLabel.textContent = 'With your branding';
+      status.textContent = challenge
+        ? `Showing slots populated with "${challenge.name}" data plus your brand profile.`
+        : 'Showing slots populated from your brand profile. Open a saved challenge to fill in challenge-specific copy.';
+      try {
+        const c = await renderPersonalizedTemplate(tpl, ctx);
+        const dest = document.getElementById('modal-canvas');
+        dest.width = c.width; dest.height = c.height;
+        dest.getContext('2d').drawImage(c, 0, 0);
+      } catch (err) {
+        status.textContent = 'Personalized preview failed: ' + err.message;
+      }
+    } else {
+      personalLabel.textContent = 'Live preview — coming soon';
+      // Draw the original onto the canvas as a placeholder
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+      };
+      img.src = tpl.file;
+      status.textContent = 'Slot mapping for this template is still being wired up — open in Canva to edit by hand for now.';
+    }
   }
+
+  document.getElementById('modal-download-personal').onclick = () => {
+    const canvas = document.getElementById('modal-canvas');
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentTemplate?.id || 'template'}-personalised.png`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 'image/png');
+  };
 
   window.closeModal = function() {
     document.getElementById('modal-backdrop').classList.remove('open');
+    currentTemplate = null;
   };
   window.closeModalIfBackdrop = function(e) {
     if (e.target.id === 'modal-backdrop') window.closeModal();
