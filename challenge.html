@@ -532,6 +532,7 @@
   // Pre-fetched once per session and re-used for both initial generation
   // and live chat edits. ~50KB Renshaw HTML template.
   let salesPageTemplate = '';
+  let salesBlobUrl = null;
   async function getSalesTemplate() {
     if (salesPageTemplate) return salesPageTemplate;
     try {
@@ -1356,7 +1357,6 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
     refreshSalesPreview();
     persistCurrentRecord();
   }
-  let salesBlobUrl = null;
   function refreshSalesPreview() {
     const iframe = document.getElementById('sales-preview');
     if (!iframe) return;
