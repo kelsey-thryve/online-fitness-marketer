@@ -1062,17 +1062,27 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
     errEl.classList.add('hidden');
 
     try {
-      // Pre-fetch the sales page template so the sales prompt can embed it.
+      // Pre-fetch the sales page template so we can clone it for the sales tab.
       await getSalesTemplate();
 
       for (const d of DELIVERABLES) {
         markTask(d.id, 'active');
+        if (d.id === 'sales') {
+          // The sales deliverable is the literal Renshaw template with the
+          // coach's brand / name / challenge name swapped in. The user
+          // refines further via the in-app chat editor. This guarantees
+          // pixel-perfect Renshaw layout — no chance of Claude truncating
+          // or rewriting structure.
+          generatedDocs[d.id] = personalizeRenshawTemplate(
+            salesPageTemplate, profile || {}, formData
+          );
+          markTask(d.id, 'done');
+          continue;
+        }
         const prompt = buildPrompt(d.id, intake, generatedDocs);
-        const maxTokens = d.id === 'sales' ? 16000 : (d.id === 'plan' ? 8000 : 4096);
+        const maxTokens = d.id === 'plan' ? 8000 : 4096;
         const output = await callClaude(prompt, maxTokens);
-        // The sales deliverable is raw HTML — don't strip markdown syntax
-        // since `*` / `#` may appear inside CSS selectors or content.
-        generatedDocs[d.id] = d.id === 'sales' ? sanitizeGeneratedHtml(output) : plainify(output);
+        generatedDocs[d.id] = plainify(output);
         markTask(d.id, 'done');
       }
 
@@ -1386,6 +1396,52 @@ CURRENT HTML:
 ${currentHtml}`;
     const output = await callClaude(prompt, 16000, { model: 'claude-haiku-4-5-20251001' });
     return sanitizeGeneratedHtml(output);
+  }
+
+  // Clone the Renshaw template with simple brand substitutions —
+  // business name, coach name + first name, challenge name, coach photo,
+  // brand colours. Keeps the full Renshaw structure intact; the user
+  // refines copy via the chat editor.
+  function personalizeRenshawTemplate(html, profile, formData) {
+    if (!html) return '';
+    const p = profile || {};
+    const f = formData || {};
+    const fullName     = (p.full_name || '').trim() || 'Your Name';
+    const firstName    = fullName.split(/\s+/)[0];
+    const businessName = (p.business_name || '').trim() || fullName;
+    const challengeName = (f.challengeName || '').trim() || `${businessName} Vault`;
+
+    let out = html;
+    // Most specific replacements first so we don't double-substitute.
+    out = out.split('Bryan Renshaw').join(fullName);
+    out = out.split("Renshaw's Personal Training").join(`${businessName} Personal Training`);
+    out = out.split('Renshaw Workout Vault').join(challengeName);
+    out = out.split('Renshaw Warriors').join(`${businessName} Warriors`);
+    out = out.split('Renshaw Member').join('Member');
+    out = out.split("Renshaw's").join(`${businessName}'s`);
+    out = out.split("Bryan's").join(`${firstName}'s`);
+    out = out.split('Renshaw').join(businessName);
+    // Whole-word Bryan only (avoid breaking words containing "bryan")
+    out = out.replace(/\bBryan\b/g, firstName);
+
+    // Coach portrait — swap the hard-coded Renshaw image if profile has one.
+    if (p.photo_url) {
+      out = out.replace(
+        /https:\/\/www\.renshawspt\.com\/[^"'\s]+\.(?:jpg|jpeg|png|webp)/gi,
+        p.photo_url
+      );
+    }
+
+    // Brand colours — swap the blue accents to the coach's brand primary.
+    if (p.brand_primary) {
+      out = out.replace(/--blue:\s*#[0-9a-fA-F]+/, `--blue: ${p.brand_primary}`);
+      out = out.replace(/--blue-dark:\s*#[0-9a-fA-F]+/, `--blue-dark: ${p.brand_primary}`);
+    }
+    if (p.brand_secondary) {
+      out = out.replace(/--blue-light:\s*#[0-9a-fA-F]+/, `--blue-light: ${p.brand_secondary}`);
+    }
+
+    return out;
   }
 
   // Strip Claude wrappers (\`\`\`html ... \`\`\`) and ensure the doc starts at <!DOCTYPE.
