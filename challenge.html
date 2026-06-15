@@ -1216,6 +1216,7 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
           <div class="doc-header">
             <h3>${d.title}</h3>
             <div style="display:flex; gap:8px;">
+              <button class="btn btn-secondary btn-sm" id="sales-regen-btn">↻ Regenerate</button>
               <button class="btn btn-secondary btn-sm" data-html-open="${d.id}">↗ Open in new tab</button>
               <button class="btn btn-secondary btn-sm" data-html-download="${d.id}">⇩ Download .html</button>
             </div>
@@ -1380,6 +1381,24 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
   function initSalesEditor() {
     refreshSalesPreview();
 
+    // Regenerate button — wipes current sales HTML and re-runs Claude
+    const regenBtn = document.getElementById('sales-regen-btn');
+    if (regenBtn) {
+      regenBtn.onclick = async () => {
+        regenBtn.disabled = true;
+        regenBtn.textContent = 'Regenerating…';
+        try { await regenerateSalesPage(); }
+        finally { regenBtn.disabled = false; regenBtn.textContent = '↻ Regenerate'; }
+      };
+    }
+
+    // Warn if the current HTML still contains Renshaw template phrases
+    const leaks = detectRenshawLeakage(getSalesHtml());
+    if (leaks.length) {
+      appendChatMsg('bot', `⚠ This page still contains template copy: ${leaks.slice(0, 4).join(', ')}${leaks.length > 4 ? '…' : ''}. Click ↻ Regenerate above to rewrite all copy from your launch brief.`)
+        .classList.add('chat-msg-error');
+    }
+
     // Viewport size toggle (desktop / tablet / mobile)
     document.querySelectorAll('[data-viewport-toggle] button').forEach(btn => {
       btn.onclick = () => {
@@ -1527,58 +1546,122 @@ ${currentHtml}`;
     const p = profile || {};
     const primary   = p.brand_primary   || '#3DA7FD';
     const secondary = p.brand_secondary || '#EAF4FF';
-    const prompt = `You are an expert HTML/CSS engineer with a direct-response copywriting background.
+    const prompt = `You are an expert HTML/CSS engineer and direct-response copywriter.
 
 # YOUR TASK
-The HTML at the bottom of this prompt is a complete 13-section sales-page template currently written for a fitness coach called "Renshaw". You will produce an equivalent HTML document with the structure, CSS, JS, layout and image URLs preserved EXACTLY, but every piece of visible text content REWRITTEN for the launch described below.
+The HTML at the bottom is a 13-section sales-page template currently written for a fitness coach called Renshaw selling a "50+ month workout vault" for "men 30+" at $10/month. You will produce an HTML document that uses the same STRUCTURE (tags, classes, layout, scripts, styles, image URLs) but ZERO of its original COPY. Every visible word that isn't pure HTML markup must be REPLACED with copy written for the launch below.
 
 # LAUNCH DETAILS
 
 ${intake}
 
-# RULES
+# ABSOLUTE BANS — the output must contain ZERO of these phrases
+- "Renshaw" or "Bryan" anywhere
+- "Workout Vault" or "workout vault"
+- "50+ month" / "50+ months" / "50 month" — any reference to a number of months of workouts
+- "men 30+" / "guys 30+" / "for men" / "for guys"
+- "40,000+" or any 40K stat (use the intake's actual numbers or [ADD STAT])
+- "$10/month" / "$10 a month" / "$10/mo" (use the launch's actual price)
+- "$0.33 per day" (recalculate from the actual price)
+- "$20" (recalculate as ~2x the actual price)
+- "structured workouts" / "Workout Vault"
+- "no onboarding calls" / "members portal" / "Start Here section" if not relevant
+- "Trusted by 40,000+"
+- Any sentence taken VERBATIM from the template
 
-PRESERVE EXACTLY (do NOT touch):
-- Every HTML tag, attribute, class name, and ID
-- Every <script> block (countdown timer, sessionStorage, FAQ toggles, scroll animations)
-- The structural CSS — every selector, rule, and media query in the <style> block
-- All image src URLs — leave them verbatim. The user swaps these via the chat later.
-- Document outline: same 13 sections in the same order; same number of testimonial cards (3), FAQ items (7), before/after cards (4), who-it's-for cards (6), how-it-works steps (4), credentials bullets, "what's included" bullets.
-- The countdown timer's red urgency bar (#urgencyBar) — keep its inline styles intact, but rewrite the visible text inside.
+If you're tempted to keep template copy because you're unsure what to write, write a sensibly generic version derived from the intake. Never copy the template line.
 
-REWRITE COMPLETELY (every word that mentions Renshaw / Bryan / Workout Vault / 50+ months / men 30+ / etc must go):
-- The <title> tag (use the brand + product framing)
-- All headlines, sub-headlines, eyebrow pills, button labels, CTA copy
-- All body paragraphs and section descriptions
-- All scarcity / urgency / countdown text
-- All price displays — show the actual launch price, a credible "old price" (typically ~2× current), and a per-day reframe (price ÷ 30)
-- Every bullet in the "What's included" order box (use the launch's actual inclusions)
-- Every testimonial card — write 3 new realistic-sounding testimonials based on the actual audience and outcomes; use first-name + last-initial only
-- Every FAQ Q&A pair — handle this launch's biggest objection in Q1
-- Every "who's it for" card — built around the actual audience nickname
-- The coach's bio paragraph — built from the coach's intake history / credentials, in first person
-- The credentials list — use intake credentials
-- The 4 before/after cards — invent realistic placeholder names + believable result lines; quote stays short
-- The 4 "how it works" step titles + bodies — built around how THIS product is delivered
-- All stats numbers — only use numbers in the intake; otherwise show "[ADD STAT]" — never fabricate
+# PRESERVE EXACTLY (do not modify)
+- Every HTML tag, attribute, class, and ID
+- Every <script> block
+- The entire <style> block except the three CSS vars below
+- All image src URLs (keep them verbatim — user swaps later via chat)
+- The 13-section outline: same section order, same number of cards/items
+  (3 testimonials, 7 FAQ items, 4 before/after cards, 6 who-it's-for cards,
+  4 how-it-works steps, 3 stats, ~7 "what's included" bullets)
+- The countdown timer (#urgencyBar) — keep all inline styles, but rewrite the visible text inside
 
-CHANGE THESE CSS VARIABLES (do not change any other styling):
+# REWRITE COMPLETELY — produce new copy for every one of these
+- <title>
+- Sticky urgency bar text (scarcity framing tied to THIS launch)
+- Hero eyebrow pill, headline, sub-headline, price stack (current + old + per-day), three trust pills, primary CTA button
+- Social proof bar one-liner
+- Empathy/problem section eyebrow, headline, paragraph
+- 4 before/after cards: name + result-pill + quote each
+- Order box: heading, 7 "what's included" bullets (from formData.included), total row, CTA button
+- 6 "who's it for" cards: emoji + qualifying statement + body
+- Meet the coach: eyebrow, headline, bio paragraph (3-5 sentences), credentials list (3-5 bullets)
+- Stats bar: 3 numbers + 3 labels (use intake numbers only; if missing, [ADD STAT])
+- "How it works": 4 step titles + 4 step bodies
+- 3 testimonial cards: quote + first-name+last-initial + result-pill each (realistic, audience-fit)
+- 7 FAQ items: question + answer each (Q1 must handle the launch's biggest objection)
+- Final CTA: headline, sub-headline, price block, button copy, secure-checkout reassurance
+
+# CHANGE THESE CSS VARIABLES (don't touch any others)
 - --blue: ${primary}
 - --blue-dark: ${primary}
 - --blue-light: ${secondary}
 
-OUTPUT FORMAT (strict):
-- Output ONLY the complete HTML document.
-- Start with <!DOCTYPE html>.
-- End with </html>.
-- No prose before, no prose after, no markdown fences.
-- The document must be a single self-contained .html file that renders the rewritten sales page.
+# OUTPUT
+Return ONLY the complete HTML document, starting with <!DOCTYPE html> and ending with </html>. No prose, no markdown fences.
 
-# TEMPLATE TO REWRITE
+# TEMPLATE (use ONLY for structure — replace every word of visible copy)
 
 ${template}`;
 
     return await callClaude(prompt, 16000, { model: 'claude-opus-4-7' });
+  }
+
+  // Detect if the model leaked any of Renshaw's signature phrases. Used
+  // to warn the user when the rewrite didn't fully replace template copy.
+  function detectRenshawLeakage(html) {
+    if (!html) return [];
+    const banned = [
+      'Renshaw', 'Bryan', 'Workout Vault', 'workout vault',
+      '50+ month', '50+ months', '50 month',
+      '40,000+', '40000+',
+      'men 30+', 'guys 30+',
+      '$10/month', '$10 a month', '$10/mo',
+      '$0.33 per day',
+      'Trusted by 40,000'
+    ];
+    const found = [];
+    for (const phrase of banned) {
+      if (html.includes(phrase)) found.push(phrase);
+    }
+    return found;
+  }
+
+  // One-button regeneration of just the sales page (without touching the
+  // other 6 deliverables). Streams a status line into the chat log.
+  async function regenerateSalesPage() {
+    const log = (txt, cls) => appendChatMsg('bot', txt).classList.toggle('chat-msg-error', !!cls);
+    log('Regenerating sales page from scratch — replacing all copy…');
+    try {
+      const intake = buildIntakeBlock();
+      await getSalesTemplate();
+      let html;
+      try {
+        const raw = await generateSalesPageFromTemplate(salesPageTemplate, intake);
+        html = sanitizeGeneratedHtml(raw);
+        if (!html.includes('<!DOCTYPE') || !/<\/html>\s*$/i.test(html)) {
+          throw new Error('Output incomplete');
+        }
+      } catch (err) {
+        log('Claude rewrite failed (' + err.message + ') — falling back to mechanical substitution.', true);
+        html = personalizeRenshawTemplate(salesPageTemplate, profile || {}, formData);
+      }
+      html = applySalesPageOverrides(html, profile || {});
+      setSalesHtml(html);
+      const leaks = detectRenshawLeakage(html);
+      if (leaks.length) {
+        log(`⚠ Template copy survived: ${leaks.slice(0, 4).join(', ')}${leaks.length > 4 ? '…' : ''}. You can ask me to "remove all references to ${leaks[0]}".`, true);
+      } else {
+        log('Done — all template copy replaced.');
+      }
+    } catch (err) {
+      log('Regeneration failed: ' + err.message, true);
+    }
   }
 
   // Deterministic overrides applied AFTER Claude's rewrite — things we
