@@ -974,7 +974,17 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
       let detail = '';
       try {
         const raw = await res.text();
-        try { detail = JSON.parse(raw).error || raw; } catch (_) { detail = raw; }
+        try {
+          const parsed = JSON.parse(raw);
+          // Anthropic-style: { error: { type, message } }; proxy-style: { error: "string" }
+          if (parsed && parsed.error) {
+            detail = typeof parsed.error === 'string'
+              ? parsed.error
+              : (parsed.error.message || JSON.stringify(parsed.error));
+          } else {
+            detail = raw;
+          }
+        } catch (_) { detail = raw; }
       } catch (_) { detail = '(could not read body)'; }
       throw new Error(`Claude proxy ${res.status}: ${detail}`);
     }
@@ -1568,7 +1578,7 @@ OUTPUT FORMAT (strict):
 
 ${template}`;
 
-    return await callClaude(prompt, 20000, { model: 'claude-sonnet-4-6' });
+    return await callClaude(prompt, 16000, { model: 'claude-opus-4-7' });
   }
 
   // Deterministic overrides applied AFTER Claude's rewrite — things we
