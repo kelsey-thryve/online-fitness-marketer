@@ -1116,14 +1116,23 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
       for (const d of DELIVERABLES) {
         markTask(d.id, 'active');
         if (d.id === 'sales') {
-          // The sales deliverable is the literal Renshaw template with the
-          // coach's brand / name / challenge name swapped in. The user
-          // refines further via the in-app chat editor. This guarantees
-          // pixel-perfect Renshaw layout — no chance of Claude truncating
-          // or rewriting structure.
-          generatedDocs[d.id] = personalizeRenshawTemplate(
-            salesPageTemplate, profile || {}, formData
-          );
+          // Rewrite ALL visible copy via Claude while preserving structure,
+          // then apply deterministic overrides (photo, logo, colours).
+          // Falls back to mechanical substitution if the model output looks
+          // truncated or malformed.
+          let html;
+          try {
+            const raw = await generateSalesPageFromTemplate(salesPageTemplate, intake);
+            html = sanitizeGeneratedHtml(raw);
+            if (!html.includes('<!DOCTYPE') || !/<\/html>\s*$/i.test(html)) {
+              throw new Error('Sales page output incomplete');
+            }
+          } catch (err) {
+            console.warn('Claude sales rewrite failed, falling back:', err);
+            html = personalizeRenshawTemplate(salesPageTemplate, profile || {}, formData);
+          }
+          html = applySalesPageOverrides(html, profile || {});
+          generatedDocs[d.id] = html;
           markTask(d.id, 'done');
           continue;
         }
@@ -1500,12 +1509,93 @@ ${currentHtml}`;
     return sanitizeGeneratedHtml(output);
   }
 
-  // Clone the Renshaw template with deep substitutions: brand name,
-  // coach name, prices, headline tagline, social-proof, coach bio,
-  // testimonials, photos, and brand colours. The result still uses
-  // Renshaw's layout/structure, but every visible Renshaw-specific
-  // string has been swapped for the coach's actual launch data.
-  // Further refinement happens via the in-app chat editor.
+  // Calls Claude to rewrite EVERY piece of visible copy in the Renshaw
+  // template while preserving the HTML structure, CSS, JS, and image src
+  // URLs verbatim. The intake string is the same one used for the other
+  // deliverables, so the model has full context on the launch.
+  async function generateSalesPageFromTemplate(template, intake) {
+    const p = profile || {};
+    const primary   = p.brand_primary   || '#3DA7FD';
+    const secondary = p.brand_secondary || '#EAF4FF';
+    const prompt = `You are an expert HTML/CSS engineer with a direct-response copywriting background.
+
+# YOUR TASK
+The HTML at the bottom of this prompt is a complete 13-section sales-page template currently written for a fitness coach called "Renshaw". You will produce an equivalent HTML document with the structure, CSS, JS, layout and image URLs preserved EXACTLY, but every piece of visible text content REWRITTEN for the launch described below.
+
+# LAUNCH DETAILS
+
+${intake}
+
+# RULES
+
+PRESERVE EXACTLY (do NOT touch):
+- Every HTML tag, attribute, class name, and ID
+- Every <script> block (countdown timer, sessionStorage, FAQ toggles, scroll animations)
+- The structural CSS — every selector, rule, and media query in the <style> block
+- All image src URLs — leave them verbatim. The user swaps these via the chat later.
+- Document outline: same 13 sections in the same order; same number of testimonial cards (3), FAQ items (7), before/after cards (4), who-it's-for cards (6), how-it-works steps (4), credentials bullets, "what's included" bullets.
+- The countdown timer's red urgency bar (#urgencyBar) — keep its inline styles intact, but rewrite the visible text inside.
+
+REWRITE COMPLETELY (every word that mentions Renshaw / Bryan / Workout Vault / 50+ months / men 30+ / etc must go):
+- The <title> tag (use the brand + product framing)
+- All headlines, sub-headlines, eyebrow pills, button labels, CTA copy
+- All body paragraphs and section descriptions
+- All scarcity / urgency / countdown text
+- All price displays — show the actual launch price, a credible "old price" (typically ~2× current), and a per-day reframe (price ÷ 30)
+- Every bullet in the "What's included" order box (use the launch's actual inclusions)
+- Every testimonial card — write 3 new realistic-sounding testimonials based on the actual audience and outcomes; use first-name + last-initial only
+- Every FAQ Q&A pair — handle this launch's biggest objection in Q1
+- Every "who's it for" card — built around the actual audience nickname
+- The coach's bio paragraph — built from the coach's intake history / credentials, in first person
+- The credentials list — use intake credentials
+- The 4 before/after cards — invent realistic placeholder names + believable result lines; quote stays short
+- The 4 "how it works" step titles + bodies — built around how THIS product is delivered
+- All stats numbers — only use numbers in the intake; otherwise show "[ADD STAT]" — never fabricate
+
+CHANGE THESE CSS VARIABLES (do not change any other styling):
+- --blue: ${primary}
+- --blue-dark: ${primary}
+- --blue-light: ${secondary}
+
+OUTPUT FORMAT (strict):
+- Output ONLY the complete HTML document.
+- Start with <!DOCTYPE html>.
+- End with </html>.
+- No prose before, no prose after, no markdown fences.
+- The document must be a single self-contained .html file that renders the rewritten sales page.
+
+# TEMPLATE TO REWRITE
+
+${template}`;
+
+    return await callClaude(prompt, 20000, { model: 'claude-sonnet-4-6' });
+  }
+
+  // Deterministic overrides applied AFTER Claude's rewrite — things we
+  // don't want Claude inventing or fumbling: actual photo URLs and the
+  // brand colour variables.
+  function applySalesPageOverrides(html, profile) {
+    if (!html) return html;
+    const p = profile || {};
+    let out = html;
+    if (p.photo_url) {
+      out = out.replace(
+        /https:\/\/www\.renshawspt\.com\/[^"'\s]+\.(?:jpg|jpeg|png|webp)/gi,
+        p.photo_url
+      );
+    }
+    if (p.brand_primary) {
+      out = out.replace(/--blue:\s*#[0-9a-fA-F]+/, `--blue: ${p.brand_primary}`);
+      out = out.replace(/--blue-dark:\s*#[0-9a-fA-F]+/, `--blue-dark: ${p.brand_primary}`);
+    }
+    if (p.brand_secondary) {
+      out = out.replace(/--blue-light:\s*#[0-9a-fA-F]+/, `--blue-light: ${p.brand_secondary}`);
+    }
+    return out;
+  }
+
+  // Fallback: mechanical substitution if Claude generation fails.
+  // Same as before — kept as a safety net so generation never crashes.
   function personalizeRenshawTemplate(html, profile, formData) {
     if (!html) return '';
     const p = profile || {};
