@@ -86,6 +86,90 @@
   .graphic-card-title { font-size: 0.9rem; font-weight: 600; }
   .graphic-card-actions { display: flex; gap: 6px; }
 
+  /* Sales-page live editor */
+  .site-editor {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) 360px;
+    gap: 0;
+    min-height: 72vh;
+    background: var(--bg-card);
+  }
+  @media (max-width: 980px) {
+    .site-editor { grid-template-columns: 1fr; }
+  }
+  .site-editor-preview {
+    background: #fff;
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+    min-height: 600px;
+  }
+  .site-editor-preview iframe {
+    width: 100%; height: 100%; min-height: 600px; border: none; background: #fff;
+  }
+  .site-editor-chat {
+    display: flex; flex-direction: column;
+    background: var(--bg-input);
+    height: 100%;
+    min-height: 600px;
+  }
+  .chat-head {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.92rem;
+  }
+  .chat-log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px;
+    display: flex; flex-direction: column; gap: 12px;
+    min-height: 0;
+  }
+  .chat-msg {
+    padding: 12px 14px;
+    border-radius: 14px;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    max-width: 95%;
+    word-wrap: break-word;
+  }
+  .chat-msg-user {
+    background: var(--accent-soft);
+    color: var(--text);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    align-self: flex-end;
+  }
+  .chat-msg-bot {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    align-self: flex-start;
+  }
+  .chat-msg-error {
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+  }
+  .chat-form {
+    padding: 14px;
+    border-top: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 10px;
+    background: var(--bg-card);
+  }
+  .chat-form textarea {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 11px 13px;
+    color: var(--text);
+    font-family: inherit; font-size: 0.92rem;
+    resize: vertical;
+  }
+  .chat-form textarea:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
   .tier-badge {
     display: inline-block; padding: 2px 10px; border-radius: 100px;
     background: var(--accent-gradient); color: white;
@@ -327,13 +411,25 @@
 
   const DELIVERABLES = [
     { id: 'positioning', title: 'Positioning Brief',         icon: '01' },
-    { id: 'sales',       title: 'Sales Page Copy',           icon: '02' },
+    { id: 'sales',       title: 'Sales Page (editable)',     icon: '02' },
     { id: 'emails',      title: 'Pre-launch Email Sequence', icon: '03' },
     { id: 'scripts',     title: '3 Video Scripts',           icon: '04' },
     { id: 'ads',         title: '5 Ad Variations',           icon: '05' },
     { id: 'manychat',    title: 'ManyChat DM Flow',          icon: '06' },
     { id: 'plan',        title: 'Launch-week Plan',          icon: '07' }
   ];
+
+  // Pre-fetched once per session and re-used for both initial generation
+  // and live chat edits. ~50KB Renshaw HTML template.
+  let salesPageTemplate = '';
+  async function getSalesTemplate() {
+    if (salesPageTemplate) return salesPageTemplate;
+    try {
+      const res = await fetch('salespage-template.html');
+      salesPageTemplate = await res.text();
+    } catch (_) { salesPageTemplate = ''; }
+    return salesPageTemplate;
+  }
 
   let currentStep = 1;
   const formData = {};
@@ -600,86 +696,35 @@ One-page strategic brief for this challenge. Sections:
 Tier note: tune positioning toward ${tier === 'high' ? 'premium / exclusive cohort framing' : 'accessible / open-enrollment framing'}.
 Clean Markdown.`,
 
-      sales: `YOUR TASK: SALES PAGE COPY — RENSHAW-STYLE LONG-FORM
+      sales: `YOUR TASK: GENERATE A COMPLETE EDITABLE HTML SALES PAGE
 
-Write paste-ready copy for a high-converting long-form challenge sales page modelled on the Renshaw template. Follow this 13-section architecture EXACTLY, in this order. Output section headings in UPPERCASE so the creator can find each block. Where the page expects a photo, drop a single-line slot marker in square brackets like [PHOTO: coach professional portrait, 3:4] on its own line — DO NOT generate image descriptions or alt text, just the slot marker.
+Below is a fully-built sales page HTML template. Generate a NEW HTML page that uses this template's structure, CSS and JavaScript EXACTLY, but with every piece of copy replaced with content personalised to this coach and launch.
 
-1. STICKY URGENCY BAR
-One short scarcity line (≤80 chars) suitable for an always-visible top bar. Tie it to a real lever for this launch (e.g. cohort filling, founders pricing, cart close). One sentence only.
+# THE TEMPLATE
+\`\`\`html
+${salesPageTemplate || '<!-- template unavailable -->'}
+\`\`\`
 
-2. HERO
-- A "Limited Time Offer" eyebrow pill (≤20 chars)
-- Two-line headline; pick one short phrase that gets emphasised
-- One-sentence subhead that reinforces the scarcity + price
-- A price stack: original price (strikethrough placeholder), current price (${formData.price}), and a per-day reframe (calculate: divide ${formData.price} by 30 for low-ticket / by 90 for high-ticket and round)
-- One primary CTA: button copy for ${ctaPrimary}
-- Three trust pills (≤24 chars each)
+# WHAT TO CHANGE
+- The brand name, all headlines, sub-headlines, body copy, FAQ, testimonials, the coach's bio, the offer breakdown, the price, the scarcity copy — everything textual.
+- Update colours via the CSS \`--accent\` and \`--accent-light\` variables to match the user's brand: primary ${(profile && profile.brand_primary) || '#6366f1'}, secondary ${(profile && profile.brand_secondary) || '#10b981'}.
 
-3. SOCIAL PROOF BAR
-One bold one-liner with a credible stat (use the creator's actual numbers from the intake; do not fabricate larger).
+# WHAT TO KEEP EXACTLY
+- Every CSS rule (don't restructure the design system).
+- Every \`<script>\` block and JS function (especially the countdown timer, sessionStorage logic, FAQ toggles, scroll animations).
+- The 13-section architecture in the same order.
+- All ARIA / semantic HTML.
 
-4. EMPATHY / PROBLEM
-A short eyebrow label, a one-sentence headline that names the real problem (use "${formData.biggestPain}"), and one short paragraph reframing the cause as something this program fixes.
+# IMAGE SLOTS
+Where the template uses real Unsplash URLs, KEEP them — they're placeholders the creator will swap manually. Do not invent broken or local image URLs.
 
-5. BEFORE & AFTER PROOF GRID
-Headline + intro line. Then a list of 4 transformation cards, each formatted as:
-  CARD N — [PHOTO: client transformation before/after, 1:1 square]
-  Name: (placeholder name)
-  Result pill: (short outcome, ≤24 chars)
-  Quote: (one short italic line)
-Use the testimonial intake (top testimonial line: "${(profile && profile.testimonials && profile.testimonials[0] && profile.testimonials[0].quote) || ''}") for card 1; invent realistic-feeling placeholders for cards 2-4 that the creator will swap in.
+# OUTPUT RULES
+- Return ONLY the complete HTML document. No prose before or after, no markdown fences.
+- The HTML must start with \`<!DOCTYPE html>\` and be a single self-contained file.
+- Must render correctly when written straight to a .html file.
 
-6. ORDER SUMMARY / PRICING BOX
-- Section anchor: #order
-- Big header: current price + per-day reframe
-- 7-item "what's included" list pulled from "${formData.included}" — each item one line, no jargon
-- Total monthly row
-- Full-width CTA button copy
-- Three small trust icons line (e.g. "No contract · SSL secure · Cancel in seconds")
-
-7. WHO IT'S FOR
-6 cards in a "perfect for you if…" grid. Each card:
-  Emoji + bold qualifying statement (≤6 words) + one-sentence body
-Mix audience-fit and disqualifier-flips. Anchor on the audience: "${formData.avatarNickname}".
-
-8. MEET THE COACH
-- [PHOTO: coach professional portrait, 3:4]
-- Eyebrow: "Your Coach"
-- Headline (the coach's name in headline case)
-- One-paragraph backstory drawn from history/credentials (do not invent qualifications)
-- A vertical credentials list (3-5 bullets, blue-dot style)
-
-9. RESULTS STATS BAR
-Three large numbers + short labels. Use real stats from the intake (audience size, clients trained, years coaching). If you don't have one, leave the number as "[ADD STAT]" — never fabricate.
-
-10. HOW IT WORKS
-4 numbered steps in a vertical timeline. Each step = short title + 1-2 sentence body. Frame onboarding so it feels frictionless. End at first session / first win.
-
-11. TESTIMONIALS
-3 testimonial cards. Each:
-  5 stars
-  Italic quote
-  [PHOTO: member headshot, circular]
-  Name + "Member" meta
-  Result pill at the bottom (≤24 chars)
-Use the testimonial intake for card 1; placeholders for the other two.
-
-12. FAQ
-7 questions in accordion-style. Handle the biggest objection ("${formData.biggestObjection}") in Q1, then beginner/equipment/time/cancel/why-so-cheap/guarantee. Each answer 1-3 sentences.
-
-13. FINAL CTA
-- Headline with one phrase highlighted
-- Subhead
-- Price block (same stack as Hero — strikethrough original, current ${formData.price}, per-day, scarcity callout)
-- Primary CTA button copy
-- Secure-checkout reassurance line
-
-GLOBAL RULES:
-- Use the coach's voice and avoid the listed words.
-- Plain text. No markdown headings or asterisks.
-- Photo slot markers should be the ONLY square-bracket lines in the output.
-- ${tier === 'high' ? 'Every CTA points to application/discovery call. Never reveal a checkout link.' : 'Every CTA points to direct checkout. Show the price clearly. Reduce friction.'}
-- Repeat the scarcity twin (countdown + spots/cohort) in Hero, Order box, and Final CTA — exactly three times across the page.`,
+${tier === 'high' ? 'Frame every CTA as booking a discovery / application call.' : 'Frame every CTA as direct checkout. Show the price clearly.'}
+Use the coach's voice. Avoid the listed words. Lean on the testimonial intake for case-study sections.`,
 
       emails: `# YOUR TASK: PRE-LAUNCH EMAIL SEQUENCE
 
@@ -793,9 +838,10 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
      CLAUDE PROXY CALL
      ================================================================ */
 
-  async function callClaude(prompt, maxTokens = 4096) {
+  async function callClaude(prompt, maxTokens = 4096, opts = {}) {
     const token = await getAccessToken();
     if (!token) throw new Error('Not signed in.');
+    const model = opts.model || cfg.MODEL || 'claude-opus-4-7';
     // Stream: true keeps bytes flowing through the Netlify Edge proxy so
     // long generations don't hit the 40s time-to-first-byte timeout.
     const res = await fetch(cfg.CLAUDE_PROXY_PATH || '/api/claude', {
@@ -805,7 +851,7 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
         'authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
-        model: cfg.MODEL || 'claude-opus-4-7',
+        model,
         max_tokens: maxTokens,
         stream: true,
         messages: [{ role: 'user', content: prompt }]
@@ -938,12 +984,17 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
     errEl.classList.add('hidden');
 
     try {
+      // Pre-fetch the sales page template so the sales prompt can embed it.
+      await getSalesTemplate();
+
       for (const d of DELIVERABLES) {
         markTask(d.id, 'active');
         const prompt = buildPrompt(d.id, intake, generatedDocs);
-        const maxTokens = (d.id === 'plan' || d.id === 'sales') ? 8000 : 4096;
+        const maxTokens = d.id === 'sales' ? 16000 : (d.id === 'plan' ? 8000 : 4096);
         const output = await callClaude(prompt, maxTokens);
-        generatedDocs[d.id] = plainify(output);
+        // The sales deliverable is raw HTML — don't strip markdown syntax
+        // since `*` / `#` may appear inside CSS selectors or content.
+        generatedDocs[d.id] = d.id === 'sales' ? sanitizeGeneratedHtml(output) : plainify(output);
         markTask(d.id, 'done');
       }
 
@@ -1002,19 +1053,53 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
       const panel = document.createElement('div');
       panel.className = 'doc-panel' + (i === 0 ? ' active' : '');
       panel.id = `panel-${d.id}`;
-      const pdfBtn = d.id === 'plan'
-        ? `<button class="btn btn-secondary btn-sm" data-pdf="${d.id}">⇩ PDF</button>`
-        : '';
-      panel.innerHTML = `
-        <div class="doc-header">
-          <h3>${d.title}</h3>
-          <div style="display:flex; gap:8px;">
-            ${pdfBtn}
-            <button class="btn btn-secondary btn-sm" data-doc="${d.id}">Copy</button>
+      if (d.id === 'sales') {
+        // Sales is the editable HTML site — render an iframe preview +
+        // AI chat sidebar instead of plain text.
+        panel.innerHTML = `
+          <div class="doc-header">
+            <h3>${d.title}</h3>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-secondary btn-sm" data-html-open="${d.id}">↗ Open in new tab</button>
+              <button class="btn btn-secondary btn-sm" data-html-download="${d.id}">⇩ Download .html</button>
+            </div>
           </div>
-        </div>
-        <div class="doc-body">${escapeHtml(generatedDocs[d.id] || '')}</div>
-      `;
+          <div class="site-editor">
+            <div class="site-editor-preview">
+              <iframe id="sales-preview" title="Sales page preview" sandbox="allow-scripts allow-same-origin"></iframe>
+            </div>
+            <div class="site-editor-chat">
+              <div class="chat-head">
+                <strong>Edit chat</strong>
+                <span style="font-size:0.78rem; color: var(--text-dim);">Powered by Claude · Haiku 4.5</span>
+              </div>
+              <div id="sales-chat-log" class="chat-log">
+                <div class="chat-msg chat-msg-bot">
+                  Hey — I've drafted the full sales page based on your launch. Tell me what to change in plain English ("make the hero shorter", "drop the second testimonial", "change the price callout to mention the bonus"). I'll edit the HTML live.
+                </div>
+              </div>
+              <form id="sales-chat-form" class="chat-form">
+                <textarea id="sales-chat-input" rows="3" placeholder="What would you like to change?"></textarea>
+                <button type="submit" class="btn btn-primary btn-sm" id="sales-chat-send">Send</button>
+              </form>
+            </div>
+          </div>
+        `;
+      } else {
+        const pdfBtn = d.id === 'plan'
+          ? `<button class="btn btn-secondary btn-sm" data-pdf="${d.id}">⇩ PDF</button>`
+          : '';
+        panel.innerHTML = `
+          <div class="doc-header">
+            <h3>${d.title}</h3>
+            <div style="display:flex; gap:8px;">
+              ${pdfBtn}
+              <button class="btn btn-secondary btn-sm" data-doc="${d.id}">Copy</button>
+            </div>
+          </div>
+          <div class="doc-body">${escapeHtml(generatedDocs[d.id] || '')}</div>
+        `;
+      }
       docsContainer.appendChild(panel);
     });
 
@@ -1072,6 +1157,122 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
     });
     const dlAll = document.getElementById('download-all-graphics');
     if (dlAll) dlAll.onclick = downloadAllGraphics;
+
+    // Wire up the sales-page HTML editor (preview + chat)
+    initSalesEditor();
+  }
+
+  /* ================================================================
+     SALES PAGE — live HTML preview + chat editor
+     ================================================================ */
+  function getSalesHtml() { return generatedDocs.sales || ''; }
+  function setSalesHtml(html) {
+    generatedDocs.sales = sanitizeGeneratedHtml(html);
+    refreshSalesPreview();
+    persistCurrentRecord();
+  }
+  function refreshSalesPreview() {
+    const iframe = document.getElementById('sales-preview');
+    if (!iframe) return;
+    iframe.srcdoc = getSalesHtml();
+  }
+  function persistCurrentRecord() {
+    // Re-save the current launch record to localStorage so HTML edits stick.
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    if (!id) return;
+    const all = JSON.parse(localStorage.getItem(`trainerlaunch:challenges:${user.id}`) || '[]');
+    const idx = all.findIndex(c => c.id === id);
+    if (idx >= 0) {
+      all[idx].docs = { ...all[idx].docs, sales: generatedDocs.sales };
+      localStorage.setItem(`trainerlaunch:challenges:${user.id}`, JSON.stringify(all));
+    }
+  }
+
+  function initSalesEditor() {
+    refreshSalesPreview();
+
+    // Open in new tab
+    document.querySelectorAll('button[data-html-open]').forEach(btn => {
+      btn.onclick = () => {
+        const blob = new Blob([getSalesHtml()], { type: 'text/html;charset=utf-8' });
+        window.open(URL.createObjectURL(blob), '_blank');
+      };
+    });
+
+    // Download .html
+    document.querySelectorAll('button[data-html-download]').forEach(btn => {
+      btn.onclick = () => {
+        const safe = (formData.challengeName || 'launch').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+        const blob = new Blob([getSalesHtml()], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `${safe}-sales-page.html`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      };
+    });
+
+    // Chat form
+    const form = document.getElementById('sales-chat-form');
+    if (!form) return;
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('sales-chat-input');
+      const instruction = input.value.trim();
+      if (!instruction) return;
+      input.value = '';
+      appendChatMsg('user', instruction);
+      const thinkingEl = appendChatMsg('bot', 'Editing the page…');
+      try {
+        const newHtml = await chatEditSalesHtml(instruction, getSalesHtml());
+        setSalesHtml(newHtml);
+        thinkingEl.textContent = 'Done — preview updated.';
+      } catch (err) {
+        thinkingEl.textContent = 'Edit failed: ' + err.message;
+        thinkingEl.classList.add('chat-msg-error');
+      }
+    };
+  }
+
+  function appendChatMsg(role, text) {
+    const log = document.getElementById('sales-chat-log');
+    const el = document.createElement('div');
+    el.className = 'chat-msg ' + (role === 'user' ? 'chat-msg-user' : 'chat-msg-bot');
+    el.textContent = text;
+    log.appendChild(el);
+    log.scrollTop = log.scrollHeight;
+    return el;
+  }
+
+  async function chatEditSalesHtml(instruction, currentHtml) {
+    const prompt = `You are an expert HTML/CSS engineer editing a single-file landing page.
+
+The current page HTML is below. The user wants this change:
+"""
+${instruction}
+"""
+
+Rules:
+- Output ONLY the complete, updated HTML document. No prose, no markdown fences, no commentary.
+- The HTML must start with <!DOCTYPE html> and be a single self-contained file.
+- Preserve every existing <script>, <style>, and class name unless the change explicitly requires altering them.
+- Make the smallest change that fully satisfies the request. Do not rewrite untouched sections.
+- If the user requests something visual (colours, fonts, spacing) update inline CSS or the existing <style> block — never link to external files.
+
+CURRENT HTML:
+${currentHtml}`;
+    const output = await callClaude(prompt, 16000, { model: 'claude-haiku-4-5-20251001' });
+    return sanitizeGeneratedHtml(output);
+  }
+
+  // Strip Claude wrappers (\`\`\`html ... \`\`\`) and ensure the doc starts at <!DOCTYPE.
+  function sanitizeGeneratedHtml(raw) {
+    let s = String(raw || '').trim();
+    s = s.replace(/^```(?:html)?\s*/i, '').replace(/```\s*$/i, '');
+    const i = s.indexOf('<!DOCTYPE');
+    if (i > 0) s = s.slice(i);
+    return s.trim();
   }
 
   function selectTab(id) {
@@ -1122,7 +1323,7 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
         '',
         'CONTENTS',
         '- 01-positioning-brief.txt',
-        '- 02-sales-page.txt',
+        '- 02-sales-page.html',
         '- 03-pre-launch-emails.txt',
         '- 04-video-scripts.txt',
         '- 05-ad-variations.txt',
@@ -1136,7 +1337,7 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
       // Text deliverables
       const textFileNames = {
         positioning: '01-positioning-brief.txt',
-        sales:       '02-sales-page.txt',
+        sales:       '02-sales-page.html',
         emails:      '03-pre-launch-emails.txt',
         scripts:     '04-video-scripts.txt',
         ads:         '05-ad-variations.txt',

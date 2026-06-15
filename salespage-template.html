@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Renshaw's Personal Training – Structured Workouts for Men 30+</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600;700&family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #3DA7FD;
+    --blue-dark: #1a8de8;
+    --blue-light: #EAF4FF;
+    --blue-mid: #CCE6FF;
+    --dark: #0D1B2A;
+    --mid: #1A2E42;
+    --text: #2C3E50;
+    --muted: #6B7C93;
+    --warm: #F8F4EF;
+    --warm-dark: #EDE8E1;
+    --white: #FFFFFF;
+    --serif: 'Mitr', sans-serif;
+    --sans: 'Roboto', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    color: var(--text);
+    background: var(--white);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── NAV ── */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--blue-mid);
+    padding: 14px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav__logo img { height: 40px; display: block; }
+  .nav__cta {
+    background: var(--blue); color: white; border: none;
+    padding: 11px 24px; border-radius: 6px;
+    font-family: var(--sans); font-size: 0.88rem; font-weight: 600;
+    cursor: pointer; text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .nav__cta:hover { background: var(--blue-dark); transform: translateY(-1px); }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--dark);
+    padding: 96px 24px 88px;
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 55% at 50% 0%, rgba(61,167,253,0.18) 0%, transparent 70%);
+  }
+  .hero__tag {
+    display: inline-block;
+    background: rgba(61,167,253,0.15);
+    border: 1px solid rgba(61,167,253,0.4);
+    color: var(--blue);
+    font-size: 0.78rem; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 6px 16px; border-radius: 100px;
+    margin-bottom: 28px; position: relative;
+  }
+  .hero__headline {
+    font-family: var(--serif);
+    font-size: clamp(3.4rem, 7.5vw, 4.2rem);
+    font-weight: 700; color: var(--white);
+    line-height: 1.18; max-width: 820px;
+    margin: 0 auto 22px; position: relative;
+  }
+  .hero__headline em { font-style: normal; color: var(--blue); }
+  .hero__sub {
+    font-size: 1.35rem; color: rgba(255,255,255,0.68);
+    max-width: 580px; margin: 0 auto 42px;
+    line-height: 1.75; position: relative;
+  }
+  .hero__sub strong { color: rgba(255,255,255,0.92); }
+  .hero__price-badge {
+    display: inline-flex; flex-direction: column; align-items: center;
+    background: rgba(61,167,253,0.12);
+    border: 1px solid rgba(61,167,253,0.35);
+    border-radius: 14px; padding: 18px 32px;
+    margin-bottom: 36px; position: relative;
+  }
+  .hero__price-badge__top { font-size: 0.8rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .hero__price-badge__amount { font-family: var(--serif); font-size: 3rem; font-weight: 700; color: white; line-height: 1; }
+  .hero__price-badge__amount span { font-size: 1.4rem; vertical-align: top; margin-top: 8px; display: inline-block; }
+  .hero__price-badge__sub { font-size: 0.82rem; color: rgba(255,255,255,0.45); margin-top: 4px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 15px 34px; border-radius: 8px;
+    font-family: var(--sans); font-weight: 600; font-size: 1.05rem;
+    cursor: pointer; text-decoration: none; border: none;
+    transition: all 0.2s;
+  }
+  .btn--primary {
+    background: var(--blue); color: white;
+    box-shadow: 0 4px 24px rgba(61,167,253,0.45);
+  }
+  .btn--primary:hover { background: var(--blue-dark); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(61,167,253,0.5); }
+  .btn--ghost {
+    background: transparent; color: rgba(255,255,255,0.75);
+    border: 1px solid rgba(255,255,255,0.22);
+    font-size: 0.95rem;
+  }
+  .btn--ghost:hover { background: rgba(255,255,255,0.07); color: white; }
+  .hero__actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; position: relative; }
+  .hero__cancel-note { margin-top: 14px; color: rgba(255,255,255,0.35); font-size: 0.82rem; position: relative; }
+  .hero__trust {
+    margin-top: 52px; display: flex; gap: 28px;
+    justify-content: center; flex-wrap: wrap; position: relative;
+  }
+  .trust-pill {
+    display: flex; align-items: center; gap: 8px;
+    color: rgba(255,255,255,0.5); font-size: 0.87rem;
+  }
+  .trust-dot { width: 6px; height: 6px; background: var(--blue); border-radius: 50%; flex-shrink: 0; }
+
+  /* ── SOCIAL PROOF BAR ── */
+  .proof-bar {
+    background: var(--blue);
+    padding: 18px 24px;
+    text-align: center;
+  }
+  .proof-bar__inner {
+    font-size: 1.35rem; font-weight: 700; color: white;
+    display: flex; align-items: center; justify-content: center; gap: 0; flex-wrap: wrap;
+  }
+  .proof-bar__num { font-family: var(--sans); font-size: 1.35rem; font-weight: 700; }
+
+  /* ── EMPATHY ── */
+  .empathy { padding: 84px 24px; background: var(--warm); }
+  .empathy__inner { max-width: 680px; margin: 0 auto; text-align: center; }
+  .section-label {
+    font-size: 0.74rem; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--blue);
+    margin-bottom: 14px; display: block;
+  }
+  .section-headline {
+    font-family: var(--serif);
+    font-size: clamp(1.7rem, 3.5vw, 2.4rem);
+    font-weight: 700; color: var(--dark);
+    line-height: 1.25; margin-bottom: 20px;
+  }
+  .section-headline em { font-style: normal; color: var(--blue); }
+  .empathy__body {
+    color: var(--muted); font-size: 1.05rem;
+    line-height: 1.8; margin-bottom: 14px;
+  }
+  .empathy__body strong { color: var(--text); }
+
+  /* ── WHO IT'S FOR ── */
+  .for-who { padding: 84px 24px; background: var(--white); }
+  .for-who__header { text-align: center; margin-bottom: 50px; }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px; max-width: 900px; margin: 0 auto;
+  }
+  .card {
+    background: var(--warm); border-radius: 12px;
+    padding: 28px 24px; border: 1px solid var(--warm-dark);
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(13,27,42,0.08); }
+  .card__icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+  .card__title { font-weight: 600; color: var(--dark); font-size: 0.97rem; margin-bottom: 5px; }
+  .card__body { font-size: 0.88rem; color: var(--muted); line-height: 1.6; }
+
+  /* ── WHAT'S INCLUDED ── */
+  .included { padding: 84px 24px; background: var(--blue-light); }
+  .included__header { text-align: center; margin-bottom: 50px; }
+  .includes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px; max-width: 880px; margin: 0 auto;
+  }
+  .include-item {
+    background: white; border-radius: 10px;
+    padding: 22px 20px; border: 1px solid var(--blue-mid);
+    display: flex; gap: 14px; align-items: flex-start;
+    transition: box-shadow 0.2s;
+  }
+  .include-item:hover { box-shadow: 0 4px 20px rgba(61,167,253,0.15); }
+  .inc-check {
+    width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px;
+    background: var(--blue); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 0.7rem; font-weight: 700;
+  }
+  .inc-title { font-weight: 600; color: var(--dark); font-size: 0.97rem; margin-bottom: 4px; }
+  .inc-body { font-size: 0.87rem; color: var(--muted); line-height: 1.55; }
+
+  /* ── MEET BRYAN ── */
+  .meet {
+    padding: 90px 24px; background: var(--dark);
+    position: relative; overflow: hidden;
+  }
+  .meet::before {
+    content: '';
+    position: absolute; top: -80px; right: -100px;
+    width: 450px; height: 450px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(61,167,253,0.09) 0%, transparent 70%);
+  }
+  .meet__inner {
+    max-width: 900px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1.2fr;
+    gap: 64px; align-items: center; position: relative;
+  }
+  .meet__photo {
+    width: 100%; aspect-ratio: 3/4;
+    background: var(--mid); border-radius: 18px;
+    overflow: hidden; display: flex; align-items: center; justify-content: center;
+    border: 1px solid rgba(61,167,253,0.2);
+  }
+  .photo-placeholder {
+    text-align: center; color: rgba(255,255,255,0.2);
+    font-size: 0.82rem; line-height: 1.7; padding: 24px;
+  }
+  .photo-placeholder svg { display: block; margin: 0 auto 12px; opacity: 0.25; }
+  .meet__eyebrow {
+    font-size: 0.74rem; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--blue);
+    margin-bottom: 14px; display: block;
+  }
+  .meet__headline {
+    font-family: var(--serif);
+    font-size: clamp(1.7rem, 3vw, 2.3rem);
+    font-weight: 700; color: white;
+    line-height: 1.25; margin-bottom: 20px;
+  }
+  .meet__body {
+    color: rgba(255,255,255,0.62); font-size: 0.97rem;
+    line-height: 1.8; margin-bottom: 14px;
+  }
+  .meet__body strong { color: rgba(255,255,255,0.9); }
+  .meet__creds { margin-top: 28px; display: flex; flex-direction: column; gap: 10px; }
+  .cred { display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.55); font-size: 0.88rem; }
+  .cred__dot { width: 6px; height: 6px; background: var(--blue); border-radius: 50%; flex-shrink: 0; }
+
+  /* ── HOW IT WORKS ── */
+  .process { padding: 90px 24px; background: var(--white); }
+  .process__header { text-align: center; margin-bottom: 58px; }
+  .steps { max-width: 740px; margin: 0 auto; display: flex; flex-direction: column; }
+  .step {
+    display: grid; grid-template-columns: 68px 1fr;
+    gap: 22px; align-items: start;
+    padding-bottom: 40px; position: relative;
+  }
+  .step:not(:last-child)::after {
+    content: ''; position: absolute;
+    left: 33px; top: 54px; bottom: 0;
+    width: 2px; background: var(--blue-mid);
+  }
+  .step__num {
+    width: 52px; height: 52px;
+    background: white; border: 2px solid var(--blue);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-family: var(--serif); font-size: 1.15rem; font-weight: 700; color: var(--blue);
+    flex-shrink: 0; position: relative; z-index: 1;
+  }
+  .step__title {
+    font-family: var(--serif); font-size: 1.15rem;
+    font-weight: 600; color: var(--dark);
+    margin-bottom: 7px; padding-top: 12px;
+  }
+  .step__body { font-size: 0.94rem; color: var(--muted); line-height: 1.7; }
+
+  /* ── RESULTS STATS ── */
+  .results-bar { background: var(--dark); padding: 58px 24px; }
+  .results-inner {
+    max-width: 860px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 20px; text-align: center;
+  }
+  .stat__num {
+    font-family: var(--serif); font-size: 2.8rem;
+    font-weight: 700; color: var(--blue);
+    line-height: 1; margin-bottom: 8px;
+  }
+  .stat__label { font-size: 0.88rem; color: rgba(255,255,255,0.55); line-height: 1.55; }
+
+  /* ── TESTIMONIALS ── */
+  .testimonials { padding: 90px 24px; background: var(--warm); }
+  .testimonials__header { text-align: center; margin-bottom: 50px; }
+  .testi-grid {
+    max-width: 920px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+    gap: 20px;
+  }
+  .testi {
+    background: white; border-radius: 14px;
+    padding: 30px 26px; border: 1px solid var(--warm-dark);
+  }
+  .testi__stars { color: #F59E0B; font-size: 0.9rem; margin-bottom: 14px; }
+  .testi__body {
+    font-size: 0.95rem; color: var(--text);
+    line-height: 1.7; font-style: italic;
+    margin-bottom: 22px;
+  }
+  .testi__author { display: flex; align-items: center; gap: 12px; }
+  .testi__img {
+    width: 48px; height: 48px; border-radius: 50%;
+    overflow: hidden; flex-shrink: 0; background: var(--blue-light);
+  }
+  .testi__img img { width: 100%; height: 100%; object-fit: cover; }
+  .testi__name { font-weight: 600; color: var(--dark); font-size: 0.92rem; }
+  .testi__meta { font-size: 0.8rem; color: var(--muted); }
+  .testi__result {
+    display: inline-block; margin-top: 14px;
+    background: var(--blue-light); color: var(--blue);
+    border-radius: 100px; padding: 4px 14px;
+    font-size: 0.78rem; font-weight: 600;
+  }
+
+  /* ── FAQ ── */
+  .faq { padding: 90px 24px; background: var(--white); }
+  .faq__header { text-align: center; margin-bottom: 50px; }
+  .faq-list {
+    max-width: 700px; margin: 0 auto;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .faq-item { border: 1px solid var(--warm-dark); border-radius: 10px; overflow: hidden; }
+  .faq-item summary {
+    padding: 19px 22px; font-weight: 600; color: var(--dark);
+    cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.96rem; list-style: none;
+    background: var(--warm); user-select: none; transition: background 0.2s;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after {
+    content: '+'; font-size: 1.3rem; color: var(--blue);
+    font-weight: 300; flex-shrink: 0; margin-left: 12px;
+    transition: transform 0.2s;
+  }
+  .faq-item[open] summary::after { transform: rotate(45deg); }
+  .faq-item[open] summary { background: var(--blue-light); }
+  .faq-item__body {
+    padding: 18px 22px; font-size: 0.93rem; color: var(--muted);
+    line-height: 1.7; border-top: 1px solid var(--warm-dark);
+  }
+
+  /* ── FINAL CTA ── */
+  .final-cta {
+    padding: 100px 24px; background: var(--dark);
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .final-cta::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 55% at 50% 100%, rgba(61,167,253,0.14) 0%, transparent 70%);
+  }
+  .final-cta__headline {
+    font-family: var(--serif);
+    font-size: clamp(2rem, 4.5vw, 3rem);
+    font-weight: 700; color: white;
+    line-height: 1.2; max-width: 680px;
+    margin: 0 auto 20px; position: relative;
+  }
+  .final-cta__headline em { font-style: normal; color: var(--blue); }
+  .final-cta__sub {
+    color: rgba(255,255,255,0.58); font-size: 1rem;
+    max-width: 500px; margin: 0 auto 40px;
+    line-height: 1.75; position: relative;
+  }
+  .final-cta__price {
+    position: relative;
+    display: inline-flex; flex-direction: column; align-items: center;
+    margin-bottom: 28px;
+  }
+  .final-cta__price__amount {
+    font-family: var(--serif); font-size: 3.8rem; font-weight: 700; color: white; line-height: 1;
+  }
+  .final-cta__price__amount sup { font-size: 1.6rem; vertical-align: super; }
+  .final-cta__price__note { color: rgba(255,255,255,0.4); font-size: 0.85rem; margin-top: 4px; }
+  .final-cta__actions { position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .final-cta__guarantee { color: rgba(255,255,255,0.38); font-size: 0.82rem; }
+
+  /* ── BEFORE & AFTER ── */
+  .before-after { padding: 84px 24px; background: var(--white); }
+  .before-after__header { text-align: center; margin-bottom: 50px; }
+  .ba-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  .ba-card {
+    background: var(--warm);
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--warm-dark);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .ba-card:hover { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(13,27,42,0.1); }
+  .ba-card__img {
+    width: 100%; aspect-ratio: 1/1;
+    overflow: hidden; background: var(--blue-light);
+  }
+  .ba-card__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ba-card__body { padding: 18px 20px; }
+  .ba-card__name { font-weight: 700; color: var(--dark); font-size: 1rem; margin-bottom: 4px; font-family: var(--sans); }
+  .ba-card__result {
+    display: inline-block;
+    background: var(--blue); color: white;
+    border-radius: 100px; padding: 3px 12px;
+    font-size: 0.78rem; font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .ba-card__quote { font-size: 0.88rem; color: var(--muted); line-height: 1.6; font-style: italic; }
+  .ba-card--quote {
+    background: var(--dark);
+    display: flex; flex-direction: column;
+    justify-content: center; padding: 32px 28px;
+  }
+  .ba-card--quote .ba-card__name { color: rgba(255,255,255,0.5); font-size: 0.88rem; margin-top: 16px; }
+  .ba-card--quote .ba-card__result { background: rgba(61,167,253,0.2); color: var(--blue); margin-top: 8px; }
+  .ba-card__quote-icon {
+    font-family: var(--serif); font-size: 4rem;
+    color: var(--blue); line-height: 0.8; margin-bottom: 16px;
+  }
+  .ba-card__quote-body {
+    font-size: 1rem; color: rgba(255,255,255,0.8);
+    line-height: 1.75; font-style: italic;
+  }
+  @media (max-width: 580px) {
+    .ba-grid { grid-template-columns: 1fr; }
+  }
+
+
+  /* ── ORDER SUMMARY ── */
+  .order-section {
+    padding: 90px 24px;
+    background: var(--warm);
+  }
+  .order-section__header { text-align: center; margin-bottom: 48px; }
+  .order-box {
+    max-width: 560px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    border: 2px solid var(--blue-mid);
+    overflow: hidden;
+    box-shadow: 0 16px 48px rgba(13,27,42,0.1);
+  }
+  .order-box__header {
+    background: var(--dark);
+    padding: 28px 36px;
+    text-align: center;
+  }
+  .order-box__header__label {
+    font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--blue); margin-bottom: 10px; display: block;
+  }
+  .order-box__price {
+    font-family: var(--serif);
+    font-size: 3.6rem; font-weight: 700;
+    color: white; line-height: 1;
+  }
+  .order-box__price sup { font-size: 1.5rem; vertical-align: super; }
+  .order-box__price sub { font-size: 1rem; font-family: var(--sans); font-weight: 400; color: rgba(255,255,255,0.5); }
+  .order-box__per { color: rgba(255,255,255,0.45); font-size: 0.85rem; margin-top: 6px; }
+  .order-box__body { padding: 32px 36px; }
+  .order-includes {
+    list-style: none;
+    display: flex; flex-direction: column; gap: 12px;
+    margin-bottom: 28px;
+  }
+  .order-includes li {
+    display: flex; align-items: flex-start; gap: 12px;
+    font-size: 0.95rem; color: var(--text); line-height: 1.5;
+  }
+  .order-includes__check {
+    width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px;
+    background: var(--blue); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 0.65rem; font-weight: 700;
+  }
+  .order-includes strong { color: var(--dark); }
+  .order-divider {
+    height: 1px; background: var(--warm-dark);
+    margin: 24px 0;
+  }
+  .order-total {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 24px;
+  }
+  .order-total__label { font-weight: 600; color: var(--dark); font-size: 1rem; }
+  .order-total__amount {
+    font-family: var(--serif); font-size: 1.6rem;
+    font-weight: 700; color: var(--blue);
+  }
+  .order-btn {
+    display: block; width: 100%; text-align: center;
+    background: var(--blue); color: white;
+    padding: 17px 24px; border-radius: 10px;
+    font-family: var(--sans); font-size: 1.05rem; font-weight: 700;
+    text-decoration: none; cursor: pointer;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 20px rgba(61,167,253,0.4);
+  }
+  .order-btn:hover { background: var(--blue-dark); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(61,167,253,0.5); }
+  .order-btn__sub {
+    display: block; font-size: 0.78rem;
+    font-weight: 400; opacity: 0.8; margin-top: 4px;
+  }
+  .order-guarantees {
+    display: flex; justify-content: center; gap: 24px;
+    flex-wrap: wrap; margin-top: 20px;
+  }
+  .order-guarantee {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.8rem; color: var(--muted);
+  }
+  .order-guarantee svg { flex-shrink: 0; }
+
+  /* ── FOOTER ── */
+  .footer {
+    padding: 30px 24px; background: #060E17;
+    text-align: center; color: rgba(255,255,255,0.28);
+    font-size: 0.82rem; line-height: 1.9;
+  }
+  .footer a { color: rgba(255,255,255,0.4); text-decoration: none; }
+  .footer a:hover { color: var(--blue); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 680px) {
+    .meet__inner { grid-template-columns: 1fr; gap: 40px; }
+    .meet__photo { aspect-ratio: 4/3; }
+    .results-inner { grid-template-columns: 1fr; gap: 32px; }
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .hero__tag      { animation: fadeUp 0.45s ease both; }
+  .hero__headline { animation: fadeUp 0.45s 0.1s ease both; }
+  .hero__sub      { animation: fadeUp 0.45s 0.18s ease both; }
+  .hero__price-badge { animation: fadeUp 0.45s 0.24s ease both; }
+  .hero__actions  { animation: fadeUp 0.45s 0.3s ease both; }
+  .hero__trust    { animation: fadeUp 0.45s 0.38s ease both; }
+
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.55s ease, transform 0.55s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  /* ── URGENCY / COUNTDOWN BAR ── */
+  /* Uses inline text flow + !important to survive aggressive WP theme CSS. */
+  .urgency-bar {
+    background: linear-gradient(90deg, #C8221A 0%, #E63946 50%, #C8221A 100%) !important;
+    color: #fff !important;
+    padding: 12px 20px !important;
+    text-align: center !important;
+    font-family: var(--sans) !important;
+    font-size: 0.92rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.3px !important;
+    line-height: 1.55 !important;
+    position: sticky !important; top: 0 !important; z-index: 110 !important;
+    box-shadow: 0 2px 10px rgba(200,34,26,0.25) !important;
+    margin: 0 !important;
+    display: block !important;
+  }
+  .urgency-bar strong {
+    color: #fff !important;
+    font-weight: 700 !important;
+    background: transparent !important;
+  }
+  .urgency-bar__pulse {
+    display: inline-block !important;
+    width: 8px !important; height: 8px !important;
+    border-radius: 50% !important;
+    background: #fff !important;
+    vertical-align: middle !important;
+    margin-right: 6px !important;
+    margin-bottom: 2px !important;
+    animation: urgPulse 1.2s ease-in-out infinite;
+  }
+  @keyframes urgPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.45; transform: scale(0.75); }
+  }
+  .urgency-bar__timer {
+    display: inline-block !important;
+    background: rgba(0,0,0,0.28) !important;
+    color: #fff !important;
+    padding: 2px 10px !important;
+    border-radius: 6px !important;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+    border: 1px solid rgba(255,255,255,0.18) !important;
+    margin: 0 4px !important;
+  }
+  @media (max-width: 520px) {
+    .urgency-bar { font-size: 0.82rem !important; padding: 10px 14px !important; }
+    .urgency-bar__timer { padding: 1px 8px !important; }
+  }
+
+  /* ── PRICE BADGE: STRIKETHROUGH + DISCOUNT ── */
+  .hero__price-badge__row {
+    display: flex; align-items: baseline; justify-content: center;
+    gap: 16px; flex-wrap: wrap;
+  }
+  .hero__price-old {
+    font-family: var(--serif);
+    font-size: 1.7rem; font-weight: 500;
+    color: rgba(255,255,255,0.42);
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+    text-decoration-color: rgba(255,107,107,0.9);
+    line-height: 1;
+  }
+  .hero__price-savings {
+    display: inline-block;
+    background: #E63946; color: #fff;
+    font-family: var(--sans);
+    font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 1.2px; text-transform: uppercase;
+    padding: 5px 12px; border-radius: 4px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 10px rgba(230,57,70,0.4);
+  }
+
+  /* ── SPOTS-LEFT NOTE ── */
+  .spots-note {
+    margin-top: 18px;
+    font-size: 0.92rem;
+    color: rgba(255,255,255,0.78);
+    background: rgba(230,57,70,0.12);
+    border: 1px solid rgba(230,57,70,0.35);
+    padding: 10px 18px; border-radius: 8px;
+    display: inline-flex; align-items: center; gap: 8px;
+    position: relative;
+    line-height: 1.5;
+    max-width: 480px;
+  }
+  .spots-note__icon {
+    flex-shrink: 0;
+    color: #FF6B6B;
+    font-size: 1rem;
+  }
+  .spots-note strong { color: #fff; font-weight: 700; }
+
+  /* ── FINAL CTA: STRIKETHROUGH ── */
+  .final-cta__price__old {
+    display: block;
+    font-family: var(--serif);
+    font-size: 1.4rem;
+    color: rgba(255,255,255,0.42);
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+    text-decoration-color: rgba(255,107,107,0.9);
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+  .final-cta__savings {
+    display: inline-block;
+    background: #E63946; color: #fff;
+    font-size: 0.7rem; font-weight: 700;
+    letter-spacing: 1.2px; text-transform: uppercase;
+    padding: 4px 11px; border-radius: 4px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 10px rgba(230,57,70,0.4);
+  }
+  .final-cta__spots {
+    margin-top: 14px;
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.78);
+    background: rgba(230,57,70,0.12);
+    border: 1px solid rgba(230,57,70,0.35);
+    padding: 10px 18px; border-radius: 8px;
+    display: inline-flex; align-items: center; gap: 8px;
+    line-height: 1.5;
+    max-width: 480px;
+  }
+  .final-cta__spots strong { color: #fff; font-weight: 700; }
+
+  /* ── TOP SPACING: pushes content below the WP fixed/sticky header ── */
+  /* Adjust these values if the urgency bar overlaps or has a gap. */
+  .rpt-page { margin-top: 40px; }
+  @media (max-width: 767px) {
+    .rpt-page { margin-top: 60px; }
+    #urgencyBar { top: 60px !important; }
+    .hero__headline { font-size: 2.8rem !important; line-height: 1.15 !important; }
+    .hero__sub      { font-size: 1.2rem !important; line-height: 1.55 !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="rpt-page">
+
+<!-- URGENCY / COUNTDOWN BAR -->
+<section id="urgencyBar" style="background:linear-gradient(90deg,#C8221A 0%,#E63946 50%,#C8221A 100%) !important;color:#fff !important;padding:14px 16px !important;text-align:center !important;font-size:14px !important;font-weight:600 !important;letter-spacing:0.3px !important;line-height:1.55 !important;position:sticky !important;top:80px !important;z-index:99 !important;display:block !important;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif !important;box-shadow:0 2px 10px rgba(200,34,26,0.25) !important;margin:0 !important;width:auto !important;"><span style="color:#fff !important;font-weight:700 !important;font-size:14px !important;display:inline !important;">50% OFF</span>&nbsp;<span style="color:#fff !important;font-size:14px !important;font-weight:600 !important;">ends in</span>&nbsp;<span id="countdownTimer" style="color:#fff !important;background:rgba(0,0,0,0.3) !important;padding:2px 10px !important;border-radius:6px !important;display:inline-block !important;margin:0 4px !important;font-weight:700 !important;font-size:14px !important;letter-spacing:0.5px !important;border:1px solid rgba(255,255,255,0.2) !important;font-variant-numeric:tabular-nums;">10:00</span>&nbsp;<span style="color:#fff !important;font-size:14px !important;font-weight:600 !important;">·&nbsp;Next 10 sign-ups only</span></section>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero__tag">Limited Time Offer</div>
+  <h1 class="hero__headline">
+    50+ Months Of<br>
+    <em>Certified PT Workouts.</em>
+  </h1>
+  <p class="hero__sub">
+    The <strong>next 10 sign-ups</strong> get <strong>50% off</strong> and lock in <strong>$10/month</strong> access.
+  </p>
+  <div class="hero__price-badge">
+    <span class="hero__price-savings">Save 50% — Limited Time</span>
+    <span class="hero__price-badge__top">Full membership</span>
+    <div class="hero__price-badge__row">
+      <span class="hero__price-old">$20</span>
+      <div class="hero__price-badge__amount"><span>$</span>10<span style="font-size:1.1rem">/mo</span></div>
+    </div>
+    <span class="hero__price-badge__sub">Less than $0.33 per day · Cancel anytime</span>
+  </div>
+  <div class="hero__actions">
+    <a href='https://www.renshawspt.com/get-started' class="btn btn--primary">
+      Get Access
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+  <div class="hero__cancel-note">No long-term contract. Cancel anytime in seconds, no questions asked.</div>
+  <div class="hero__trust">
+    <div class="trust-pill"><div class="trust-dot"></div> Gym or home workouts</div>
+    <div class="trust-pill"><div class="trust-dot"></div> 50+ months in the vault</div>
+    <div class="trust-pill"><div class="trust-dot"></div> Instant access on sign up</div>
+  </div>
+</section>
+
+<!-- SOCIAL PROOF BAR -->
+<div class="proof-bar">
+  <div class="proof-bar__inner">
+    40,000+ men trust Renshaw's workouts.
+  </div>
+</div>
+
+<!-- EMPATHY -->
+<section class="empathy">
+  <div class="empathy__inner reveal">
+    <span class="section-label">The Real Problem</span>
+    <h2 class="section-headline"><em>Guesswork doesn't build muscle.</em> Structure does.</h2>
+    <p class="empathy__body">
+      When you follow a program with a clear focus and progressive overload built in, your body has no choice but to adapt and grow.
+    </p>
+  </div>
+</section>
+
+<!-- BEFORE & AFTER -->
+<section class="before-after">
+  <div class="before-after__header reveal">
+    <span class="section-label">Real Members. Real Results.</span>
+    <h2 class="section-headline">What happens when you stop guessing</h2>
+  </div>
+  <div class="ba-grid">
+    <div class="ba-card reveal">
+      <div class="ba-card__img">
+        <img src="https://www.renshawspt.com/wp-content/uploads/2026/04/01-brad-b-transformation.jpg" alt="Brad B. transformation">
+      </div>
+      <div class="ba-card__body">
+        <div class="ba-card__name">Brad B.</div>
+        <div class="ba-card__result">Complete body transformation</div>
+        <p class="ba-card__quote">"The results speak for themselves."</p>
+      </div>
+    </div>
+    <div class="ba-card reveal">
+      <div class="ba-card__img">
+        <img src="https://www.renshawspt.com/wp-content/uploads/2026/04/02-brad-transformation-june-sept-2023.jpg" alt="Brad transformation June-Sept 2023">
+      </div>
+      <div class="ba-card__body">
+        <div class="ba-card__name">Brad</div>
+        <div class="ba-card__result">June → Sept 2023</div>
+        <p class="ba-card__quote">"I'll be working with Bryan for years to come."</p>
+      </div>
+    </div>
+    <div class="ba-card reveal">
+      <div class="ba-card__img">
+        <img src="https://www.renshawspt.com/wp-content/uploads/2026/04/03-chad-transformation.jpg" alt="Chad transformation">
+      </div>
+      <div class="ba-card__body">
+        <div class="ba-card__name">Chad S.</div>
+        <div class="ba-card__result">Body recomposition in 3 months</div>
+        <p class="ba-card__quote">"Following the program delivered real results. I'll be training this way long-term."</p>
+      </div>
+    </div>
+    <div class="ba-card reveal">
+      <div class="ba-card__img">
+        <img src="https://www.renshawspt.com/wp-content/uploads/2026/04/04-razvan-transformation.jpg" alt="Razvan transformation">
+      </div>
+      <div class="ba-card__body">
+        <div class="ba-card__name">Razvan</div>
+        <div class="ba-card__result">Incredible recomposition</div>
+        <p class="ba-card__quote">"This is most definitely the best thing I've ever done."</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ORDER SUMMARY -->
+<section class="order-section" id="order">
+  <div class="order-section__header reveal">
+    <span class="section-label">Join Today</span>
+    <h2 class="section-headline">Everything you need. <em>$10/month.</em></h2>
+    <p style="color:var(--muted); max-width:480px; margin: 12px auto 0; font-size:0.96rem; line-height:1.7;">No long-term contract. Cancel anytime in seconds, no questions asked.</p>
+  </div>
+  <div class="order-box reveal">
+    <div class="order-box__header">
+      <span class="order-box__header__label">Renshaw Workout Vault</span>
+      <div class="order-box__price"><sup>$</sup>10<sub>/mo</sub></div>
+      <div class="order-box__per">Less than $0.33 per day</div>
+    </div>
+    <div class="order-box__body">
+      <ul class="order-includes">
+        <li>
+          <div class="order-includes__check">✓</div>
+          <div><strong>New workouts every month</strong> — follow-along videos + downloadable PDFs</div>
+        </li>
+        <li>
+          <div class="order-includes__check">✓</div>
+          <div><strong>Full vault access</strong> — 50+ months of proven training programs, instantly</div>
+        </li>
+        <li>
+          <div class="order-includes__check">✓</div>
+          <div><strong>Gym or home workouts</strong> — train wherever you are, with whatever you have</div>
+        </li>
+        <li>
+          <div class="order-includes__check">✓</div>
+          <div><strong>Nutrition guidance</strong> — simple meal structuring, no complicated dieting</div>
+        </li>
+        <li>
+          <div class="order-includes__check">✓</div>
+          <div><strong>Supplement guide</strong> — what actually works, no hype</div>
+        </li>
+        <li>
+          <div class="order-includes__check">✓</div>
+          <div><strong>Private Renshaw Warriors community</strong> — accountability and support</div>
+        </li>
+        <li>
+          <div class="order-includes__check">✓</div>
+          <div><strong>All-in-one training portal</strong> — everything in one place, no apps needed</div>
+        </li>
+      </ul>
+      <div class="order-divider"></div>
+      <div class="order-total">
+        <span class="order-total__label">Monthly total</span>
+        <span class="order-total__amount">$10 / month</span>
+      </div>
+      <a href='https://www.renshawspt.com/get-started' class="order-btn">Get Instant Access Now<span class="order-btn__sub">Secure checkout · Cancel anytime</span></a>
+      <div class="order-guarantees">
+        <div class="order-guarantee">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1l1.5 3 3.5.5-2.5 2.5.5 3.5L7 9l-3 1.5.5-3.5L2 4.5 5.5 4z" stroke="#6B7C93" stroke-width="1.2" stroke-linejoin="round"/></svg>
+          No long-term contract
+        </div>
+        <div class="order-guarantee">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="6" width="10" height="7" rx="1.5" stroke="#6B7C93" stroke-width="1.2"/><path d="M4.5 6V4.5a2.5 2.5 0 015 0V6" stroke="#6B7C93" stroke-width="1.2" stroke-linecap="round"/></svg>
+          256-bit SSL secure
+        </div>
+        <div class="order-guarantee">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#6B7C93" stroke-width="1.2"/><path d="M4.5 7l2 2 3-3" stroke="#6B7C93" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Cancel in seconds
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHO IT'S FOR -->
+<section class="for-who">
+  <div class="for-who__header reveal">
+    <span class="section-label">Is this right for me?</span>
+    <h2 class="section-headline">This membership is perfect for you if…</h2>
+  </div>
+  <div class="cards">
+    <div class="card reveal">
+      <div class="card__icon">🎯</div>
+      <div>
+        <div class="card__title">You want structured workouts without the guesswork</div>
+        <p class="card__body">Every workout is planned out. You show up and execute — no wondering, no wasted sessions.</p>
+      </div>
+    </div>
+    <div class="card reveal">
+      <div class="card__icon">💪</div>
+      <div>
+        <div class="card__title">You're a man 30+ who wants to train smarter</div>
+        <p class="card__body">Strategic volume, smarter intensity, and programmed progression designed for recovery and long-term strength.</p>
+      </div>
+    </div>
+    <div class="card reveal">
+      <div class="card__icon">🏠</div>
+      <div>
+        <div class="card__title">You train at the gym or at home</div>
+        <p class="card__body">Workouts work with a full gym setup or dumbbells at home. No excuses, whatever your setup.</p>
+      </div>
+    </div>
+    <div class="card reveal">
+      <div class="card__icon">📈</div>
+      <div>
+        <div class="card__title">You want real, measurable muscle growth</div>
+        <p class="card__body">Each month has a focused training method to keep your body adapting and building quality muscle.</p>
+      </div>
+    </div>
+    <div class="card reveal">
+      <div class="card__icon">🔄</div>
+      <div>
+        <div class="card__title">You need help staying consistent month after month</div>
+        <p class="card__body">Fresh programming every month and a community around you means the momentum never dies.</p>
+      </div>
+    </div>
+    <div class="card reveal">
+      <div class="card__icon">💰</div>
+      <div>
+        <div class="card__title">You don't want to pay hundreds for a personal trainer</div>
+        <p class="card__body">$10 a month gets you Bryan's full system — everything you need at a fraction of the cost.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- MEET BRYAN -->
+<section class="meet">
+  <div class="meet__inner">
+    <div class="meet__photo reveal">
+      <img src="https://www.renshawspt.com/wp-content/uploads/2026/04/05-bryan-renshaw-certified-personal-trainer.jpg" alt="Bryan Renshaw - Certified Personal Trainer" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:18px;">
+    </div>
+    <div class="reveal">
+      <span class="meet__eyebrow">Your Coach</span>
+      <h2 class="meet__headline">Meet Your Online Coach &amp; Certified Personal Trainer, Bryan Renshaw</h2>
+      <p class="meet__body">
+        Hi, my name is Bryan. Going into college I developed my true passion towards bodybuilding and helping others. Over my <strong>15 years of experience</strong>, I've realized that building your body is extremely important. This is how I train my clients, through symmetry and balance.
+      </p>
+      <div class="meet__creds">
+        <div class="cred"><div class="cred__dot"></div> Certified Personal Trainer</div>
+        <div class="cred"><div class="cred__dot"></div> 15+ years of coaching experience</div>
+        <div class="cred"><div class="cred__dot"></div> Specialising in symmetry, balance and muscle building</div>
+        <div class="cred"><div class="cred__dot"></div> Trusted by 40,000+ men worldwide</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="results-bar">
+  <div class="results-inner">
+    <div class="reveal">
+      <div class="stat__num">40,000+</div>
+      <div class="stat__label">Men trained worldwide</div>
+    </div>
+    <div class="reveal">
+      <div class="stat__num">50+</div>
+      <div class="stat__label">Months of programs<br>in the vault</div>
+    </div>
+    <div class="reveal">
+      <div class="stat__num">$10</div>
+      <div class="stat__label">Per month.<br>Cancel anytime.</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="process" id="how-it-works">
+  <div class="process__header reveal">
+    <span class="section-label">The Process</span>
+    <h2 class="section-headline">Up and training in minutes</h2>
+    <p style="color:var(--muted); max-width:500px; margin: 12px auto 0; font-size:0.96rem; line-height:1.7;">Most members start their first workout within minutes of joining.</p>
+  </div>
+  <div class="steps">
+    <div class="step reveal">
+      <div class="step__num">1</div>
+      <div>
+        <div class="step__title">Sign up — instant access</div>
+        <p class="step__body">Join for $10/month and get immediate access to the members portal and the entire 50+ month workout vault. No waiting, no onboarding calls.</p>
+      </div>
+    </div>
+    <div class="step reveal">
+      <div class="step__num">2</div>
+      <div>
+        <div class="step__title">Start with the basics</div>
+        <p class="step__body">Inside the portal you'll find a "Start Here" section that walks you through how the workouts are structured so you're set up for success from the first session.</p>
+      </div>
+    </div>
+    <div class="step reveal">
+      <div class="step__num">3</div>
+      <div>
+        <div class="step__title">Choose your workouts</div>
+        <p class="step__body">Follow the current month's workouts, or dive into the archive and explore 50+ months of proven programs. There's always something to run with.</p>
+      </div>
+    </div>
+    <div class="step reveal">
+      <div class="step__num">4</div>
+      <div>
+        <div class="step__title">Stay consistent, keep progressing</div>
+        <p class="step__body">New workouts drop on the 1st of every month — a fresh training focus so your body keeps adapting. Follow along, stay consistent, and watch the results compound.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <div class="testimonials__header reveal">
+    <span class="section-label">Real Results</span>
+    <h2 class="section-headline">From the 40,000+ guys who stopped guessing</h2>
+  </div>
+  <div class="testi-grid">
+    <div class="testi reveal">
+      <div class="testi__stars">★★★★★</div>
+      <p class="testi__body">"Down 15 pounds in 2 months following the membership workouts and nutrition guidance. I stopped guessing and followed the program — it works."</p>
+      <div class="testi__author">
+        <div class="testi__img">
+          <img src="https://www.renshawspt.com/wp-content/uploads/2020/10/Ben-BeforeAfter-175x175.jpeg" alt="Ben B." onerror="this.parentElement.innerHTML='<div style=\'display:flex;align-items:center;justify-content:center;height:100%;font-weight:700;color:var(--blue);font-size:0.9rem\'>BB</div>'">
+        </div>
+        <div>
+          <div class="testi__name">Ben B.</div>
+          <div class="testi__meta">Renshaw Member</div>
+        </div>
+      </div>
+      <div class="testi__result">−15 lbs in 2 months</div>
+    </div>
+    <div class="testi reveal">
+      <div class="testi__stars">★★★★★</div>
+      <p class="testi__body">"Noticeable body recomposition in 3 months. Following the program delivered real results, and I'll be training this way long-term."</p>
+      <div class="testi__author">
+        <div class="testi__img">
+          <img src="https://www.renshawspt.com/wp-content/uploads/2020/10/IMG_6439-1024x1024-175x175.jpg" alt="Chad S." onerror="this.parentElement.innerHTML='<div style=\'display:flex;align-items:center;justify-content:center;height:100%;font-weight:700;color:var(--blue);font-size:0.9rem\'>CS</div>'">
+        </div>
+        <div>
+          <div class="testi__name">Chad S.</div>
+          <div class="testi__meta">Renshaw Member</div>
+        </div>
+      </div>
+      <div class="testi__result">Body recomposition in 3 months</div>
+    </div>
+    <div class="testi reveal">
+      <div class="testi__stars">★★★★★</div>
+      <p class="testi__body">"6-month transformation — best shape of my life. I would've never made this progress on my own. This was the best decision I've made, and I'm just getting started."</p>
+      <div class="testi__author">
+        <div class="testi__img">
+          <img src="https://www.renshawspt.com/wp-content/uploads/2020/10/IMG_0145-1024x1024-1-175x175.jpg" alt="Paul P." onerror="this.parentElement.innerHTML='<div style=\'display:flex;align-items:center;justify-content:center;height:100%;font-weight:700;color:var(--blue);font-size:0.9rem\'>PP</div>'">
+        </div>
+        <div>
+          <div class="testi__name">Paul P.</div>
+          <div class="testi__meta">Renshaw Member</div>
+        </div>
+      </div>
+      <div class="testi__result">Best shape of my life at 6 months</div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq">
+  <div class="faq__header reveal">
+    <span class="section-label">Common Questions</span>
+    <h2 class="section-headline">Everything you're wondering</h2>
+  </div>
+  <div class="faq-list">
+    <details class="faq-item reveal">
+      <summary>Who are these workouts for?</summary>
+      <div class="faq-item__body">This membership is perfect for men who want structured workouts without having to figure out what to do at the gym, prefer simple and effective training instead of complicated programs, want workouts they can do at the gym or at home with dumbbells, and need a program that helps them stay consistent month after month.</div>
+    </details>
+    <details class="faq-item reveal">
+      <summary>How often are the workouts updated?</summary>
+      <div class="faq-item__body">New workouts are released on the 1st of every month. Each month features a new specialty training focus designed to keep your body progressing and prevent plateaus. You'll also have instant access to the entire workout vault — 50+ months of proven training programs.</div>
+    </details>
+    <details class="faq-item reveal">
+      <summary>I'm new to working out. Is this right for me?</summary>
+      <div class="faq-item__body">Yes. Inside the membership we include a "Start Here" section that walks you through the fundamentals of training and how to structure your workouts. Everything is designed to be simple, clear, and easy to follow — whether you're just getting started or getting back into a routine.</div>
+    </details>
+    <details class="faq-item reveal">
+      <summary>Will I get overwhelmed?</summary>
+      <div class="faq-item__body">Not at all. The workouts are designed to be structured but simple. Most members follow about 5 workouts per month, so you always know exactly what to do without feeling overwhelmed. The goal is to make training consistent and sustainable, not complicated.</div>
+    </details>
+    <details class="faq-item reveal">
+      <summary>Do I need a gym membership?</summary>
+      <div class="faq-item__body">No. Many of the workouts can be done entirely with dumbbells at home, but you can also follow the workouts at the gym if you prefer. The program is designed to work for both environments.</div>
+    </details>
+    <details class="faq-item reveal">
+      <summary>How do I cancel if I want to?</summary>
+      <div class="faq-item__body">You can cancel anytime directly from your account in seconds — no emails, no questions, no hassle. If you cancel, you simply won't be billed again. Zero risk.</div>
+    </details>
+    <details class="faq-item reveal">
+      <summary>Why is it only $10 per month?</summary>
+      <div class="faq-item__body">The goal of this membership is to make structured training accessible to more people. Instead of expensive coaching, this program gives you a simple system to follow each month along with access to over 50 months of proven workouts — at a price that makes staying consistent a no-brainer.</div>
+    </details>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+  <h2 class="final-cta__headline">
+    Stop wondering.<br>Start <em>building.</em>
+  </h2>
+  <p class="final-cta__sub">
+    Join 40,000+ men who follow a real system. Get instant access to the full vault today for less than a cup of coffee a week.
+  </p>
+  <div class="final-cta__price reveal">
+    <span class="final-cta__savings">Save 50% — Limited Time</span>
+    <span class="final-cta__price__old">$20/month</span>
+    <div class="final-cta__price__amount"><sup>$</sup>10<span style="font-size:1.3rem; font-family:var(--sans); font-weight:400">/month</span></div>
+    <div class="final-cta__price__note">Less than $0.33 per day · Instant access · Cancel anytime</div>
+    <div class="final-cta__spots">
+      🔥 <span>The <strong>next 10 sign-ups</strong> get <strong>50% off</strong> and lock in <strong>$10/month</strong> access.</span>
+    </div>
+  </div>
+  <div class="final-cta__actions reveal">
+    <a href='https://www.renshawspt.com/get-started' class="btn btn--primary" style="font-size:1.05rem; padding:17px 44px;">
+      Get Instant Access
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <div class="final-cta__guarantee">🔒 Secure checkout · Cancel anytime · No long-term commitment</div>
+  </div>
+</section>
+
+</div><!-- /.rpt-page -->
+
+<script>
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+  }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // Stagger grid children
+  document.querySelectorAll('.cards .card, .includes-grid .include-item, .testi-grid .testi').forEach((el, i) => {
+    el.style.transitionDelay = `${(i % 3) * 0.08}s`;
+  });
+
+  // ── COUNTDOWN TIMER (10 minutes from arrival) ──
+  (function () {
+    const TIMER_KEY = 'rpt_offer_deadline';
+    const DURATION_MS = 10 * 60 * 1000; // 10 minutes
+    const timerEl = document.getElementById('countdownTimer');
+    const barEl = document.getElementById('urgencyBar');
+    if (!timerEl || !barEl) return;
+
+    // Use sessionStorage so the timer persists across refreshes within
+    // the same session, but starts fresh on a new visit.
+    let deadline = parseInt(sessionStorage.getItem(TIMER_KEY), 10);
+    const now = Date.now();
+    if (!deadline || isNaN(deadline) || deadline < now) {
+      deadline = now + DURATION_MS;
+      sessionStorage.setItem(TIMER_KEY, String(deadline));
+    }
+
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+    function tick() {
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) {
+        timerEl.textContent = '00:00';
+        barEl.innerHTML = '<span style="color:#fff !important;font-weight:700 !important;">Offer expired</span>&nbsp;·&nbsp;Last chance to lock in $10/month';
+        clearInterval(interval);
+        return;
+      }
+      const totalSeconds = Math.floor(remaining / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      timerEl.textContent = pad(minutes) + ':' + pad(seconds);
+    }
+
+    tick();
+    const interval = setInterval(tick, 1000);
+  })();
+</script>
+</body>
+</html>
