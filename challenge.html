@@ -494,11 +494,15 @@
 </footer>
 
 <script type="module">
-  import { requireAuth, saveChallenge, getChallenge, getAccessToken, getProfile, uploadAsset } from './auth.js';
+  import { requireAuth, saveChallenge, getChallenge, getAccessToken, getProfile, uploadAsset, cleanupLegacyGraphics } from './auth.js';
   import { TEMPLATES, renderGraphic, downloadCanvas, canvasToBlob } from './graphics.js';
 
   const user = await requireAuth();
   if (!user) { /* redirected */ }
+
+  // Free localStorage quota by stripping pre-fix dataURL graphics from
+  // any saved challenges before we read or write the list.
+  cleanupLegacyGraphics(user.id);
 
   const cfg = window.TRAINER_LAUNCH_CONFIG || {};
   const TOTAL_STEPS = 5;

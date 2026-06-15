@@ -124,3 +124,36 @@ export function deleteChallenge(userId, id) {
   const list = listChallenges(userId).filter(c => c.id !== id);
   localStorage.setItem(challengesKey(userId), JSON.stringify(list));
 }
+
+/* --- Storage hygiene -----------------------------------------------
+   Earlier versions of the app stored each generated graphic as a
+   multi-MB base64 dataURL on the challenge record. With 4 graphics +
+   the new editable HTML sales page, two or three saved launches could
+   blow past the browser's ~5MB localStorage quota and any further
+   save would fail with "exceeded the quota". This pass drops any
+   surviving dataURL graphics from existing records so subsequent
+   saves (now using Supabase storage URLs) have room to land. Safe to
+   re-run — it's a no-op once nothing legacy is left. */
+export function cleanupLegacyGraphics(userId) {
+  const key = challengesKey(userId);
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return;
+    const list = JSON.parse(raw);
+    let changed = false;
+    for (const c of list) {
+      if (!c || !c.graphics) continue;
+      for (const gid of Object.keys(c.graphics)) {
+        const v = c.graphics[gid];
+        if (typeof v === 'string' && v.startsWith('data:')) {
+          delete c.graphics[gid];
+          changed = true;
+        }
+      }
+    }
+    if (changed) localStorage.setItem(key, JSON.stringify(list));
+  } catch (e) {
+    console.warn('cleanupLegacyGraphics failed; clearing list to free quota:', e);
+    try { localStorage.removeItem(key); } catch (_) {}
+  }
+}

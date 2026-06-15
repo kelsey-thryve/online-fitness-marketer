@@ -85,10 +85,14 @@
 </footer>
 
 <script type="module">
-  import { requireAuth, signOut, listChallenges, getAccessToken, getProfile } from './auth.js';
+  import { requireAuth, signOut, listChallenges, getAccessToken, getProfile, cleanupLegacyGraphics } from './auth.js';
 
   const user = await requireAuth();
   if (!user) { /* redirected */ }
+
+  // Free localStorage quota by stripping pre-fix dataURL graphics from
+  // any saved challenges before we read or write the list.
+  cleanupLegacyGraphics(user.id);
 
   document.getElementById('nav-email').textContent = user.email;
 
