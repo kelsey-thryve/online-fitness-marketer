@@ -1384,12 +1384,31 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
     // Regenerate button — wipes current sales HTML and re-runs Claude
     const regenBtn = document.getElementById('sales-regen-btn');
     if (regenBtn) {
-      regenBtn.onclick = async () => {
+      regenBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        console.log('[sales] Regenerate clicked');
+        // Make sure chat is visible so the user can see streamed status
+        const editor = document.getElementById('site-editor');
+        if (editor && editor.classList.contains('chat-hidden')) {
+          editor.classList.remove('chat-hidden');
+          const chatToggle = document.getElementById('chat-toggle');
+          if (chatToggle) chatToggle.textContent = 'Hide chat';
+        }
         regenBtn.disabled = true;
         regenBtn.textContent = 'Regenerating…';
-        try { await regenerateSalesPage(); }
-        finally { regenBtn.disabled = false; regenBtn.textContent = '↻ Regenerate'; }
-      };
+        try {
+          await regenerateSalesPage();
+        } catch (err) {
+          console.error('[sales] regen error', err);
+          alert('Regeneration failed: ' + err.message);
+        } finally {
+          regenBtn.disabled = false;
+          regenBtn.textContent = '↻ Regenerate';
+        }
+      });
+      console.log('[sales] Regenerate button wired');
+    } else {
+      console.warn('[sales] Regenerate button NOT found in DOM at init time');
     }
 
     // Warn if the current HTML still contains Renshaw template phrases
@@ -1635,32 +1654,40 @@ ${template}`;
   // One-button regeneration of just the sales page (without touching the
   // other 6 deliverables). Streams a status line into the chat log.
   async function regenerateSalesPage() {
-    const log = (txt, cls) => appendChatMsg('bot', txt).classList.toggle('chat-msg-error', !!cls);
+    const log = (txt, cls) => {
+      console.log('[sales]', txt);
+      const el = appendChatMsg('bot', txt);
+      if (cls) el.classList.add('chat-msg-error');
+      return el;
+    };
     log('Regenerating sales page from scratch — replacing all copy…');
+    const intake = buildIntakeBlock();
+    log(`Intake assembled (${intake.length} chars). Loading template…`);
+    await getSalesTemplate();
+    if (!salesPageTemplate) {
+      log('Could not load the sales template. Check that salespage-template.html is deployed.', true);
+      return;
+    }
+    log(`Template loaded (${salesPageTemplate.length} chars). Calling Claude…`);
+    let html;
     try {
-      const intake = buildIntakeBlock();
-      await getSalesTemplate();
-      let html;
-      try {
-        const raw = await generateSalesPageFromTemplate(salesPageTemplate, intake);
-        html = sanitizeGeneratedHtml(raw);
-        if (!html.includes('<!DOCTYPE') || !/<\/html>\s*$/i.test(html)) {
-          throw new Error('Output incomplete');
-        }
-      } catch (err) {
-        log('Claude rewrite failed (' + err.message + ') — falling back to mechanical substitution.', true);
-        html = personalizeRenshawTemplate(salesPageTemplate, profile || {}, formData);
+      const raw = await generateSalesPageFromTemplate(salesPageTemplate, intake);
+      html = sanitizeGeneratedHtml(raw);
+      if (!html.includes('<!DOCTYPE') || !/<\/html>\s*$/i.test(html)) {
+        throw new Error(`Output incomplete (${html.length} chars)`);
       }
-      html = applySalesPageOverrides(html, profile || {});
-      setSalesHtml(html);
-      const leaks = detectRenshawLeakage(html);
-      if (leaks.length) {
-        log(`⚠ Template copy survived: ${leaks.slice(0, 4).join(', ')}${leaks.length > 4 ? '…' : ''}. You can ask me to "remove all references to ${leaks[0]}".`, true);
-      } else {
-        log('Done — all template copy replaced.');
-      }
+      log(`Claude returned ${html.length} chars. Applying overrides…`);
     } catch (err) {
-      log('Regeneration failed: ' + err.message, true);
+      log('Claude rewrite failed (' + err.message + ') — falling back to mechanical substitution.', true);
+      html = personalizeRenshawTemplate(salesPageTemplate, profile || {}, formData);
+    }
+    html = applySalesPageOverrides(html, profile || {});
+    setSalesHtml(html);
+    const leaks = detectRenshawLeakage(html);
+    if (leaks.length) {
+      log(`⚠ Template copy survived: ${leaks.slice(0, 4).join(', ')}${leaks.length > 4 ? '…' : ''}. You can ask me to "remove all references to ${leaks[0]}".`, true);
+    } else {
+      log('Done — all template copy replaced.');
     }
   }
 
