@@ -89,28 +89,106 @@
   /* Sales-page live editor */
   .site-editor {
     display: grid;
-    grid-template-columns: minmax(0,1fr) 360px;
+    grid-template-columns: minmax(0,1fr) 380px;
     gap: 0;
-    min-height: 72vh;
+    height: calc(100vh - 220px);
+    min-height: 700px;
     background: var(--bg-card);
   }
+  .site-editor.chat-hidden { grid-template-columns: 1fr; }
+  .site-editor.chat-hidden .site-editor-chat { display: none; }
   @media (max-width: 980px) {
-    .site-editor { grid-template-columns: 1fr; }
+    .site-editor { grid-template-columns: 1fr; height: auto; }
   }
   .site-editor-preview {
-    background: #fff;
+    background: #1a1a22;
     border-right: 1px solid var(--border);
     overflow: hidden;
-    min-height: 600px;
+    display: flex; flex-direction: column;
+    min-height: 0;
   }
-  .site-editor-preview iframe {
-    width: 100%; height: 100%; min-height: 600px; border: none; background: #fff;
+  .preview-toolbar {
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 14px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   }
+  .viewport-toggle {
+    display: flex; background: var(--bg-input); border-radius: 8px; padding: 2px;
+  }
+  .viewport-toggle button {
+    background: transparent; border: none;
+    color: var(--text-muted);
+    font-family: inherit; font-size: 0.78rem;
+    padding: 5px 12px; border-radius: 6px; cursor: pointer;
+  }
+  .viewport-toggle button.active {
+    background: var(--bg-card); color: var(--text);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  .preview-chat-toggle {
+    margin-left: auto;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: inherit; font-size: 0.78rem;
+    padding: 5px 12px; border-radius: 8px; cursor: pointer;
+  }
+  .preview-chat-toggle:hover { color: var(--text); border-color: var(--border-strong); }
+
+  .browser-chrome {
+    background: #ececf2;
+    padding: 8px 14px;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid #d0d0d8;
+  }
+  .browser-dots { display: flex; gap: 6px; }
+  .browser-dot {
+    width: 11px; height: 11px; border-radius: 50%;
+  }
+  .browser-dot.r { background: #ff5f57; }
+  .browser-dot.y { background: #febc2e; }
+  .browser-dot.g { background: #28c840; }
+  .browser-url {
+    background: #fff; padding: 5px 14px; border-radius: 6px;
+    font-family: 'SF Mono', Menlo, monospace; font-size: 12px; color: #6e6e7e;
+    flex: 1; max-width: 600px;
+    border: 1px solid #d0d0d8;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  }
+  .preview-frame-wrap {
+    flex: 1; min-height: 0;
+    background: #2a2a35;
+    overflow: auto;
+    display: flex; justify-content: center; align-items: flex-start;
+    padding: 0;
+  }
+  .preview-frame-wrap iframe {
+    width: 100%; height: 100%;
+    border: none; background: #fff;
+    box-shadow: none;
+    display: block;
+  }
+  .preview-frame-wrap[data-viewport="tablet"] {
+    padding: 20px;
+  }
+  .preview-frame-wrap[data-viewport="tablet"] iframe {
+    width: 820px; max-width: 100%;
+    border-radius: 18px;
+    box-shadow: 0 16px 60px rgba(0,0,0,0.5);
+  }
+  .preview-frame-wrap[data-viewport="mobile"] {
+    padding: 24px;
+  }
+  .preview-frame-wrap[data-viewport="mobile"] iframe {
+    width: 390px; max-width: 100%;
+    border-radius: 28px;
+    box-shadow: 0 16px 60px rgba(0,0,0,0.55);
+  }
+
   .site-editor-chat {
     display: flex; flex-direction: column;
     background: var(--bg-input);
-    height: 100%;
-    min-height: 600px;
+    min-height: 0;
   }
   .chat-head {
     padding: 14px 18px;
@@ -1056,6 +1134,7 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
       if (d.id === 'sales') {
         // Sales is the editable HTML site — render an iframe preview +
         // AI chat sidebar instead of plain text.
+        const slug = (formData.challengeName || 'launch').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
         panel.innerHTML = `
           <div class="doc-header">
             <h3>${d.title}</h3>
@@ -1064,9 +1143,27 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
               <button class="btn btn-secondary btn-sm" data-html-download="${d.id}">⇩ Download .html</button>
             </div>
           </div>
-          <div class="site-editor">
+          <div class="site-editor" id="site-editor">
             <div class="site-editor-preview">
-              <iframe id="sales-preview" title="Sales page preview" sandbox="allow-scripts allow-same-origin"></iframe>
+              <div class="preview-toolbar">
+                <div class="viewport-toggle" data-viewport-toggle>
+                  <button type="button" data-viewport="desktop" class="active">Desktop</button>
+                  <button type="button" data-viewport="tablet">Tablet</button>
+                  <button type="button" data-viewport="mobile">Mobile</button>
+                </div>
+                <button type="button" class="preview-chat-toggle" id="chat-toggle">Hide chat</button>
+              </div>
+              <div class="browser-chrome">
+                <div class="browser-dots">
+                  <span class="browser-dot r"></span>
+                  <span class="browser-dot y"></span>
+                  <span class="browser-dot g"></span>
+                </div>
+                <div class="browser-url">${slug || 'your-launch'}.com/sales</div>
+              </div>
+              <div class="preview-frame-wrap" data-viewport="desktop">
+                <iframe id="sales-preview" title="Sales page preview" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
+              </div>
             </div>
             <div class="site-editor-chat">
               <div class="chat-head">
@@ -1171,10 +1268,14 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
     refreshSalesPreview();
     persistCurrentRecord();
   }
+  let salesBlobUrl = null;
   function refreshSalesPreview() {
     const iframe = document.getElementById('sales-preview');
     if (!iframe) return;
-    iframe.srcdoc = getSalesHtml();
+    if (salesBlobUrl) URL.revokeObjectURL(salesBlobUrl);
+    const blob = new Blob([getSalesHtml()], { type: 'text/html;charset=utf-8' });
+    salesBlobUrl = URL.createObjectURL(blob);
+    iframe.src = salesBlobUrl;
   }
   function persistCurrentRecord() {
     // Re-save the current launch record to localStorage so HTML edits stick.
@@ -1191,6 +1292,27 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
 
   function initSalesEditor() {
     refreshSalesPreview();
+
+    // Viewport size toggle (desktop / tablet / mobile)
+    document.querySelectorAll('[data-viewport-toggle] button').forEach(btn => {
+      btn.onclick = () => {
+        const target = btn.dataset.viewport;
+        document.querySelectorAll('[data-viewport-toggle] button')
+          .forEach(b => b.classList.toggle('active', b === btn));
+        const wrap = document.querySelector('.preview-frame-wrap');
+        if (wrap) wrap.dataset.viewport = target;
+      };
+    });
+
+    // Chat collapse toggle
+    const chatToggle = document.getElementById('chat-toggle');
+    if (chatToggle) {
+      chatToggle.onclick = () => {
+        const editor = document.getElementById('site-editor');
+        editor.classList.toggle('chat-hidden');
+        chatToggle.textContent = editor.classList.contains('chat-hidden') ? 'Show chat' : 'Hide chat';
+      };
+    }
 
     // Open in new tab
     document.querySelectorAll('button[data-html-open]').forEach(btn => {
