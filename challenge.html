@@ -247,6 +247,34 @@
     outline: none; border-color: var(--accent);
     box-shadow: 0 0 0 3px var(--accent-soft);
   }
+  .chat-form-actions { display: flex; gap: 10px; align-items: center; }
+  .chat-attach-btn {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 8px; cursor: pointer;
+    font-size: 1.05rem;
+  }
+  .chat-attach-btn:hover { border-color: var(--accent); }
+  .chat-image-preview {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.85rem;
+  }
+  .chat-image-preview img {
+    width: 56px; height: 56px; object-fit: cover; border-radius: 6px;
+  }
+  .chat-image-preview button {
+    margin-left: auto;
+    background: transparent; border: none;
+    color: var(--text-muted); cursor: pointer;
+    font-size: 1rem;
+  }
+  .chat-image-preview button:hover { color: var(--text); }
 
   .tier-badge {
     display: inline-block; padding: 2px 10px; border-radius: 100px;
@@ -466,7 +494,7 @@
 </footer>
 
 <script type="module">
-  import { requireAuth, saveChallenge, getChallenge, getAccessToken, getProfile } from './auth.js';
+  import { requireAuth, saveChallenge, getChallenge, getAccessToken, getProfile, uploadAsset } from './auth.js';
   import { TEMPLATES, renderGraphic, downloadCanvas, canvasToBlob } from './graphics.js';
 
   const user = await requireAuth();
@@ -920,6 +948,8 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
     const token = await getAccessToken();
     if (!token) throw new Error('Not signed in.');
     const model = opts.model || cfg.MODEL || 'claude-opus-4-7';
+    // prompt may be a string OR an array of content blocks (for multimodal)
+    const content = Array.isArray(prompt) ? prompt : prompt;
     // Stream: true keeps bytes flowing through the Netlify Edge proxy so
     // long generations don't hit the 40s time-to-first-byte timeout.
     const res = await fetch(cfg.CLAUDE_PROXY_PATH || '/api/claude', {
@@ -932,7 +962,7 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
         model,
         max_tokens: maxTokens,
         stream: true,
-        messages: [{ role: 'user', content: prompt }]
+        messages: [{ role: 'user', content }]
       })
     });
 
@@ -1186,8 +1216,18 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
                 </div>
               </div>
               <form id="sales-chat-form" class="chat-form">
-                <textarea id="sales-chat-input" rows="3" placeholder="What would you like to change?"></textarea>
-                <button type="submit" class="btn btn-primary btn-sm" id="sales-chat-send">Send</button>
+                <div id="chat-image-preview" class="chat-image-preview" style="display:none;">
+                  <img id="chat-image-thumb" alt="attached" />
+                  <button type="button" id="chat-image-clear" title="Remove">✕</button>
+                </div>
+                <textarea id="sales-chat-input" rows="3" placeholder="What would you like to change? (Attach an image and say e.g. &quot;replace the first testimonial photo with this&quot;)"></textarea>
+                <div class="chat-form-actions">
+                  <label class="chat-attach-btn" title="Attach an image">
+                    📎
+                    <input type="file" id="chat-image-input" accept="image/*" hidden />
+                  </label>
+                  <button type="submit" class="btn btn-primary btn-sm" id="sales-chat-send">Send</button>
+                </div>
               </form>
             </div>
           </div>
@@ -1345,6 +1385,35 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
       };
     });
 
+    // Image attach
+    let attachedImageUrl = null;
+    const imgInput = document.getElementById('chat-image-input');
+    const imgPreview = document.getElementById('chat-image-preview');
+    const imgThumb = document.getElementById('chat-image-thumb');
+    const imgClear = document.getElementById('chat-image-clear');
+    if (imgInput) {
+      imgInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        imgPreview.style.display = 'flex';
+        imgThumb.src = URL.createObjectURL(file);
+        try {
+          attachedImageUrl = await uploadAsset(file, user.id, 'sales-chat');
+        } catch (err) {
+          appendChatMsg('bot', 'Image upload failed: ' + err.message).classList.add('chat-msg-error');
+          attachedImageUrl = null;
+          imgPreview.style.display = 'none';
+        }
+      });
+    }
+    if (imgClear) {
+      imgClear.onclick = () => {
+        attachedImageUrl = null;
+        imgInput.value = '';
+        imgPreview.style.display = 'none';
+      };
+    }
+
     // Chat form
     const form = document.getElementById('sales-chat-form');
     if (!form) return;
@@ -1352,12 +1421,16 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
       e.preventDefault();
       const input = document.getElementById('sales-chat-input');
       const instruction = input.value.trim();
-      if (!instruction) return;
+      if (!instruction && !attachedImageUrl) return;
       input.value = '';
-      appendChatMsg('user', instruction);
+      const imgForTurn = attachedImageUrl;
+      attachedImageUrl = null;
+      imgPreview.style.display = 'none';
+      if (imgInput) imgInput.value = '';
+      appendChatMsg('user', instruction + (imgForTurn ? ' 📎 (image attached)' : ''));
       const thinkingEl = appendChatMsg('bot', 'Editing the page…');
       try {
-        const newHtml = await chatEditSalesHtml(instruction, getSalesHtml());
+        const newHtml = await chatEditSalesHtml(instruction, getSalesHtml(), imgForTurn);
         setSalesHtml(newHtml);
         thinkingEl.textContent = 'Done — preview updated.';
       } catch (err) {
@@ -1377,13 +1450,14 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
     return el;
   }
 
-  async function chatEditSalesHtml(instruction, currentHtml) {
-    const prompt = `You are an expert HTML/CSS engineer editing a single-file landing page.
+  async function chatEditSalesHtml(instruction, currentHtml, imageUrl) {
+    const textBlock = `You are an expert HTML/CSS engineer editing a single-file landing page.
 
-The current page HTML is below. The user wants this change:
+The user wants this change:
 """
-${instruction}
+${instruction || '(see attached image)'}
 """
+${imageUrl ? `\nThe user attached the image at this URL: ${imageUrl}\nWhen they say "replace X with this image" or similar, use the URL above as the new src.` : ''}
 
 Rules:
 - Output ONLY the complete, updated HTML document. No prose, no markdown fences, no commentary.
@@ -1391,40 +1465,193 @@ Rules:
 - Preserve every existing <script>, <style>, and class name unless the change explicitly requires altering them.
 - Make the smallest change that fully satisfies the request. Do not rewrite untouched sections.
 - If the user requests something visual (colours, fonts, spacing) update inline CSS or the existing <style> block — never link to external files.
+- If the request mentions an attached image, swap the URL in the appropriate <img src=...>, background-image, or avatar background — do not add a new image, replace an existing one in the section the user names.
 
 CURRENT HTML:
 ${currentHtml}`;
-    const output = await callClaude(prompt, 16000, { model: 'claude-haiku-4-5-20251001' });
+
+    // Multimodal content: image first (so Claude can SEE what's being attached), then text.
+    const content = imageUrl
+      ? [
+          { type: 'image', source: { type: 'url', url: imageUrl } },
+          { type: 'text',  text: textBlock }
+        ]
+      : textBlock;
+
+    const output = await callClaude(content, 16000, { model: 'claude-haiku-4-5-20251001' });
     return sanitizeGeneratedHtml(output);
   }
 
-  // Clone the Renshaw template with simple brand substitutions —
-  // business name, coach name + first name, challenge name, coach photo,
-  // brand colours. Keeps the full Renshaw structure intact; the user
-  // refines copy via the chat editor.
+  // Clone the Renshaw template with deep substitutions: brand name,
+  // coach name, prices, headline tagline, social-proof, coach bio,
+  // testimonials, photos, and brand colours. The result still uses
+  // Renshaw's layout/structure, but every visible Renshaw-specific
+  // string has been swapped for the coach's actual launch data.
+  // Further refinement happens via the in-app chat editor.
   function personalizeRenshawTemplate(html, profile, formData) {
     if (!html) return '';
     const p = profile || {};
     const f = formData || {};
-    const fullName     = (p.full_name || '').trim() || 'Your Name';
-    const firstName    = fullName.split(/\s+/)[0];
-    const businessName = (p.business_name || '').trim() || fullName;
-    const challengeName = (f.challengeName || '').trim() || `${businessName} Vault`;
+
+    const fullName      = (p.full_name || '').trim() || 'Your Name';
+    const firstName     = fullName.split(/\s+/)[0];
+    const businessName  = (p.business_name || '').trim() || fullName;
+    const challengeName = (f.challengeName || '').trim() || `${businessName} Program`;
+    const promise       = (f.promise || '').trim();
+    const niche         = (p.niche || '').trim();
+    const history       = (p.history || '').trim();
+    const credentials   = (p.credentials || '').trim();
+    const biggestPain   = (f.biggestPain || '').trim();
+    const includedRaw   = (f.included || '').trim();
+    const spots         = (f.spots || '').trim();
+    const ctaStyle      = (f.ctaStyle || '').trim();
+    const guarantee     = (f.guarantee || '').trim();
+
+    // Price parsing (intake stores something like "$497" or "497")
+    const priceRaw = String(f.price || '').replace(/[^0-9.]/g, '');
+    const priceNum = parseFloat(priceRaw) || 10;
+    const priceFmt = '$' + (Number.isInteger(priceNum) ? priceNum : priceNum.toFixed(2));
+    const priceOld = '$' + Math.round(priceNum * 2);
+    const perDay   = '$' + (priceNum / 30).toFixed(2);
+
+    // Included → "What's included" bullets
+    const includedItems = includedRaw
+      ? includedRaw.split(/[\n,;.]+/).map(s => s.trim()).filter(Boolean).slice(0, 7)
+      : [];
+
+    // Testimonial harvesting from profile
+    const testimonials = (Array.isArray(p.testimonials) ? p.testimonials : []).filter(t => t && (t.quote || t.name));
 
     let out = html;
-    // Most specific replacements first so we don't double-substitute.
+
+    /* ---- 1. Title + brand name everywhere ---- */
+    if (promise) {
+      out = out.replace(
+        /<title>[^<]*<\/title>/i,
+        `<title>${businessName} — ${promise}</title>`
+      );
+    }
+
+    // Specific → generic so we don't over-substitute
     out = out.split('Bryan Renshaw').join(fullName);
-    out = out.split("Renshaw's Personal Training").join(`${businessName} Personal Training`);
+    out = out.split("Renshaw's Personal Training").join(businessName);
     out = out.split('Renshaw Workout Vault').join(challengeName);
-    out = out.split('Renshaw Warriors').join(`${businessName} Warriors`);
+    out = out.split('Renshaw Warriors').join(`${businessName} community`);
     out = out.split('Renshaw Member').join('Member');
     out = out.split("Renshaw's").join(`${businessName}'s`);
     out = out.split("Bryan's").join(`${firstName}'s`);
     out = out.split('Renshaw').join(businessName);
-    // Whole-word Bryan only (avoid breaking words containing "bryan")
     out = out.replace(/\bBryan\b/g, firstName);
 
-    // Coach portrait — swap the hard-coded Renshaw image if profile has one.
+    /* ---- 2. Hero tagline ---- */
+    if (promise) {
+      out = out.split('Structured Workouts for Men 30+').join(promise);
+    }
+
+    /* ---- 3. Prices everywhere ---- */
+    // Specific compound strings first
+    out = out.split('$10/month').join(`${priceFmt}/mo`);
+    out = out.split('$10/mo').join(`${priceFmt}/mo`);
+    out = out.split('$10 / month').join(`${priceFmt} / mo`);
+    out = out.split('$10 a month').join(`${priceFmt} a month`);
+    out = out.split('$20/month').join(`${priceOld}/mo`);
+    out = out.split('$20').join(priceOld);
+    out = out.split('$0.33 per day').join(`${perDay} per day`);
+    // Standalone "$10" — must come AFTER all $10-prefixed combos above
+    out = out.split('$10').join(priceFmt);
+
+    /* ---- 4. Social-proof number ---- */
+    // If we have testimonials or spots, lean on them; otherwise generic
+    const proofN = testimonials.length ? `${testimonials.length}+` : (spots || 'hundreds of');
+    out = out.split('40,000+ men').join(`${proofN} ${niche || 'clients'}`);
+    out = out.split('40,000+ guys').join(`${proofN} ${niche || 'clients'}`);
+    out = out.split('40,000+').join(proofN);
+
+    /* ---- 5. Scarcity bar copy ---- */
+    if (spots) {
+      out = out.split('Next 10 sign-ups only').join(`Next ${spots} sign-ups only`);
+      out = out.split('next 10 sign-ups').join(`next ${spots} sign-ups`);
+    }
+    if (ctaStyle) {
+      // Use the discount-pill as the offer label only if ctaStyle looks discount-y
+      if (/%|off|sale/i.test(ctaStyle)) {
+        out = out.split('50% OFF').join(ctaStyle.toUpperCase().slice(0, 24));
+        out = out.split('50% off').join(ctaStyle);
+      }
+    }
+
+    /* ---- 6. Coach bio paragraph ---- */
+    if (history || credentials) {
+      const bio = history
+        ? `Hi, my name is ${firstName}. ${history}`
+        : `Hi, my name is ${firstName}. ${credentials}`;
+      out = out.replace(
+        /Hi, my name is [A-Za-z]+\. Going into college[^<]+?through symmetry and balance\./,
+        bio
+      );
+    }
+
+    /* ---- 7. Empathy/problem headline ---- */
+    if (biggestPain) {
+      // Renshaw's empathy section uses a specific phrase
+      out = out.split('You don\'t need another fad').join(biggestPain);
+      out = out.split('You don&rsquo;t need another fad').join(biggestPain);
+    }
+
+    /* ---- 8. "What's included" bullets ---- */
+    if (includedItems.length) {
+      const placeholders = [
+        'Full Workout Vault — every program, every split, organised by goal',
+        '"Start Here" onboarding so you know exactly what to do day one',
+        'New programs added every month — you never run out',
+        'In-app form-check uploads with feedback from the team',
+        'Macro & nutrition guidance built into every program',
+        'Private ' + businessName + ' community — accountability and support',
+        'Mobile + desktop access — train from anywhere',
+      ];
+      placeholders.forEach((needle, i) => {
+        if (i < includedItems.length) {
+          out = out.split(needle).join(includedItems[i]);
+        }
+      });
+    }
+
+    /* ---- 9. Testimonials from profile ---- */
+    testimonials.slice(0, 3).forEach((t, i) => {
+      const idx = i + 1;
+      if (t.quote) {
+        // Renshaw uses unique opening words for each testimonial — try by index
+        const renshawQuotes = [
+          "I'll be working with",
+          "I went from",
+          "Game changer"
+        ];
+        // Heuristic: replace based on order
+        // Each testimonial is encapsulated in <p class="testi__quote">...</p>
+      }
+    });
+    // Simpler approach: substitute the 3 testimonial blocks one-by-one
+    const testiPattern = /<p class="testi__quote">[^<]+<\/p>\s*<div class="testi__author">\s*<div class="testi__avatar"[^>]*>[^<]*<\/div>\s*<div>\s*<div class="testi__name">[^<]+<\/div>\s*<div class="testi__meta">[^<]+<\/div>\s*<\/div>\s*<\/div>\s*<div class="testi__result-pill">[^<]+<\/div>/g;
+    let testiIdx = 0;
+    out = out.replace(testiPattern, (match) => {
+      const t = testimonials[testiIdx++];
+      if (!t) return match;
+      const initials = (t.name || 'CC').split(/\s+/).map(s => s[0]).join('').slice(0, 2).toUpperCase();
+      const avatarStyle = t.photo_url
+        ? `background:url('${t.photo_url}') center/cover, var(--blue);`
+        : 'background:var(--blue);';
+      return `<p class="testi__quote">"${escapeHtml(t.quote || '')}"</p>
+        <div class="testi__author">
+          <div class="testi__avatar" style="${avatarStyle}">${t.photo_url ? '' : initials}</div>
+          <div>
+            <div class="testi__name">${escapeHtml(t.name || 'Member')}</div>
+            <div class="testi__meta">${businessName} Member</div>
+          </div>
+        </div>
+        <div class="testi__result-pill">${escapeHtml(t.numbers || 'Real results')}</div>`;
+    });
+
+    /* ---- 10. Coach portrait ---- */
     if (p.photo_url) {
       out = out.replace(
         /https:\/\/www\.renshawspt\.com\/[^"'\s]+\.(?:jpg|jpeg|png|webp)/gi,
@@ -1432,13 +1659,18 @@ ${currentHtml}`;
       );
     }
 
-    // Brand colours — swap the blue accents to the coach's brand primary.
+    /* ---- 11. Brand colours ---- */
     if (p.brand_primary) {
       out = out.replace(/--blue:\s*#[0-9a-fA-F]+/, `--blue: ${p.brand_primary}`);
       out = out.replace(/--blue-dark:\s*#[0-9a-fA-F]+/, `--blue-dark: ${p.brand_primary}`);
     }
     if (p.brand_secondary) {
       out = out.replace(/--blue-light:\s*#[0-9a-fA-F]+/, `--blue-light: ${p.brand_secondary}`);
+    }
+
+    /* ---- 12. Guarantee line ---- */
+    if (guarantee) {
+      out = out.split('Cancel anytime in seconds, no questions asked.').join(guarantee);
     }
 
     return out;

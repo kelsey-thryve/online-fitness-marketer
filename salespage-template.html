@@ -696,12 +696,11 @@
   }
   .final-cta__spots strong { color: #fff; font-weight: 700; }
 
-  /* ── TOP SPACING: pushes content below the WP fixed/sticky header ── */
-  /* Adjust these values if the urgency bar overlaps or has a gap. */
-  .rpt-page { margin-top: 40px; }
+  /* ── TOP SPACING: urgency bar sits flush at the top of the viewport. ── */
+  .rpt-page { margin-top: 0; }
   @media (max-width: 767px) {
-    .rpt-page { margin-top: 60px; }
-    #urgencyBar { top: 60px !important; }
+    .rpt-page { margin-top: 0; }
+    #urgencyBar { top: 0 !important; }
     .hero__headline { font-size: 2.8rem !important; line-height: 1.15 !important; }
     .hero__sub      { font-size: 1.2rem !important; line-height: 1.55 !important; }
   }
@@ -712,7 +711,7 @@
 <div class="rpt-page">
 
 <!-- URGENCY / COUNTDOWN BAR -->
-<section id="urgencyBar" style="background:linear-gradient(90deg,#C8221A 0%,#E63946 50%,#C8221A 100%) !important;color:#fff !important;padding:14px 16px !important;text-align:center !important;font-size:14px !important;font-weight:600 !important;letter-spacing:0.3px !important;line-height:1.55 !important;position:sticky !important;top:80px !important;z-index:99 !important;display:block !important;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif !important;box-shadow:0 2px 10px rgba(200,34,26,0.25) !important;margin:0 !important;width:auto !important;"><span style="color:#fff !important;font-weight:700 !important;font-size:14px !important;display:inline !important;">50% OFF</span>&nbsp;<span style="color:#fff !important;font-size:14px !important;font-weight:600 !important;">ends in</span>&nbsp;<span id="countdownTimer" style="color:#fff !important;background:rgba(0,0,0,0.3) !important;padding:2px 10px !important;border-radius:6px !important;display:inline-block !important;margin:0 4px !important;font-weight:700 !important;font-size:14px !important;letter-spacing:0.5px !important;border:1px solid rgba(255,255,255,0.2) !important;font-variant-numeric:tabular-nums;">10:00</span>&nbsp;<span style="color:#fff !important;font-size:14px !important;font-weight:600 !important;">·&nbsp;Next 10 sign-ups only</span></section>
+<section id="urgencyBar" style="background:linear-gradient(90deg,#C8221A 0%,#E63946 50%,#C8221A 100%) !important;color:#fff !important;padding:14px 16px !important;text-align:center !important;font-size:14px !important;font-weight:600 !important;letter-spacing:0.3px !important;line-height:1.55 !important;position:sticky !important;top:0 !important;z-index:99 !important;display:block !important;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif !important;box-shadow:0 2px 10px rgba(200,34,26,0.25) !important;margin:0 !important;width:auto !important;"><span style="color:#fff !important;font-weight:700 !important;font-size:14px !important;display:inline !important;">50% OFF</span>&nbsp;<span style="color:#fff !important;font-size:14px !important;font-weight:600 !important;">ends in</span>&nbsp;<span id="countdownTimer" style="color:#fff !important;background:rgba(0,0,0,0.3) !important;padding:2px 10px !important;border-radius:6px !important;display:inline-block !important;margin:0 4px !important;font-weight:700 !important;font-size:14px !important;letter-spacing:0.5px !important;border:1px solid rgba(255,255,255,0.2) !important;font-variant-numeric:tabular-nums;">10:00</span>&nbsp;<span style="color:#fff !important;font-size:14px !important;font-weight:600 !important;">·&nbsp;Next 10 sign-ups only</span></section>
 
 <!-- HERO -->
 <section class="hero">
