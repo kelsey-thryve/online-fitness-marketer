@@ -1357,11 +1357,28 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
     refreshSalesPreview();
     persistCurrentRecord();
   }
+  // Inject a small CSS override into the page so .reveal elements show
+  // up immediately in the preview iframe. The IntersectionObserver
+  // animation depends on a scroll context that doesn't behave the same
+  // way inside our sandboxed iframe, so sections below the hero would
+  // otherwise stay at opacity:0. The downloaded/published .html keeps
+  // the original animations — this override is preview-only.
+  function getSalesHtmlForPreview() {
+    const html = getSalesHtml();
+    if (!html) return html;
+    const override = `<style id="tl-preview-override">.reveal{opacity:1!important;transform:none!important;}</style>`;
+    // Insert just before </head> if we can; otherwise prepend.
+    if (/<\/head>/i.test(html)) {
+      return html.replace(/<\/head>/i, `${override}</head>`);
+    }
+    return override + html;
+  }
+
   function refreshSalesPreview() {
     const iframe = document.getElementById('sales-preview');
     if (!iframe) return;
     if (salesBlobUrl) URL.revokeObjectURL(salesBlobUrl);
-    const blob = new Blob([getSalesHtml()], { type: 'text/html;charset=utf-8' });
+    const blob = new Blob([getSalesHtmlForPreview()], { type: 'text/html;charset=utf-8' });
     salesBlobUrl = URL.createObjectURL(blob);
     iframe.src = salesBlobUrl;
   }
