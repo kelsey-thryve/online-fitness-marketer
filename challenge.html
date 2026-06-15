@@ -1080,7 +1080,21 @@ Keep it tight and copy-paste-ready. No preamble, no closing notes — checklist 
     }
     for (const tpl of TEMPLATES) {
       const canvas = await renderGraphic(tpl.id, graphicsCtx);
-      generatedGraphics[tpl.id] = canvas.toDataURL('image/png');
+      // Upload PNG to Supabase storage rather than stashing the multi-MB
+      // base64 dataURL in localStorage — saving 4 dataURLs to a single
+      // launch record will blow past the ~5MB localStorage quota.
+      const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+      const safe = (formData.challengeName || 'launch')
+        .toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+      const file = new File([blob], `${tpl.id}.png`, { type: 'image/png' });
+      try {
+        generatedGraphics[tpl.id] = await uploadAsset(file, user.id, `launches/${safe}`);
+      } catch (err) {
+        console.warn('Graphic upload failed for', tpl.id, err);
+        // Fall back to dataURL only if upload fails — risks the quota error
+        // again, but at least the launch doesn't crash mid-generation.
+        generatedGraphics[tpl.id] = canvas.toDataURL('image/png');
+      }
     }
   }
 
@@ -1698,14 +1712,24 @@ ${currentHtml}`;
     });
   }
 
-  function downloadSingleGraphic(tplId) {
-    const dataUrl = generatedGraphics[tplId];
-    if (!dataUrl) return;
-    const a = document.createElement('a');
+  async function downloadSingleGraphic(tplId) {
+    const src = generatedGraphics[tplId];
+    if (!src) return;
     const safe = (formData.challengeName || 'launch').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
-    a.href = dataUrl;
+    let href;
+    if (src.startsWith('data:')) {
+      href = src;
+    } else {
+      // Supabase URL — fetch and wrap in a blob: URL so the download attribute
+      // works across origins.
+      const blob = await (await fetch(src)).blob();
+      href = URL.createObjectURL(blob);
+    }
+    const a = document.createElement('a');
+    a.href = href;
     a.download = `${safe}-${tplId}.png`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    if (!src.startsWith('data:')) URL.revokeObjectURL(href);
   }
 
   function downloadAllGraphics() {
@@ -1774,13 +1798,21 @@ ${currentHtml}`;
         offer:        '03-offer-split.png',
         testimonial:  '04-polaroid-trust.png'
       };
-      TEMPLATES.forEach(tpl => {
-        const dataUrl = generatedGraphics[tpl.id];
-        if (!dataUrl) return;
-        const base64 = dataUrl.split(',')[1];
-        if (!base64) return;
-        graphicsFolder.file(graphicFileNames[tpl.id] || `${tpl.id}.png`, base64, { base64: true });
-      });
+      for (const tpl of TEMPLATES) {
+        const src = generatedGraphics[tpl.id];
+        if (!src) continue;
+        try {
+          if (src.startsWith('data:')) {
+            const base64 = src.split(',')[1];
+            if (base64) {
+              graphicsFolder.file(graphicFileNames[tpl.id] || `${tpl.id}.png`, base64, { base64: true });
+            }
+          } else {
+            const blob = await (await fetch(src)).blob();
+            graphicsFolder.file(graphicFileNames[tpl.id] || `${tpl.id}.png`, blob);
+          }
+        } catch (e) { console.warn('Could not add graphic to zip:', tpl.id, e); }
+      }
 
       const blob = await zip.generateAsync({ type: 'blob' });
       const url = URL.createObjectURL(blob);
