@@ -1620,7 +1620,7 @@ If you're tempted to keep template copy because you're unsure what to write, wri
 # REWRITE COMPLETELY — produce new copy for every one of these
 - <title>
 - Sticky urgency bar text (scarcity framing tied to THIS launch)
-- Hero eyebrow pill, headline, sub-headline, price stack (current + old + per-day), three trust pills, primary CTA button
+- Hero eyebrow pill, headline (the H1 must be the challenge name "${formData.challengeName || 'Your Challenge'}" — nothing else), sub-headline, price stack (current + old + per-day), three trust pills, primary CTA button
 - Social proof bar one-liner
 - Empathy/problem section eyebrow, headline, paragraph
 - 4 before/after cards: name + result-pill + quote each
@@ -1715,6 +1715,21 @@ ${template}`;
     if (!html) return html;
     const p = profile || {};
     let out = html;
+    // Force the hero H1 to be the challenge name verbatim, regardless of
+    // what the model chose for the headline. Emphasise the last word so
+    // the existing `.hero__headline em` brand-colour styling has something
+    // to highlight.
+    const challengeName = (formData.challengeName || '').trim();
+    if (challengeName) {
+      const words = challengeName.split(/\s+/);
+      const hero = words.length > 1
+        ? `${words.slice(0, -1).join(' ')}<br><em>${words[words.length - 1]}</em>`
+        : `<em>${challengeName}</em>`;
+      out = out.replace(
+        /<h1 class="hero__headline">[\s\S]*?<\/h1>/,
+        `<h1 class="hero__headline">${hero}</h1>`
+      );
+    }
     if (p.photo_url) {
       out = out.replace(
         /https:\/\/www\.renshawspt\.com\/[^"'\s]+\.(?:jpg|jpeg|png|webp)/gi,
@@ -1791,6 +1806,18 @@ ${template}`;
     /* ---- 2. Hero tagline ---- */
     if (promise) {
       out = out.split('Structured Workouts for Men 30+').join(promise);
+    }
+
+    /* ---- 2b. Hero H1 — always the challenge name ---- */
+    if (challengeName) {
+      const words = challengeName.split(/\s+/);
+      const hero = words.length > 1
+        ? `${words.slice(0, -1).join(' ')}<br><em>${words[words.length - 1]}</em>`
+        : `<em>${challengeName}</em>`;
+      out = out.replace(
+        /<h1 class="hero__headline">[\s\S]*?<\/h1>/,
+        `<h1 class="hero__headline">${hero}</h1>`
+      );
     }
 
     /* ---- 3. Prices everywhere ---- */
