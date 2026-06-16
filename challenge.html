@@ -530,14 +530,38 @@
   ];
 
   // Pre-fetched once per session and re-used for both initial generation
-  // and live chat edits. ~50KB Renshaw HTML template.
+  // and live chat edits. Uses the coach's own website URL if they've put
+  // one on their brand profile; otherwise falls back to the bundled
+  // Renshaw long-form template.
   let salesPageTemplate = '';
+  let salesPageTemplateSource = 'bundled'; // 'site' or 'bundled'
   let salesBlobUrl = null;
   async function getSalesTemplate() {
     if (salesPageTemplate) return salesPageTemplate;
+    const siteUrl = (profile && profile.website_url || '').trim();
+    if (siteUrl) {
+      try {
+        const token = await getAccessToken();
+        const res = await fetch(`/api/fetch-site?url=${encodeURIComponent(siteUrl)}`, {
+          headers: { authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const html = await res.text();
+          // Only accept if we got an actual HTML document (some sites
+          // serve SPA shells with no meaningful copy — Claude will do
+          // its best either way).
+          if (/<html[\s>]/i.test(html) && html.length > 1000) {
+            salesPageTemplate = html;
+            salesPageTemplateSource = 'site';
+            return salesPageTemplate;
+          }
+        }
+      } catch (_) { /* fall through to bundled template */ }
+    }
     try {
       const res = await fetch('salespage-template.html');
       salesPageTemplate = await res.text();
+      salesPageTemplateSource = 'bundled';
     } catch (_) { salesPageTemplate = ''; }
     return salesPageTemplate;
   }

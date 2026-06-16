@@ -39,6 +39,11 @@ create table public.profiles (
   font_url text,
   font_name text,
 
+  -- The coach's own website. When set, used as the template for the
+  -- generated sales / squeeze pages (instead of the bundled Renshaw
+  -- template).
+  website_url text,
+
   -- Testimonials — array of { name, quote, photo_url, numbers }
   testimonials jsonb default '[]'::jsonb,
 
@@ -75,3 +80,10 @@ drop trigger if exists profiles_set_updated_at on public.profiles;
 create trigger profiles_set_updated_at
 before update on public.profiles
 for each row execute function public.profiles_touch_updated_at();
+
+-- ============================================================
+-- Idempotent additions for existing deployments. Re-running this
+-- file is safe; ALTER ... ADD COLUMN IF NOT EXISTS only fires if
+-- the column is missing.
+-- ============================================================
+alter table public.profiles add column if not exists website_url text;

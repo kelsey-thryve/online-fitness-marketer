@@ -4,3 +4,7 @@
 [[edge_functions]]
   function = "claude"
   path = "/api/claude"
+
+[[edge_functions]]
+  function = "fetch-site"
+  path = "/api/fetch-site"

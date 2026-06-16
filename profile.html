@@ -141,6 +141,11 @@
       <div class="field"><label>Your history as a trainer</label><textarea name="history" placeholder="How long you've been coaching, your journey, key milestones"></textarea></div>
       <div class="field"><label>What sets you apart</label><textarea name="what_sets_apart" placeholder="The thing that makes your coaching different — your edge"></textarea></div>
       <div class="field"><label>Brand messaging</label><textarea name="brand_messaging" placeholder="Tagline, mission, anything else you want every asset to echo"></textarea></div>
+      <div class="field">
+        <label>Your current website URL</label>
+        <input type="url" name="website_url" placeholder="https://yourcoaching.com">
+        <span class="field-hint">Used as the design template for every generated sales page + squeeze page. Leave blank to fall back to the bundled long-form template.</span>
+      </div>
     </div>
 
     <div class="profile-section">
@@ -276,9 +281,9 @@
     if (!p) return;
     for (const k of [
       'full_name','business_name','handle','niche','credentials','history',
-      'what_sets_apart','brand_messaging','avoid_words','unique_mechanism',
-      'contrarian_belief','brand_primary','brand_secondary','brand_accent',
-      'font_url','font_name'
+      'what_sets_apart','brand_messaging','website_url','avoid_words',
+      'unique_mechanism','contrarian_belief','brand_primary','brand_secondary',
+      'brand_accent','font_url','font_name'
     ]) {
       const el = form.querySelector(`[name="${k}"]`);
       if (el && p[k] != null) el.value = p[k];
@@ -497,6 +502,7 @@
       history:           form.history.value.trim(),
       what_sets_apart:   form.what_sets_apart.value.trim(),
       brand_messaging:   form.brand_messaging.value.trim(),
+      website_url:       form.website_url.value.trim() || null,
       tone,
       avoid_words:       form.avoid_words.value.trim(),
       unique_mechanism:  form.unique_mechanism.value.trim(),

@@ -125,6 +125,31 @@ export function deleteChallenge(userId, id) {
   localStorage.setItem(challengesKey(userId), JSON.stringify(list));
 }
 
+/* --- Lead magnets (localStorage, scoped by user id) --- */
+
+function leadsKey(userId) { return `trainerlaunch:leads:${userId}`; }
+
+export function listLeads(userId) {
+  try {
+    return JSON.parse(localStorage.getItem(leadsKey(userId)) || '[]');
+  } catch { return []; }
+}
+
+export function saveLead(userId, lead) {
+  const list = listLeads(userId);
+  list.unshift(lead);
+  localStorage.setItem(leadsKey(userId), JSON.stringify(list));
+}
+
+export function getLead(userId, id) {
+  return listLeads(userId).find(c => c.id === id);
+}
+
+export function deleteLead(userId, id) {
+  const list = listLeads(userId).filter(c => c.id !== id);
+  localStorage.setItem(leadsKey(userId), JSON.stringify(list));
+}
+
 /* --- Storage hygiene -----------------------------------------------
    Earlier versions of the app stored each generated graphic as a
    multi-MB base64 dataURL on the challenge record. With 4 graphics +

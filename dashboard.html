@@ -30,7 +30,10 @@
       <h1 id="dash-greeting">Welcome back</h1>
       <p id="dash-subtitle">Build a new launch or pick up where you left off.</p>
     </div>
-    <a href="challenge.html" class="btn btn-primary">+ New launch</a>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <a href="challenge.html" class="btn btn-primary">+ New launch</a>
+      <a href="lead.html" class="btn btn-secondary">+ New lead magnet</a>
+    </div>
   </div>
 
   <div class="dash-stats">
@@ -48,7 +51,7 @@
     </div>
   </div>
 
-  <div class="dash-challenges">
+  <div class="dash-challenges" style="margin-bottom: 22px;">
     <div class="dash-challenges-header">
       <h2>Your launches</h2>
       <a href="challenge.html" class="btn btn-secondary btn-sm">+ New</a>
@@ -57,6 +60,19 @@
       <div class="empty-state">
         <h3>No launches yet</h3>
         <p>Hit "New launch" to build your first challenge kit.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="dash-challenges">
+    <div class="dash-challenges-header">
+      <h2>Your lead magnets</h2>
+      <a href="lead.html" class="btn btn-secondary btn-sm">+ New</a>
+    </div>
+    <div id="lead-list">
+      <div class="empty-state">
+        <h3>No lead magnets yet</h3>
+        <p>Build a free PDF + 4-email sequence + opt-in landing page in one shot.</p>
       </div>
     </div>
   </div>
@@ -85,7 +101,7 @@
 </footer>
 
 <script type="module">
-  import { requireAuth, signOut, listChallenges, getAccessToken, getProfile, cleanupLegacyGraphics } from './auth.js';
+  import { requireAuth, signOut, listChallenges, listLeads, getAccessToken, getProfile, cleanupLegacyGraphics } from './auth.js';
 
   const user = await requireAuth();
   if (!user) { /* redirected */ }
@@ -136,6 +152,26 @@
         <span style="color: var(--text-muted);">View →</span>
       `;
       listEl.appendChild(row);
+    });
+  }
+
+  // Render lead-magnet list
+  const leads = listLeads(user.id);
+  const leadListEl = document.getElementById('lead-list');
+  if (leads.length > 0) {
+    leadListEl.innerHTML = '';
+    leads.forEach(l => {
+      const row = document.createElement('a');
+      row.className = 'challenge-row';
+      row.href = `lead.html?id=${encodeURIComponent(l.id)}`;
+      row.innerHTML = `
+        <div>
+          <div class="challenge-row-name">${escapeHtml(l.name || 'Untitled lead magnet')}</div>
+          <div class="challenge-row-meta">${new Date(l.createdAt).toLocaleString()} · ${l.deliverableCount || 4} deliverables</div>
+        </div>
+        <span style="color: var(--text-muted);">View →</span>
+      `;
+      leadListEl.appendChild(row);
     });
   }
 
