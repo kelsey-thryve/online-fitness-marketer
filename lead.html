@@ -426,7 +426,7 @@ ${profileContextBlock()}`;
     const f = formData;
     return `YOUR TASK: 1000-WORD LEAD-MAGNET PDF CONTENT
 
-Write a ~1000-word lead magnet on the topic below. The output will be rendered as a downloadable PDF; design it to feel like a friendly, useful, give-it-away resource — not a sales pitch.
+Write a ~1000-word lead magnet on the topic below. The output will be rendered as a downloadable A4 PDF; design it to feel like a friendly, useful, give-it-away resource — not a sales pitch.
 
 # Topic
 ${f.magnetTopic}
@@ -452,10 +452,23 @@ ${profileContextBlock()}
 - Final thoughts: warm encouragement + soft call to the coach's paid program
 - Sign-off line in the coach's voice
 
+# Image directives — INCLUDE THESE
+On the line directly UNDER each major UPPERCASE section heading, add an "IMAGE:" line with 2-4 comma-separated search keywords for a relevant stock photo. Example:
+
+WHY MACRO-FRIENDLY MEALS MATTER
+IMAGE: meal prep, vegetables, healthy eating, kitchen
+
+Body text…
+
+Include IMAGE: on:
+- The opening greeting / hook
+- Each main section heading (Why this matters, each recipe/exercise/example, Tips, Common questions, Final thoughts)
+- Do NOT add IMAGE: on bullet lists, Q&A items, or recipe sub-sections (Ingredients / Instructions)
+
 # Rules
-- ~1000 words total
+- ~1000 words total (not counting IMAGE: directives)
 - Plain text only — no markdown headings (#), no asterisks, no backticks
-- Use UPPERCASE for section labels, blank line between sections
+- Use UPPERCASE for section labels (so they're recognised as sections), blank line between sections
 - The content must be USEFUL on its own. Don't gate critical info behind "buy my program".
 - Don't fabricate Renshaw / Bryan / vault / 50+ month references.`;
   }
@@ -869,40 +882,119 @@ ${getSqueezeHtml()}`;
   }
 
   /* ---------- PDF download for the lead magnet ---------- */
-  function downloadMagnetPdf() {
+
+  // Resolve an IMAGE: keyword line to a stock-photo URL. We use Unsplash's
+  // public source endpoint — no API key — and append the keywords as a
+  // search query. A deterministic seed (the keywords themselves) makes
+  // re-exports stable.
+  function magnetImageUrl(keywords) {
+    const kw = String(keywords || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 4).join(',');
+    if (!kw) return null;
+    return `https://source.unsplash.com/800x420/?${encodeURIComponent(kw)}`;
+  }
+
+  // Split the generated magnet text into structured sections. Each
+  // section may carry an image URL derived from its IMAGE: directive.
+  function parseMagnetSections(text) {
+    const lines = String(text || '').split('\n');
+    const sections = [];
+    let cur = { title: null, image: null, body: [] };
+    sections.push(cur);
+    for (let i = 0; i < lines.length; i++) {
+      const raw = lines[i];
+      const line = raw.trim();
+      // IMAGE: directive — attach to the current section
+      if (/^IMAGE\s*:/i.test(line)) {
+        const url = magnetImageUrl(line.replace(/^IMAGE\s*:\s*/i, ''));
+        if (url && cur) cur.image = url;
+        continue;
+      }
+      // UPPERCASE heading line — start a new section
+      const isHeading = line.length >= 4 && line.length <= 90
+        && /^[A-Z0-9][A-Z0-9 \-—·,&/?'"().!]+$/.test(line)
+        && !/[a-z]/.test(line);
+      if (isHeading) {
+        cur = { title: line, image: null, body: [] };
+        sections.push(cur);
+        continue;
+      }
+      cur.body.push(raw);
+    }
+    // Drop empty leading sections
+    return sections.filter(s => s.title || s.body.some(l => l.trim()));
+  }
+
+  // Preload every image so html2canvas captures them at render-time
+  // instead of capturing placeholders.
+  async function preloadImages(urls) {
+    await Promise.all(urls.map(src => new Promise(resolve => {
+      if (!src) return resolve();
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+      img.src = src;
+    })));
+  }
+
+  function renderMagnetSectionsHtml(sections, primary) {
+    return sections.map(s => {
+      const parts = [];
+      if (s.title) parts.push(`<h2 class="pdf-section-title">${escapeHtml(s.title)}</h2>`);
+      if (s.image) parts.push(`<div class="pdf-section-img"><img src="${s.image}" alt="" crossorigin="anonymous" /></div>`);
+      let inList = false;
+      for (const raw of s.body) {
+        const line = raw.trim();
+        if (!line) { if (inList) { parts.push('</ul>'); inList = false; } parts.push('<div class="pdf-vspace"></div>'); continue; }
+        const isBullet = /^[•\-]\s+/.test(line) || /^\d+\.\s+/.test(line);
+        if (isBullet) {
+          if (!inList) { parts.push('<ul class="pdf-list">'); inList = true; }
+          const stripped = line.replace(/^[•\-]\s+|^\d+\.\s+/, '');
+          parts.push(`<li>${escapeHtml(stripped)}</li>`);
+        } else {
+          if (inList) { parts.push('</ul>'); inList = false; }
+          parts.push(`<p class="pdf-body">${escapeHtml(line)}</p>`);
+        }
+      }
+      if (inList) parts.push('</ul>');
+      return `<section class="pdf-section">${parts.join('')}</section>`;
+    }).join('');
+  }
+
+  async function downloadMagnetPdf() {
     const content = generatedDocs.magnet || '';
     if (!content) { alert('Lead magnet not generated yet.'); return; }
     const p = profile || {};
     const primary = p.brand_primary || '#6366f1';
     const brandName = p.business_name || 'Trainer Launch';
 
-    const blocks = content.split('\n').map(raw => {
-      const line = raw.trim();
-      if (!line) return '<div style="height:8px;"></div>';
-      if (/^[A-Z0-9 \-—·,&/?]+$/.test(line) && line.length >= 4 && line.length <= 80) {
-        return `<h2 class="phase">${escapeHtml(line)}</h2>`;
-      }
-      if (/^•\s+/.test(line) || /^- /.test(line) || /^\d+\.\s+/.test(line)) {
-        return `<p class="bullet">${escapeHtml(line)}</p>`;
-      }
-      return `<p class="body">${escapeHtml(line)}</p>`;
-    }).join('');
+    const sections = parseMagnetSections(content);
+    const imageUrls = sections.map(s => s.image).filter(Boolean);
+    await preloadImages(imageUrls);
 
     const wrap = document.createElement('div');
-    wrap.style.cssText = 'position:fixed; left:-99999px; top:0; width:794px; background:#fff; color:#0a0a0f; font-family: Inter, Helvetica, Arial, sans-serif;';
+    // Render on-screen but visually hidden so html2canvas captures the
+    // computed layout properly. Off-screen `left: -99999px` sometimes
+    // causes blank canvases on Chromium.
+    wrap.style.cssText = 'position:absolute; top:0; left:0; width:794px; opacity:0.001; pointer-events:none; z-index:-1; background:#fff; color:#0a0a0f; font-family: Inter, Helvetica, Arial, sans-serif;';
     wrap.innerHTML = `
       <style>
-        .pdf-wrap { padding: 56px 56px 64px; }
-        .pdf-head { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 4px solid ${primary}; padding-bottom: 18px; margin-bottom: 32px; }
+        .pdf-doc { padding: 36px 40px 48px; font-size: 14px; line-height: 1.65; color: #2c2c3a; }
+        .pdf-head { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 4px solid ${primary}; padding-bottom: 16px; margin-bottom: 26px; }
         .pdf-head .eyebrow { color: ${primary}; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; }
-        .pdf-head .title { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; margin-top: 6px; }
-        .pdf-head .brand { color: #6b6b7a; font-size: 12px; }
-        .phase { color: ${primary}; font-size: 17px; font-weight: 800; letter-spacing: 0.10em; margin: 22px 0 10px; text-transform: uppercase; }
-        .body { font-size: 13px; line-height: 1.7; color: #2c2c3a; margin: 6px 0; }
-        .bullet { font-size: 13px; line-height: 1.7; color: #2c2c3a; margin: 4px 0 4px 14px; }
-        .pdf-foot { margin-top: 36px; padding-top: 16px; border-top: 1px solid #ececf2; font-size: 10px; color: #9999a8; text-align: center; }
+        .pdf-head .title { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; margin-top: 4px; color: #0a0a0f; }
+        .pdf-head .brand { color: #6b6b7a; font-size: 12px; text-align: right; }
+        .pdf-section { page-break-inside: avoid; margin: 14px 0 18px; }
+        .pdf-section-title { color: ${primary}; font-size: 16px; font-weight: 800; letter-spacing: 0.10em; text-transform: uppercase; margin: 14px 0 8px; }
+        .pdf-section-img { margin: 6px 0 12px; border-radius: 10px; overflow: hidden; max-height: 220px; }
+        .pdf-section-img img { width: 100%; height: 220px; object-fit: cover; display: block; }
+        .pdf-body { margin: 6px 0; font-size: 13.5px; line-height: 1.7; }
+        .pdf-list { margin: 4px 0 6px 22px; padding: 0; }
+        .pdf-list li { margin: 4px 0; font-size: 13.5px; line-height: 1.6; }
+        .pdf-vspace { height: 6px; }
+        .pdf-foot { margin-top: 28px; padding-top: 14px; border-top: 1px solid #ececf2; font-size: 10px; color: #9999a8; text-align: center; }
       </style>
-      <div class="pdf-wrap">
+      <div class="pdf-doc">
         <div class="pdf-head">
           <div>
             <div class="eyebrow">Free Lead Magnet</div>
@@ -913,18 +1005,35 @@ ${getSqueezeHtml()}`;
             <div>${new Date().toLocaleDateString()}</div>
           </div>
         </div>
-        ${blocks}
+        ${renderMagnetSectionsHtml(sections, primary)}
         <div class="pdf-foot">${escapeHtml(brandName)} · Free resource</div>
       </div>`;
     document.body.appendChild(wrap);
+
     const slug = (formData.magnetTopic || 'lead-magnet').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
-    html2pdf().set({
-      margin: 0, filename: `${slug}.pdf`,
-      image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-      jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' }
-    }).from(wrap).save().then(() => document.body.removeChild(wrap))
-      .catch(err => { document.body.removeChild(wrap); alert('PDF export failed: ' + err.message); });
+    try {
+      await html2pdf().set({
+        // mm margins inside A4 — left/top/right/bottom
+        margin: [10, 10, 12, 10],
+        filename: `${slug}.pdf`,
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          allowTaint: false,
+          backgroundColor: '#ffffff',
+          logging: false,
+          imageTimeout: 8000
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
+        pagebreak: { mode: ['css', 'legacy'] }
+      }).from(wrap).save();
+    } catch (err) {
+      console.error('[lead] PDF export failed', err);
+      alert('PDF export failed: ' + err.message);
+    } finally {
+      if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+    }
   }
 
   window.downloadAll = async function() {
