@@ -8,3 +8,11 @@
 [[edge_functions]]
   function = "fetch-site"
   path = "/api/fetch-site"
+
+[[edge_functions]]
+  function = "canva-callback"
+  path = "/api/canva-callback"
+
+[[edge_functions]]
+  function = "canva-disconnect"
+  path = "/api/canva-disconnect"

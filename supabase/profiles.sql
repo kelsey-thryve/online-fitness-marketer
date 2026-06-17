@@ -87,3 +87,12 @@ for each row execute function public.profiles_touch_updated_at();
 -- the column is missing.
 -- ============================================================
 alter table public.profiles add column if not exists website_url text;
+
+-- Canva Connect API — OAuth tokens stored per profile. The
+-- canva-callback edge function writes these after the user
+-- authorises; the autofill flow reads them.
+alter table public.profiles add column if not exists canva_access_token text;
+alter table public.profiles add column if not exists canva_refresh_token text;
+alter table public.profiles add column if not exists canva_token_expires_at timestamptz;
+alter table public.profiles add column if not exists canva_user_id text;
+alter table public.profiles add column if not exists canva_brand_template_id text;

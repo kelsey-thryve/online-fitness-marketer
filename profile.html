@@ -235,6 +235,20 @@
     </div>
 
     <div class="profile-section">
+      <h2>Canva connection</h2>
+      <p class="sect-desc">Connect your Canva Pro account so we can generate brand-matched PDFs (lead magnets, sales pages, ad creatives) directly in your Canva workspace.</p>
+      <div id="canva-status-pill" style="display:inline-flex; align-items:center; gap:8px; padding: 8px 14px; border-radius: 100px; background: var(--bg-input); border: 1px solid var(--border); font-size: 0.88rem; color: var(--text-muted);">
+        <span id="canva-status-dot" style="width:10px; height:10px; border-radius:50%; background:#6b7280;"></span>
+        <span id="canva-status-text">Not connected</span>
+      </div>
+      <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <button type="button" class="btn btn-primary" id="canva-connect-btn">Connect Canva</button>
+        <button type="button" class="btn btn-ghost hidden" id="canva-disconnect-btn">Disconnect</button>
+      </div>
+      <div id="canva-flash" style="margin-top: 10px; font-size: 0.85rem;"></div>
+    </div>
+
+    <div class="profile-section">
       <h2>Testimonials</h2>
       <p class="sect-desc">Add as many as you like. The strongest one is used on the sales page; the photos appear in your ad graphics.</p>
       <div id="testimonials-list"></div>
@@ -318,6 +332,82 @@
   }
   applyProfile(existing);
   if (!existing) renderTestimonials();
+
+  /* ---------- Canva connection ---------- */
+  const canvaCfg = (window.TRAINER_LAUNCH_CONFIG || {});
+  const canvaParams = new URLSearchParams(window.location.search);
+  if (canvaParams.get('canva_connected') === '1') {
+    document.getElementById('canva-flash').innerHTML =
+      `<span style="color:#6ee7b7;">Canva account connected.</span>`;
+    history.replaceState({}, '', 'profile.html');
+  }
+  const canvaErr = canvaParams.get('canva_error');
+  if (canvaErr) {
+    document.getElementById('canva-flash').innerHTML =
+      `<span style="color:#fca5a5;">Canva connection failed: ${canvaErr}</span>`;
+    history.replaceState({}, '', 'profile.html');
+  }
+
+  function paintCanvaStatus(p) {
+    const dot = document.getElementById('canva-status-dot');
+    const txt = document.getElementById('canva-status-text');
+    const disconnectBtn = document.getElementById('canva-disconnect-btn');
+    const isConnected = !!(p && p.canva_access_token);
+    dot.style.background = isConnected ? '#10b981' : '#6b7280';
+    txt.textContent = isConnected
+      ? `Connected${p.canva_user_id ? ' (Canva team ' + p.canva_user_id.slice(0, 8) + '…)' : ''}`
+      : 'Not connected';
+    disconnectBtn.classList.toggle('hidden', !isConnected);
+  }
+  paintCanvaStatus(existing);
+
+  document.getElementById('canva-connect-btn').addEventListener('click', async () => {
+    if (!canvaCfg.CANVA_CLIENT_ID) {
+      document.getElementById('canva-flash').innerHTML =
+        `<span style="color:#fca5a5;">CANVA_CLIENT_ID isn't set in config.js — see docs/canva-setup.md.</span>`;
+      return;
+    }
+    const session = await (async () => {
+      const { data: { session } } = await (await import('./auth.js')).supabase.auth.getSession();
+      return session;
+    })();
+    if (!session) {
+      document.getElementById('canva-flash').innerHTML =
+        `<span style="color:#fca5a5;">Not signed in.</span>`;
+      return;
+    }
+    // State = base64(Supabase access token). canva-callback verifies it.
+    const state = btoa(session.access_token);
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: canvaCfg.CANVA_CLIENT_ID,
+      redirect_uri: window.location.origin + '/api/canva-callback',
+      scope: 'design:content:read design:content:write design:meta:read brandtemplate:meta:read brandtemplate:content:read asset:write profile:read',
+      state
+    });
+    window.location.href = `https://www.canva.com/api/oauth/authorize?${params.toString()}`;
+  });
+
+  document.getElementById('canva-disconnect-btn').addEventListener('click', async () => {
+    const session = await (async () => {
+      const { data: { session } } = await (await import('./auth.js')).supabase.auth.getSession();
+      return session;
+    })();
+    if (!session) return;
+    try {
+      const res = await fetch('/api/canva-disconnect', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      });
+      if (!res.ok) throw new Error(await res.text());
+      document.getElementById('canva-flash').innerHTML =
+        `<span style="color:#6ee7b7;">Canva disconnected.</span>`;
+      paintCanvaStatus(null);
+    } catch (e) {
+      document.getElementById('canva-flash').innerHTML =
+        `<span style="color:#fca5a5;">Disconnect failed: ${e.message}</span>`;
+    }
+  });
 
   /* ---------- Tone checkbox visual ---------- */
   document.addEventListener('change', e => {

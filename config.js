@@ -21,5 +21,10 @@ window.TRAINER_LAUNCH_CONFIG = {
 
   /* Endpoint of the Netlify Edge proxy. Same-origin by default
      ("/api/claude"). Only change if you host the proxy elsewhere. */
-  CLAUDE_PROXY_PATH: '/api/claude'
+  CLAUDE_PROXY_PATH: '/api/claude',
+
+  /* Canva Connect integration. Paste your Canva developer client
+     ID (the public half — the secret stays on Netlify as an env var).
+     Leave blank to hide the "Connect Canva" button. */
+  CANVA_CLIENT_ID: ''
 };
