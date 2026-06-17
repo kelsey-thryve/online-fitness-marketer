@@ -26,5 +26,5 @@ window.TRAINER_LAUNCH_CONFIG = {
   /* Canva Connect integration. Paste your Canva developer client
      ID (the public half — the secret stays on Netlify as an env var).
      Leave blank to hide the "Connect Canva" button. */
-  CANVA_CLIENT_ID: ''
+  CANVA_CLIENT_ID: 'OC-AZ7TpdNibFtN'
 };
