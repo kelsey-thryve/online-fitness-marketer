@@ -16,3 +16,7 @@
 [[edge_functions]]
   function = "canva-disconnect"
   path = "/api/canva-disconnect"
+
+[[edge_functions]]
+  function = "canva-call"
+  path = "/api/canva-call"

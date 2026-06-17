@@ -66,6 +66,33 @@ Run `supabase/profiles.sql` in Supabase SQL Editor. The bottom of that file adds
    - `invalid_supabase_token` — Session expired between sign-in and OAuth round trip; refresh and try again.
    - `server_misconfigured` — One of the five Netlify env vars is missing.
 
-## What's next
+## Create a brand template for autofill
 
-Once OAuth works, the next iteration wires the **Generate via Canva** button on the lead-magnet (and sales-page) PDF download path. That step calls the Canva Autofill API with the magnet content as fields on a **brand template** you've pre-built in Canva. The Canva integration also stores the chosen brand template ID per user (`canva_brand_template_id`) so we can target the right design.
+Once OAuth is green, you need at least one **brand template** in Canva for the autofill to target. A brand template is a regular Canva design that has been promoted to template status with **named text fields** that the API can fill.
+
+1. In Canva: **Create a design** at A4 portrait. Build the lead-magnet PDF layout (cover, body, etc).
+2. For every text box whose content should be auto-filled by the app, click the text box → side panel → **Field name** → set the field name to one of the names below:
+
+| Field name we autofill | Filled with |
+|---|---|
+| `HEADLINE` or `TITLE` | The magnet topic |
+| `SUBTITLE` | Key messaging |
+| `INTRO` | Opening paragraph of the generated content |
+| `BODY` | Full generated body |
+| `COACH_NAME` | Profile full name |
+| `BUSINESS` or `BRAND_NAME` | Profile business name |
+| `HANDLE` | Profile social handle |
+
+Field names are case-sensitive. Any field whose name we don't recognise just stays at the template default — safe to leave it that way for fields like dates, page numbers, etc.
+
+3. Save the design.
+4. **Share → Template link → Generate template link**, OR move the design into your **Brand templates** library (Canva Pro feature). Either path makes it visible to the API.
+5. Back in the app: **Profile → Canva connection** → click ↻ to refresh the template list → pick the template you just made.
+
+After that, every **✨ Generate via Canva** click in the lead-magnet flow:
+- Sends the magnet content to Canva
+- Polls until the autofilled design is ready (~5-20 seconds)
+- Triggers a PDF export and polls until it's done (~5-20 seconds)
+- Downloads the PDF straight from Canva's CDN
+
+**Note on images**: v1 only autofills *text* fields. Image elements in your template stay at their template defaults — swap them in the Canva editor after autofill if you need different artwork per launch. Image-from-profile autofill needs an additional upload-to-Canva step we'll add next iteration.

@@ -246,6 +246,20 @@
         <button type="button" class="btn btn-ghost hidden" id="canva-disconnect-btn">Disconnect</button>
       </div>
       <div id="canva-flash" style="margin-top: 10px; font-size: 0.85rem;"></div>
+
+      <div id="canva-template-section" class="hidden" style="margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border);">
+        <label style="display:block; font-weight:500; font-size:0.92rem; margin-bottom:8px;">Default brand template</label>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 12px;">
+          Pick which Canva brand template to autofill when generating a lead-magnet PDF or sales-page asset. The template should expose named fields like HEADLINE, INTRO, BODY, COACH_NAME — we autofill whatever matches.
+        </p>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap: wrap;">
+          <select id="canva-template-select" style="flex:1; min-width: 220px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 11px 13px; font-family: inherit; font-size: 0.92rem;">
+            <option value="">— select a brand template —</option>
+          </select>
+          <button type="button" class="btn btn-secondary btn-sm" id="canva-template-refresh">↻</button>
+        </div>
+        <div id="canva-template-status" style="margin-top: 8px; font-size: 0.82rem; color: var(--text-dim);"></div>
+      </div>
     </div>
 
     <div class="profile-section">
@@ -352,14 +366,57 @@
     const dot = document.getElementById('canva-status-dot');
     const txt = document.getElementById('canva-status-text');
     const disconnectBtn = document.getElementById('canva-disconnect-btn');
+    const templateSection = document.getElementById('canva-template-section');
     const isConnected = !!(p && p.canva_access_token);
     dot.style.background = isConnected ? '#10b981' : '#6b7280';
     txt.textContent = isConnected
       ? `Connected${p.canva_user_id ? ' (Canva team ' + p.canva_user_id.slice(0, 8) + '…)' : ''}`
       : 'Not connected';
     disconnectBtn.classList.toggle('hidden', !isConnected);
+    templateSection.classList.toggle('hidden', !isConnected);
+    if (isConnected) loadCanvaTemplates(p.canva_brand_template_id);
   }
   paintCanvaStatus(existing);
+
+  async function loadCanvaTemplates(selectedId) {
+    const statusEl = document.getElementById('canva-template-status');
+    const sel = document.getElementById('canva-template-select');
+    statusEl.textContent = 'Loading templates from Canva…';
+    try {
+      const { listBrandTemplates } = await import('./canva-client.js');
+      const templates = await listBrandTemplates();
+      sel.innerHTML = '<option value="">— select a brand template —</option>';
+      templates.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        opt.textContent = (t.title || 'Untitled') + (t.id ? '  ·  ' + t.id.slice(0, 6) : '');
+        if (selectedId && t.id === selectedId) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      statusEl.textContent = templates.length
+        ? `${templates.length} template${templates.length === 1 ? '' : 's'} found.`
+        : 'No brand templates yet — create one in Canva first, then click ↻.';
+    } catch (err) {
+      statusEl.textContent = 'Could not list templates: ' + err.message;
+    }
+  }
+
+  document.getElementById('canva-template-refresh').addEventListener('click', () => {
+    const sel = document.getElementById('canva-template-select');
+    loadCanvaTemplates(sel.value);
+  });
+
+  document.getElementById('canva-template-select').addEventListener('change', async (e) => {
+    const id = e.target.value || null;
+    const statusEl = document.getElementById('canva-template-status');
+    statusEl.textContent = 'Saving…';
+    try {
+      await saveProfile({ canva_brand_template_id: id });
+      statusEl.textContent = id ? 'Default brand template saved.' : 'Cleared default template.';
+    } catch (err) {
+      statusEl.textContent = 'Save failed: ' + err.message;
+    }
+  });
 
   document.getElementById('canva-connect-btn').addEventListener('click', async () => {
     if (!canvaCfg.CANVA_CLIENT_ID) {

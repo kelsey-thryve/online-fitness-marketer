@@ -768,10 +768,12 @@ ${template}`;
           <div class="doc-header">
             <h3>${d.title}</h3>
             <div style="display:flex; gap:8px;">
+              <button class="btn btn-primary btn-sm" data-canva="${d.id}">✨ Generate via Canva</button>
               <button class="btn btn-secondary btn-sm" data-pdf="${d.id}">⇩ PDF</button>
               <button class="btn btn-secondary btn-sm" data-doc="${d.id}">Copy</button>
             </div>
           </div>
+          <div id="canva-status-banner" style="display:none; margin: 0 28px 12px; padding: 10px 14px; border-radius: 8px; background: var(--bg-input); border: 1px solid var(--border); font-size: 0.88rem; color: var(--text-muted);"></div>
           <div class="doc-body">${escapeHtml(generatedDocs[d.id] || '')}</div>`;
       } else {
         panel.innerHTML = `
@@ -789,6 +791,9 @@ ${template}`;
     });
     docsContainer.querySelectorAll('button[data-pdf]').forEach(btn => {
       btn.onclick = () => downloadMagnetPdf();
+    });
+    docsContainer.querySelectorAll('button[data-canva]').forEach(btn => {
+      btn.onclick = () => generateMagnetViaCanva(btn);
     });
 
     initSqueezeEditor();
@@ -1051,6 +1056,91 @@ ${getSqueezeHtml()}`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+
+  /* ---------- Generate via Canva ---------- */
+  // Field-mapping convention: any brand-template field whose name
+  // matches one of these (case-insensitive) gets the corresponding
+  // magnet-content slot. Unknown fields are skipped; missing fields
+  // just don't get populated.
+  function buildCanvaAutofillData() {
+    const p = profile || {};
+    const content = generatedDocs.magnet || '';
+    const sections = parseMagnetSections(content);
+    // Pull the intro paragraph (first body section that isn't a heading)
+    const intro = (sections.find(s => !s.title && s.body.some(l => l.trim()))?.body || [])
+      .join('\n').trim().slice(0, 600);
+    const body = sections
+      .filter(s => s.title)
+      .map(s => (s.title + '\n' + s.body.join('\n')).trim())
+      .join('\n\n').slice(0, 4000);
+
+    // Text-only autofill in v1 — Canva image fields need an asset_id
+    // from a prior upload-to-Canva flow, which we'll add later. Until
+    // then, image elements in the template keep whatever defaults
+    // they had; the user can swap them in the Canva editor.
+    const text = v => ({ type: 'text', text: String(v || '').slice(0, 5000) });
+    const candidates = {
+      HEADLINE:    text(formData.magnetTopic || 'Your Lead Magnet'),
+      TITLE:       text(formData.magnetTopic || ''),
+      SUBTITLE:    text(formData.keyMessaging || ''),
+      INTRO:       text(intro),
+      BODY:        text(body),
+      COACH_NAME:  text(p.full_name || ''),
+      BUSINESS:    text(p.business_name || ''),
+      BRAND_NAME:  text(p.business_name || ''),
+      HANDLE:      text(p.handle || '')
+    };
+    const out = {};
+    for (const [k, v] of Object.entries(candidates)) if (v && v.text) out[k] = v;
+    return out;
+  }
+
+  async function generateMagnetViaCanva(btn) {
+    const banner = document.getElementById('canva-status-banner');
+    const show = (msg, isError) => {
+      banner.style.display = 'block';
+      banner.textContent = msg;
+      banner.style.borderColor = isError ? 'rgba(239,68,68,0.4)' : 'var(--border)';
+      banner.style.color = isError ? '#fca5a5' : 'var(--text-muted)';
+    };
+    if (!profile || !profile.canva_access_token) {
+      show('Canva isn\'t connected yet. Open Profile → Connect Canva.', true);
+      return;
+    }
+    const templateId = profile.canva_brand_template_id;
+    if (!templateId) {
+      show('Pick a default brand template on Profile → Canva connection first.', true);
+      return;
+    }
+    btn.disabled = true;
+    const orig = btn.textContent;
+    btn.textContent = 'Working…';
+    try {
+      const { autofillBrandTemplate, exportDesignAsPdf } = await import('./canva-client.js');
+      show('Sending content to Canva…');
+      const designId = await autofillBrandTemplate(
+        templateId,
+        buildCanvaAutofillData(),
+        (msg) => show(msg)
+      );
+      show('Design ready — exporting PDF…');
+      const pdfUrl = await exportDesignAsPdf(designId, (msg) => show(msg));
+      show('Done. PDF ready — click to download.');
+      // Trigger download
+      const a = document.createElement('a');
+      a.href = pdfUrl;
+      const slug = (formData.magnetTopic || 'lead-magnet').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+      a.download = `${slug}-canva.pdf`;
+      a.target = '_blank';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    } catch (err) {
+      console.error('[canva] generate error', err);
+      show('Generate via Canva failed: ' + err.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = orig;
+    }
+  }
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
