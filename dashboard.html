@@ -16,7 +16,6 @@
       <img src="logo.svg" alt="Trainer Launch" />
     </a>
     <div class="nav-links">
-      <span id="nav-email" style="color: var(--text-muted); font-size: 0.9rem;"></span>
       <a href="templates.html" class="btn btn-secondary btn-sm">Templates</a>
       <a href="profile.html" class="btn btn-secondary btn-sm">Profile</a>
       <a href="#" onclick="doSignOut(); return false;" class="btn btn-ghost btn-sm">Sign out</a>
@@ -109,8 +108,6 @@
   // Free localStorage quota by stripping pre-fix dataURL graphics from
   // any saved challenges before we read or write the list.
   cleanupLegacyGraphics(user.id);
-
-  document.getElementById('nav-email').textContent = user.email;
 
   // Personalised greeting from user_metadata
   const meta = user.user_metadata || {};

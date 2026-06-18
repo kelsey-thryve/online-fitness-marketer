@@ -121,6 +121,7 @@
     <div>
       <h1>Brand profile</h1>
       <p>Set this once. Every launch you create will inherit it — copy voice, brand colours, your photo, testimonials and font.</p>
+      <p id="profile-email-line" style="margin-top: 6px; font-size: 0.85rem; color: var(--text-dim);"></p>
     </div>
   </div>
 
@@ -292,6 +293,8 @@
 
   const user = await requireAuth();
   if (!user) { /* redirected */ }
+  const emailLine = document.getElementById('profile-email-line');
+  if (emailLine && user.email) emailLine.textContent = 'Signed in as ' + user.email;
 
   const form = document.getElementById('profile-form');
   const statusEl = document.getElementById('save-status');
