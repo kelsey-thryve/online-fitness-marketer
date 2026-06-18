@@ -9,27 +9,36 @@
 
 export const AD_TEMPLATES = [
 
-  /* ---- Template 01 — "Reminder Card" -------------------- */
+  /* ---- Template 01 — "Reminder Card v2" -------------------- */
   {
     id: '1',  file: 'templates/1.png',
     title: 'Template 01 — Reminder Card',
     canvaUrl: 'https://www.canva.com/d/EnObVYAyRVU_N0_',
     slots: [
+      // [WEBSITE] tag in the white frame top-right
       { type: 'text', field: 'handle', fallback: '@yourbrand',
-        rect: { x: 600, y: 470, w: 320, h: 60 },
-        coverColor: '#4ec8d2',
+        rect: { x: 620, y: 320, w: 260, h: 55 },
+        coverColor: '#ffffff',
         style: { fontSize: 30, fontWeight: 'bold', color: '#1a1a2e',
                  align: 'right', valign: 'middle', maxLines: 1 } },
+      // Big "% OFF" headline in the cyan card
       { type: 'text', field: 'ctaStyle', fallback: '25% OFF',
-        rect: { x: 130, y: 620, w: 820, h: 160 },
+        rect: { x: 195, y: 525, w: 690, h: 180 },
         coverColor: '#4ec8d2',
-        style: { fontSize: 130, fontWeight: '900', color: '#1a1a2e',
-                 align: 'center', valign: 'middle', transform: 'upper', maxLines: 1 } },
-      { type: 'text', field: 'promise', fallback: 'Custom Training & Nutrition Programs',
-        rect: { x: 130, y: 790, w: 820, h: 200 },
+        style: { fontSize: 140, fontWeight: '900', color: '#0a0a0f',
+                 align: 'left', valign: 'middle', transform: 'upper', maxLines: 1 } },
+      // [PRODUCT] line below the headline
+      { type: 'text', field: 'challengeName', fallback: 'Your product',
+        rect: { x: 195, y: 740, w: 690, h: 100 },
         coverColor: '#4ec8d2',
-        style: { fontSize: 56, fontWeight: 'bold', color: '#1a1a2e',
-                 align: 'center', valign: 'middle', maxLines: 2 } }
+        style: { fontSize: 64, fontWeight: '900', color: '#0a0a0f',
+                 align: 'left', valign: 'middle', transform: 'upper', maxLines: 1 } },
+      // [KEY MESSAGING] line directly below product
+      { type: 'text', field: 'promise', fallback: 'Key messaging',
+        rect: { x: 195, y: 840, w: 690, h: 100 },
+        coverColor: '#4ec8d2',
+        style: { fontSize: 60, fontWeight: '900', color: '#0a0a0f',
+                 align: 'left', valign: 'middle', transform: 'upper', maxLines: 1 } }
     ]
   },
 
