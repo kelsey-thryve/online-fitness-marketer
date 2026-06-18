@@ -14,7 +14,8 @@ values (
   true,
   26214400, -- 25 MB
   array[
-    'image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml',
+    'image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/avif',
+    'image/gif', 'image/svg+xml', 'image/heic', 'image/heif', 'image/tiff',
     'font/ttf', 'font/otf', 'font/woff', 'font/woff2',
     'application/octet-stream'
   ]
