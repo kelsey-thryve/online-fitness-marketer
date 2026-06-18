@@ -439,7 +439,7 @@
       response_type: 'code',
       client_id: canvaCfg.CANVA_CLIENT_ID,
       redirect_uri: window.location.origin + '/api/canva-callback',
-      scope: 'design:content:read design:content:write design:meta:read brandtemplate:meta:read brandtemplate:content:read asset:write profile:read',
+      scope: 'design:content:read design:content:write design:meta:read brandtemplate:content:read asset:read asset:write profile:read',
       state
     });
     window.location.href = `https://www.canva.com/api/oauth/authorize?${params.toString()}`;

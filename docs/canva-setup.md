@@ -22,8 +22,8 @@ In the integration settings panel:
   - `design:content:read`
   - `design:content:write`
   - `design:meta:read`
-  - `brandtemplate:meta:read`
   - `brandtemplate:content:read`
+  - `asset:read`
   - `asset:write`
   - `profile:read`
 
