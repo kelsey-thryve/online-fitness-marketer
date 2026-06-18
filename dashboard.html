@@ -35,7 +35,7 @@
     </div>
   </div>
 
-  <div class="dash-stats">
+  <div class="dash-stats" style="grid-template-columns: repeat(2, 1fr);">
     <div class="stat-card">
       <div class="stat-label">Total launches</div>
       <div class="stat-value" id="stat-total">0</div>
@@ -43,10 +43,6 @@
     <div class="stat-card">
       <div class="stat-label">This month</div>
       <div class="stat-value" id="stat-month">0</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">API status</div>
-      <div class="stat-value" id="stat-api" style="font-size: 1rem;">Checking…</div>
     </div>
   </div>
 
@@ -83,14 +79,6 @@
     </div>
   </div>
 
-  <div id="api-test" style="margin: 40px 0;">
-    <div class="card">
-      <h3 style="margin-bottom: 10px;">Test your API connection</h3>
-      <p style="margin-bottom: 18px;">Verify the server-side Anthropic key (set as a Netlify env var) is reachable through the <code style="background: var(--bg-input); padding: 2px 6px; border-radius: 4px;">/api/claude</code> proxy.</p>
-      <button class="btn btn-secondary" id="test-btn" onclick="testApi()">Run test</button>
-      <div id="test-result" style="margin-top: 18px;"></div>
-    </div>
-  </div>
 </div>
 
 <footer>
@@ -100,7 +88,7 @@
 </footer>
 
 <script type="module">
-  import { requireAuth, signOut, listChallenges, listLeads, getAccessToken, getProfile, cleanupLegacyGraphics } from './auth.js';
+  import { requireAuth, signOut, listChallenges, listLeads, getProfile, cleanupLegacyGraphics } from './auth.js';
 
   const user = await requireAuth();
   if (!user) { /* redirected */ }
@@ -126,12 +114,6 @@
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   }).length;
   document.getElementById('stat-month').textContent = thisMonth;
-
-  // API status — key lives server-side now, so we just show "Tap test"
-  const cfg = window.TRAINER_LAUNCH_CONFIG || {};
-  const statEl = document.getElementById('stat-api');
-  statEl.textContent = 'Tap test to verify';
-  statEl.style.fontSize = '0.95rem';
 
   // Render list
   const listEl = document.getElementById('challenge-list');
@@ -180,49 +162,6 @@
   } catch (_) { /* table may not exist yet; quietly skip */ }
 
   window.doSignOut = signOut;
-
-  /* --- API test --- */
-  window.testApi = async function() {
-    const btn = document.getElementById('test-btn');
-    const out = document.getElementById('test-result');
-    btn.disabled = true;
-    btn.textContent = 'Testing…';
-    out.innerHTML = '';
-
-    try {
-      const token = await getAccessToken();
-      if (!token) throw new Error('Not signed in.');
-
-      const res = await fetch(cfg.CLAUDE_PROXY_PATH || '/api/claude', {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          model: cfg.MODEL || 'claude-opus-4-7',
-          max_tokens: 64,
-          messages: [{ role: 'user', content: 'Reply with exactly: TRAINER LAUNCH OK' }]
-        })
-      });
-      const errClone = res.clone();
-      let data;
-      try {
-        data = await res.json();
-      } catch (_) {
-        const raw = await errClone.text();
-        throw new Error(`Non-JSON response from proxy (${res.status}): ${raw.slice(0, 300)}`);
-      }
-      if (!res.ok) throw new Error(data.error || JSON.stringify(data));
-      const text = (data.content || []).map(b => b.text || '').join('').trim();
-      out.innerHTML = `<div class="alert alert-success">Connection OK · model: <strong>${data.model || cfg.MODEL}</strong> · reply: "${escapeHtml(text)}"</div>`;
-    } catch (err) {
-      out.innerHTML = `<div class="alert alert-error">Test failed: ${escapeHtml(err.message)}</div>`;
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Run test';
-    }
-  };
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
