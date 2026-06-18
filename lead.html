@@ -97,6 +97,34 @@
     font-family: inherit; font-size: 0.92rem; resize: vertical;
   }
   .chat-form textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .chat-form-actions { display: flex; gap: 10px; align-items: center; }
+  .chat-attach-btn {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 8px; cursor: pointer;
+    font-size: 1.05rem;
+  }
+  .chat-attach-btn:hover { border-color: var(--accent); }
+  .chat-image-preview {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.85rem;
+  }
+  .chat-image-preview img {
+    width: 56px; height: 56px; object-fit: cover; border-radius: 6px;
+  }
+  .chat-image-preview button {
+    margin-left: auto;
+    background: transparent; border: none;
+    color: var(--text-muted); cursor: pointer;
+    font-size: 1rem;
+  }
+  .chat-image-preview button:hover { color: var(--text); }
 </style>
 </head>
 <body>
@@ -726,6 +754,7 @@ ${template}`;
           <div class="doc-header">
             <h3>${d.title}</h3>
             <div style="display:flex; gap:8px;">
+              <button class="btn btn-secondary btn-sm" id="squeeze-regen-btn">↻ Regenerate</button>
               <button class="btn btn-secondary btn-sm" data-html-open="squeeze">↗ Open in new tab</button>
               <button class="btn btn-secondary btn-sm" data-html-download="squeeze">⇩ Download .html</button>
             </div>
@@ -757,8 +786,18 @@ ${template}`;
                 <div class="chat-msg chat-msg-bot">I've drafted your squeeze page. Tell me what to change in plain English and I'll edit the HTML live.</div>
               </div>
               <form id="squeeze-chat-form" class="chat-form">
-                <textarea id="squeeze-chat-input" rows="3" placeholder="What would you like to change?"></textarea>
-                <button type="submit" class="btn btn-primary btn-sm" id="squeeze-chat-send">Send</button>
+                <div id="squeeze-chat-image-preview" class="chat-image-preview" style="display:none;">
+                  <img id="squeeze-chat-image-thumb" alt="attached" />
+                  <button type="button" id="squeeze-chat-image-clear" title="Remove">✕</button>
+                </div>
+                <textarea id="squeeze-chat-input" rows="3" placeholder="What would you like to change? (Attach an image and say e.g. &quot;use this as the hero image&quot;)"></textarea>
+                <div class="chat-form-actions">
+                  <label class="chat-attach-btn" title="Attach an image">
+                    📎
+                    <input type="file" id="squeeze-chat-image-input" accept="image/*" hidden />
+                  </label>
+                  <button type="submit" class="btn btn-primary btn-sm" id="squeeze-chat-send">Send</button>
+                </div>
               </form>
             </div>
           </div>
@@ -814,6 +853,32 @@ ${template}`;
 
   function initSqueezeEditor() {
     refreshSqueezePreview();
+
+    // Regenerate button — wipes current squeeze HTML and re-runs Claude
+    const regenBtn = document.getElementById('squeeze-regen-btn');
+    if (regenBtn) {
+      regenBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const editor = document.getElementById('site-editor');
+        if (editor && editor.classList.contains('chat-hidden')) {
+          editor.classList.remove('chat-hidden');
+          const ct = document.getElementById('chat-toggle');
+          if (ct) ct.textContent = 'Hide chat';
+        }
+        regenBtn.disabled = true;
+        regenBtn.textContent = 'Regenerating…';
+        try {
+          await regenerateSqueezePage();
+        } catch (err) {
+          console.error('[squeeze] regen error', err);
+          alert('Regeneration failed: ' + err.message);
+        } finally {
+          regenBtn.disabled = false;
+          regenBtn.textContent = '↻ Regenerate';
+        }
+      });
+    }
+
     document.querySelectorAll('[data-viewport-toggle] button').forEach(btn => {
       btn.onclick = () => {
         const target = btn.dataset.viewport;
@@ -848,26 +913,52 @@ ${template}`;
         URL.revokeObjectURL(url);
       };
     });
+
+    // Image attach
+    let attachedImageUrl = null;
+    const imgInput = document.getElementById('squeeze-chat-image-input');
+    const imgPreview = document.getElementById('squeeze-chat-image-preview');
+    const imgThumb = document.getElementById('squeeze-chat-image-thumb');
+    const imgClear = document.getElementById('squeeze-chat-image-clear');
+    if (imgInput) {
+      imgInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        imgPreview.style.display = 'flex';
+        imgThumb.src = URL.createObjectURL(file);
+        try {
+          attachedImageUrl = await uploadAsset(file, user.id, 'squeeze-chat');
+        } catch (err) {
+          appendSqueezeChatMsg('bot', 'Image upload failed: ' + err.message).classList.add('chat-msg-error');
+          attachedImageUrl = null;
+          imgPreview.style.display = 'none';
+        }
+      });
+    }
+    if (imgClear) {
+      imgClear.onclick = () => {
+        attachedImageUrl = null;
+        imgInput.value = '';
+        imgPreview.style.display = 'none';
+      };
+    }
+
     const form = document.getElementById('squeeze-chat-form');
     if (!form) return;
     form.onsubmit = async (e) => {
       e.preventDefault();
       const input = document.getElementById('squeeze-chat-input');
       const instruction = input.value.trim();
-      if (!instruction) return;
+      if (!instruction && !attachedImageUrl) return;
       input.value = '';
-      appendSqueezeChatMsg('user', instruction);
+      const imgForTurn = attachedImageUrl;
+      attachedImageUrl = null;
+      imgPreview.style.display = 'none';
+      if (imgInput) imgInput.value = '';
+      appendSqueezeChatMsg('user', instruction + (imgForTurn ? ' 📎 (image attached)' : ''));
       const thinkingEl = appendSqueezeChatMsg('bot', 'Editing the page…');
       try {
-        const prompt = `You are an expert HTML/CSS engineer editing a single-file landing page.
-User wants this change: """${instruction}"""
-Rules:
-- Output ONLY the complete updated HTML document, starting with <!DOCTYPE html>. No prose, no markdown fences.
-- Preserve every existing <script>, <style>, class, image src unless the change requires altering them.
-- Make the smallest change that satisfies the request.
-CURRENT HTML:
-${getSqueezeHtml()}`;
-        const out = sanitizeGeneratedHtml(await callClaude(prompt, 16000, { model: 'claude-haiku-4-5-20251001' }));
+        const out = await chatEditSqueezeHtml(instruction, getSqueezeHtml(), imgForTurn);
         setSqueezeHtml(out);
         thinkingEl.textContent = 'Done — preview updated.';
       } catch (err) {
@@ -875,6 +966,67 @@ ${getSqueezeHtml()}`;
         thinkingEl.classList.add('chat-msg-error');
       }
     };
+  }
+
+  async function chatEditSqueezeHtml(instruction, currentHtml, imageUrl) {
+    const textBlock = `You are an expert HTML/CSS engineer editing a single-file landing page.
+
+The user wants this change:
+"""
+${instruction || '(see attached image)'}
+"""
+${imageUrl ? `\nThe user attached the image at this URL: ${imageUrl}\nWhen they say "replace X with this image" or similar, use the URL above as the new src.` : ''}
+
+Rules:
+- Output ONLY the complete, updated HTML document. No prose, no markdown fences, no commentary.
+- The HTML must start with <!DOCTYPE html> and be a single self-contained file.
+- Preserve every existing <script>, <style>, and class name unless the change explicitly requires altering them.
+- Make the smallest change that fully satisfies the request. Do not rewrite untouched sections.
+- If the user requests something visual (colours, fonts, spacing) update inline CSS or the existing <style> block — never link to external files.
+- If the request mentions an attached image, swap the URL in the appropriate <img src=...>, background-image, or avatar background — do not add a new image, replace an existing one in the section the user names.
+
+CURRENT HTML:
+${currentHtml}`;
+
+    const content = imageUrl
+      ? [
+          { type: 'image', source: { type: 'url', url: imageUrl } },
+          { type: 'text',  text: textBlock }
+        ]
+      : textBlock;
+
+    const output = await callClaude(content, 16000, { model: 'claude-haiku-4-5-20251001' });
+    return sanitizeGeneratedHtml(output);
+  }
+
+  // One-button regeneration of just the squeeze page.
+  async function regenerateSqueezePage() {
+    const log = (txt, cls) => {
+      const el = appendSqueezeChatMsg('bot', txt);
+      if (cls) el.classList.add('chat-msg-error');
+      return el;
+    };
+    log('Regenerating squeeze page from scratch — replacing all copy…');
+    const tpl = await getSqueezeTemplate();
+    if (!tpl) {
+      log('Could not load the squeeze template.', true);
+      return;
+    }
+    log(`Template loaded (${tpl.length} chars). Calling Claude…`);
+    let html;
+    try {
+      const raw = await generateSqueezePage(tpl, leadIntakeBlock());
+      html = sanitizeGeneratedHtml(raw);
+      if (!html.includes('<!DOCTYPE') || !/<\/html>\s*$/i.test(html)) {
+        throw new Error(`Output incomplete (${html.length} chars)`);
+      }
+      log(`Claude returned ${html.length} chars. Applying overrides…`);
+    } catch (err) {
+      log('Claude rewrite failed (' + err.message + ') — keeping current page.', true);
+      return;
+    }
+    setSqueezeHtml(html);
+    log('Done — squeeze page rebuilt.');
   }
   function appendSqueezeChatMsg(role, text) {
     const log = document.getElementById('squeeze-chat-log');
