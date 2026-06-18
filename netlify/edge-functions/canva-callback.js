@@ -33,10 +33,20 @@ export default async (request) => {
     return redirectWithError('server_misconfigured');
   }
 
-  // 1. Decode the state. It's base64(Supabase access_token).
+  // 1. Decode the state. It's base64url(JSON({ t: supabase access token,
+  //    v: PKCE code verifier })). The old format (raw base64 of just the
+  //    Supabase token) is detected and rejected — the verifier is needed
+  //    for the PKCE token exchange below.
   let supabaseAccessToken;
+  let codeVerifier;
   try {
-    supabaseAccessToken = atob(state);
+    // base64url → base64 → bytes → JSON
+    const padded = state.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((state.length + 3) % 4);
+    const decoded = atob(padded);
+    const stateObj = JSON.parse(decoded);
+    supabaseAccessToken = stateObj.t;
+    codeVerifier = stateObj.v;
+    if (!supabaseAccessToken || !codeVerifier) throw new Error('missing fields');
   } catch {
     return redirectWithError('invalid_state');
   }
@@ -70,7 +80,8 @@ export default async (request) => {
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code,
-        redirect_uri: redirectUri
+        redirect_uri: redirectUri,
+        code_verifier: codeVerifier
       })
     });
     if (!tokenRes.ok) {

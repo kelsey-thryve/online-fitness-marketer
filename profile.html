@@ -433,17 +433,39 @@
         `<span style="color:#fca5a5;">Not signed in.</span>`;
       return;
     }
-    // State = base64(Supabase access token). canva-callback verifies it.
-    const state = btoa(session.access_token);
+    // Canva Connect requires PKCE on every flow. Generate verifier +
+    // challenge, encode both the Supabase access token and the verifier
+    // into the state parameter so the callback edge function has
+    // everything it needs to verify the user and finish the exchange.
+    const { verifier, challenge } = await generatePkce();
+    const stateObj = { t: session.access_token, v: verifier };
+    const state = b64url(new TextEncoder().encode(JSON.stringify(stateObj)));
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: canvaCfg.CANVA_CLIENT_ID,
       redirect_uri: window.location.origin + '/api/canva-callback',
       scope: 'design:content:read design:content:write design:meta:read brandtemplate:content:read asset:read asset:write profile:read',
-      state
+      state,
+      code_challenge: challenge,
+      code_challenge_method: 'S256'
     });
     window.location.href = `https://www.canva.com/api/oauth/authorize?${params.toString()}`;
   });
+
+  // PKCE helpers
+  async function generatePkce() {
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+    const verifier = b64url(bytes);
+    const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+    const challenge = b64url(new Uint8Array(hash));
+    return { verifier, challenge };
+  }
+  function b64url(bytes) {
+    let s = '';
+    for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+    return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  }
 
   document.getElementById('canva-disconnect-btn').addEventListener('click', async () => {
     const session = await (async () => {
