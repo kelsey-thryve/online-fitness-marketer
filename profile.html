@@ -522,19 +522,20 @@
     fileInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
+      console.log('[profile] uploading', slot, file.name, file.type, file.size + ' bytes');
       tile.classList.add('uploading');
       try {
         const url = await uploadAsset(file, user.id, 'images');
+        console.log('[profile] upload OK ->', url);
         markTileLoaded(tile, url);
-        // Save immediately on upload so the URL persists even if the user
-        // navigates away without hitting Save.
         const updates = {};
         updates[slot] = url;
         await saveProfile(updates);
         flashStatus(`Saved ${slot.replace('_url','').replace('_',' ')}`, 'success');
       } catch (err) {
+        console.error('[profile] upload failed', err);
         tile.classList.remove('uploading');
-        showAlert('Upload failed: ' + err.message);
+        showAlert(`Upload failed (${slot}): ${err.message || err.toString()}. Open DevTools → Console for the full error and check the Supabase storage bucket is set up — see docs/storage-setup.md.`);
       }
     });
   }
@@ -543,7 +544,7 @@
     if (!tile) return;
     tile.classList.remove('uploading');
     tile.classList.add('has-image');
-    tile.innerHTML = `<img class="preview" src="${url}" alt=""><button type="button" class="replace-btn">Replace</button><input type="file" accept="image/*">`;
+    tile.innerHTML = `<img class="preview" src="${url}" alt="" onerror="console.error('[profile] preview image failed to load:', this.src); this.outerHTML='<div style=&quot;padding:20px;color:#fca5a5;font-size:0.82rem;text-align:center;&quot;>Upload reached storage but the public URL didn\\'t resolve. Check that the &quot;uploads&quot; bucket is public.</div>'"><button type="button" class="replace-btn">Replace</button><input type="file" accept="image/*">`;
     const newInput = tile.querySelector('input[type="file"]');
     const replaceBtn = tile.querySelector('.replace-btn');
     replaceBtn.addEventListener('click', (ev) => { ev.preventDefault(); newInput.click(); });
