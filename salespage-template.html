@@ -68,6 +68,45 @@
     position: absolute; inset: 0;
     background: radial-gradient(ellipse 80% 55% at 50% 0%, rgba(61,167,253,0.18) 0%, transparent 70%);
   }
+  .hero__inner {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 64px;
+    align-items: center;
+    text-align: left;
+  }
+  .hero__content { text-align: left; min-width: 0; }
+  .hero__content .hero__headline,
+  .hero__content .hero__sub { margin-left: 0; margin-right: 0; }
+  .hero__content .hero__actions,
+  .hero__content .hero__trust { justify-content: flex-start; }
+  .hero__photo {
+    position: relative;
+    border-radius: 22px;
+    overflow: hidden;
+    aspect-ratio: 4/5;
+    background: rgba(61,167,253,0.08);
+    box-shadow: 0 40px 90px rgba(0,0,0,0.45), 0 0 0 1px rgba(61,167,253,0.28);
+  }
+  .hero__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hero__photo::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.55) 100%);
+    pointer-events: none;
+  }
+  @media (max-width: 880px) {
+    .hero__inner { grid-template-columns: 1fr; gap: 36px; text-align: center; }
+    .hero__content { text-align: center; }
+    .hero__content .hero__headline,
+    .hero__content .hero__sub { margin-left: auto; margin-right: auto; }
+    .hero__content .hero__actions,
+    .hero__content .hero__trust { justify-content: center; }
+    .hero__photo { max-width: 380px; margin: 0 auto; }
+  }
   .hero__tag {
     display: inline-block;
     background: rgba(61,167,253,0.15);
@@ -367,6 +406,16 @@
     content: ''; position: absolute; inset: 0;
     background: radial-gradient(ellipse 70% 55% at 50% 100%, rgba(61,167,253,0.14) 0%, transparent 70%);
   }
+  .final-cta__coach {
+    position: relative;
+    width: 128px; height: 128px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 26px;
+    border: 3px solid var(--blue);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+  }
+  .final-cta__coach img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .final-cta__headline {
     font-family: var(--serif);
     font-size: clamp(2rem, 4.5vw, 3rem);
@@ -715,34 +764,41 @@
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero__tag">Limited Time Offer</div>
-  <h1 class="hero__headline">
-    50+ Months Of<br>
-    <em>Certified PT Workouts.</em>
-  </h1>
-  <p class="hero__sub">
-    The <strong>next 10 sign-ups</strong> get <strong>50% off</strong> and lock in <strong>$10/month</strong> access.
-  </p>
-  <div class="hero__price-badge">
-    <span class="hero__price-savings">Save 50% — Limited Time</span>
-    <span class="hero__price-badge__top">Full membership</span>
-    <div class="hero__price-badge__row">
-      <span class="hero__price-old">$20</span>
-      <div class="hero__price-badge__amount"><span>$</span>10<span style="font-size:1.1rem">/mo</span></div>
+  <div class="hero__inner">
+    <div class="hero__content">
+      <div class="hero__tag">Limited Time Offer</div>
+      <h1 class="hero__headline">
+        50+ Months Of<br>
+        <em>Certified PT Workouts.</em>
+      </h1>
+      <p class="hero__sub">
+        The <strong>next 10 sign-ups</strong> get <strong>50% off</strong> and lock in <strong>$10/month</strong> access.
+      </p>
+      <div class="hero__price-badge">
+        <span class="hero__price-savings">Save 50% — Limited Time</span>
+        <span class="hero__price-badge__top">Full membership</span>
+        <div class="hero__price-badge__row">
+          <span class="hero__price-old">$20</span>
+          <div class="hero__price-badge__amount"><span>$</span>10<span style="font-size:1.1rem">/mo</span></div>
+        </div>
+        <span class="hero__price-badge__sub">Less than $0.33 per day · Cancel anytime</span>
+      </div>
+      <div class="hero__actions">
+        <a href='https://www.renshawspt.com/get-started' class="btn btn--primary">
+          Get Access
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+      <div class="hero__cancel-note">No long-term contract. Cancel anytime in seconds, no questions asked.</div>
+      <div class="hero__trust">
+        <div class="trust-pill"><div class="trust-dot"></div> Gym or home workouts</div>
+        <div class="trust-pill"><div class="trust-dot"></div> 50+ months in the vault</div>
+        <div class="trust-pill"><div class="trust-dot"></div> Instant access on sign up</div>
+      </div>
     </div>
-    <span class="hero__price-badge__sub">Less than $0.33 per day · Cancel anytime</span>
-  </div>
-  <div class="hero__actions">
-    <a href='https://www.renshawspt.com/get-started' class="btn btn--primary">
-      Get Access
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </a>
-  </div>
-  <div class="hero__cancel-note">No long-term contract. Cancel anytime in seconds, no questions asked.</div>
-  <div class="hero__trust">
-    <div class="trust-pill"><div class="trust-dot"></div> Gym or home workouts</div>
-    <div class="trust-pill"><div class="trust-dot"></div> 50+ months in the vault</div>
-    <div class="trust-pill"><div class="trust-dot"></div> Instant access on sign up</div>
+    <div class="hero__photo reveal">
+      <img src="https://www.renshawspt.com/wp-content/uploads/2026/04/00-coach-hero.jpg" alt="Your coach">
+    </div>
   </div>
 </section>
 
@@ -1106,6 +1162,9 @@
 
 <!-- FINAL CTA -->
 <section class="final-cta">
+  <div class="final-cta__coach reveal">
+    <img src="https://www.renshawspt.com/wp-content/uploads/2026/04/06-coach-portrait.jpg" alt="Your coach">
+  </div>
   <h2 class="final-cta__headline">
     Stop wondering.<br>Start <em>building.</em>
   </h2>
