@@ -17,6 +17,13 @@
        Anthropic vault, write platform_connections row, redirect
        browser back to /dashboard.html with status flag.
 
+     POST /api/oauth/:platform/disconnect
+       Caller: dashboard "Disconnect" button, with user's Supabase
+       access token in Authorization: Bearer.
+       Action: validate user, look up their connection, delete the
+       vault credential, delete the platform_connections row.
+       Response: { ok: true } or { error: '...' }
+
    Required env vars on Netlify:
      ANTHROPIC_API_KEY            — existing
      SUPABASE_URL                 — existing
@@ -35,7 +42,7 @@ import {
   addMcpOAuthCredential,
   deleteCredential
 } from './lib/anthropic-vault.js';
-import { upsert, select } from './lib/supabase-admin.js';
+import { upsert, select, deleteRows } from './lib/supabase-admin.js';
 
 // ---------- helpers ----------
 
@@ -228,13 +235,56 @@ async function handleCallback(request, platformName, ctx) {
   return redirectBack(origin, { connect: 'ok', platform: platformName });
 }
 
+// ---------- /disconnect ----------
+
+async function handleDisconnect(request, platformName, ctx) {
+  const user = await getUserFromRequest(request, {
+    supabaseUrl: ctx.env.SUPABASE_URL,
+    supabaseAnonKey: ctx.env.SUPABASE_ANON_KEY
+  });
+  if (!user) return json({ error: 'Not authenticated' }, 401);
+
+  const adminCtx = {
+    supabaseUrl: ctx.env.SUPABASE_URL,
+    serviceRoleKey: ctx.env.SUPABASE_SERVICE_ROLE_KEY
+  };
+
+  const rows = await select(adminCtx, 'platform_connections', {
+    user_id: user.id,
+    platform: platformName
+  });
+  if (rows.length === 0) {
+    return json({ ok: true, alreadyDisconnected: true });
+  }
+
+  const row = rows[0];
+
+  // Try to delete the vault credential — best-effort, don't block on this.
+  // If it fails, the DB row deletion below still happens so the user can
+  // re-connect cleanly. Orphaned credentials can be cleaned up out-of-band.
+  if (row.vault_id && row.vault_credential_id) {
+    try {
+      await deleteCredential(
+        ctx.env.ANTHROPIC_API_KEY,
+        row.vault_id,
+        row.vault_credential_id
+      );
+    } catch (err) {
+      console.error(`[oauth ${platformName}] vault credential delete failed:`, err);
+    }
+  }
+
+  await deleteRows(adminCtx, 'platform_connections', {
+    user_id: user.id,
+    platform: platformName
+  });
+
+  return json({ ok: true });
+}
+
 // ---------- router ----------
 
 export default async (request) => {
-  if (request.method !== 'GET') {
-    return json({ error: 'Method not allowed' }, 405);
-  }
-
   const url = new URL(request.url);
   // Path: /api/oauth/:platform/:action
   const segments = url.pathname.split('/').filter(Boolean);
@@ -243,6 +293,15 @@ export default async (request) => {
     return json({ error: 'Bad path' }, 404);
   }
   const [, , platformName, action] = segments;
+
+  // Method requirements differ per action — GET for start/callback (browser
+  // navigation), POST for disconnect (modifying action).
+  if ((action === 'start' || action === 'callback') && request.method !== 'GET') {
+    return json({ error: 'Method not allowed' }, 405);
+  }
+  if (action === 'disconnect' && request.method !== 'POST') {
+    return json({ error: 'Method not allowed' }, 405);
+  }
 
   const requiredEnv = [
     'ANTHROPIC_API_KEY',
@@ -258,8 +317,9 @@ export default async (request) => {
 
   const ctx = { env };
 
-  if (action === 'start')    return handleStart(request, platformName, ctx);
-  if (action === 'callback') return handleCallback(request, platformName, ctx);
+  if (action === 'start')      return handleStart(request, platformName, ctx);
+  if (action === 'callback')   return handleCallback(request, platformName, ctx);
+  if (action === 'disconnect') return handleDisconnect(request, platformName, ctx);
 
   return json({ error: `Unknown action: ${action}` }, 404);
 };

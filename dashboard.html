@@ -47,6 +47,8 @@
     </div>
   </div>
 
+  <div id="connect-banner" style="margin-bottom: 24px;"></div>
+
   <div class="dash-challenges">
     <div class="dash-challenges-header">
       <h2>Your launches</h2>
@@ -56,6 +58,20 @@
       <div class="empty-state">
         <h3>No launches yet</h3>
         <p>Hit "New launch" to build your first challenge kit.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="dash-challenges" style="margin-top: 24px;">
+    <div class="dash-challenges-header">
+      <h2>Connections</h2>
+      <span style="color: var(--text-muted); font-size: 0.9rem;">
+        Connect the platforms you launch to.
+      </span>
+    </div>
+    <div id="connection-list" style="padding: 8px 0;">
+      <div class="empty-state" style="padding: 24px;">
+        <p>Loading…</p>
       </div>
     </div>
   </div>
@@ -77,7 +93,7 @@
 </footer>
 
 <script type="module">
-  import { requireAuth, signOut, listChallenges, getAccessToken } from './auth.js';
+  import { requireAuth, signOut, listChallenges, getAccessToken, supabase } from './auth.js';
 
   const user = await requireAuth();
   if (!user) { /* redirected */ }
@@ -169,6 +185,164 @@
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
+
+  /* ============================================================
+     Connections panel
+     ============================================================ */
+
+  const PLATFORM_META = {
+    klaviyo:    { label: 'Klaviyo',         description: 'Email & SMS marketing',       enabled: true,  comingSoon: false },
+    meta:       { label: 'Meta Ads',        description: 'Facebook & Instagram ads',    enabled: false, comingSoon: true  },
+    google_ads: { label: 'Google Ads',      description: 'Search & display ads',        enabled: false, comingSoon: true  },
+    duda:       { label: 'Duda',            description: 'Website pages & content',     enabled: false, comingSoon: true  }
+  };
+
+  // Read ?connect=ok|error&platform=X&reason=Y from the URL the OAuth
+  // callback redirects us to, show a banner, then clean the URL.
+  function showConnectBanner() {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('connect');
+    const platform = params.get('platform');
+    if (!status || !platform) return;
+
+    const label = PLATFORM_META[platform]?.label || platform;
+    const banner = document.getElementById('connect-banner');
+
+    if (status === 'ok') {
+      banner.innerHTML = `<div class="alert alert-success">Connected to ${escapeHtml(label)}.</div>`;
+    } else {
+      const reason = params.get('reason') || 'unknown_error';
+      const friendly = {
+        token_exchange_failed: 'The platform rejected the authorization code. Try again.',
+        vault_setup_failed:    'Couldn’t set up the credential vault. Contact support.',
+        vault_store_failed:    'Couldn’t save the credential. Contact support.',
+        db_write_failed:       'Connected to the platform but couldn’t save it. Try again.',
+        server_misconfigured:  'Server is missing config. Contact support.',
+        state_invalid:         'Session expired during connect. Try again.',
+        missing_params:        'The platform didn’t return the expected data.',
+        access_denied:         'You denied the authorization request.'
+      }[reason] || `Connect failed (${reason}).`;
+      banner.innerHTML = `<div class="alert alert-error">${escapeHtml(label)}: ${escapeHtml(friendly)}</div>`;
+    }
+
+    // Clean the URL so a refresh doesn't re-show the banner
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, '', cleanUrl);
+  }
+
+  async function loadConnections() {
+    const { data, error } = await supabase
+      .from('platform_connections')
+      .select('platform, status, connected_at, external_account_label')
+      .eq('user_id', user.id);
+
+    const listEl = document.getElementById('connection-list');
+    if (error) {
+      listEl.innerHTML = `<div class="alert alert-error" style="margin: 16px;">Couldn’t load connections: ${escapeHtml(error.message)}</div>`;
+      return;
+    }
+
+    const byPlatform = Object.fromEntries((data || []).map(r => [r.platform, r]));
+
+    listEl.innerHTML = '';
+    for (const [key, meta] of Object.entries(PLATFORM_META)) {
+      const conn = byPlatform[key];
+      const isConnected = !!conn && conn.status === 'active';
+
+      const row = document.createElement('div');
+      row.className = 'challenge-row';
+      row.style.cursor = 'default';
+
+      const accountLabel = conn?.external_account_label ? ` · ${conn.external_account_label}` : '';
+      const statusLine = isConnected
+        ? `<span style="color: #6ee7b7;">Connected${escapeHtml(accountLabel)}</span> · since ${new Date(conn.connected_at).toLocaleDateString()}`
+        : meta.comingSoon
+          ? `<span style="color: var(--text-dim);">Coming soon</span>`
+          : `<span style="color: var(--text-muted);">Not connected</span>`;
+
+      let actionHtml;
+      if (isConnected) {
+        actionHtml = `<button class="btn btn-ghost btn-sm" data-action="disconnect" data-platform="${key}">Disconnect</button>`;
+      } else if (meta.enabled) {
+        actionHtml = `<button class="btn btn-secondary btn-sm" data-action="connect" data-platform="${key}">Connect</button>`;
+      } else {
+        actionHtml = `<span style="color: var(--text-dim); font-size: 0.85rem;">—</span>`;
+      }
+
+      row.innerHTML = `
+        <div>
+          <div class="challenge-row-name">${escapeHtml(meta.label)}</div>
+          <div class="challenge-row-meta">${escapeHtml(meta.description)} · ${statusLine}</div>
+        </div>
+        <div>${actionHtml}</div>
+      `;
+      listEl.appendChild(row);
+    }
+
+    // Wire up the buttons
+    listEl.querySelectorAll('button[data-action="connect"]').forEach(btn => {
+      btn.addEventListener('click', () => startConnect(btn.dataset.platform, btn));
+    });
+    listEl.querySelectorAll('button[data-action="disconnect"]').forEach(btn => {
+      btn.addEventListener('click', () => disconnectPlatform(btn.dataset.platform, btn));
+    });
+  }
+
+  async function startConnect(platform, btn) {
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = 'Redirecting…';
+    try {
+      const token = await getAccessToken();
+      if (!token) throw new Error('Not signed in.');
+
+      const res = await fetch(`/api/oauth/${platform}/start`, {
+        headers: { 'authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      if (!data.authUrl) throw new Error('No authUrl returned');
+
+      window.location.href = data.authUrl;
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = originalText;
+      const banner = document.getElementById('connect-banner');
+      banner.innerHTML = `<div class="alert alert-error">${escapeHtml(PLATFORM_META[platform]?.label || platform)}: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  async function disconnectPlatform(platform, btn) {
+    const label = PLATFORM_META[platform]?.label || platform;
+    if (!confirm(`Disconnect ${label}? You can re-connect anytime.`)) return;
+
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = 'Disconnecting…';
+    try {
+      const token = await getAccessToken();
+      if (!token) throw new Error('Not signed in.');
+
+      const res = await fetch(`/api/oauth/${platform}/disconnect`, {
+        method: 'POST',
+        headers: { 'authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+      await loadConnections();
+      const banner = document.getElementById('connect-banner');
+      banner.innerHTML = `<div class="alert alert-success">Disconnected from ${escapeHtml(label)}.</div>`;
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = originalText;
+      const banner = document.getElementById('connect-banner');
+      banner.innerHTML = `<div class="alert alert-error">${escapeHtml(label)}: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  showConnectBanner();
+  loadConnections();
 </script>
 
 </body>
