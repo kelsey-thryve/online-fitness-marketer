@@ -35,7 +35,7 @@
    ============================================================ */
 
 import { getUserFromRequest } from './lib/server-auth.js';
-import { signState, verifyState } from './lib/oauth-state.js';
+import { signState, verifyState, generatePkceVerifier, pkceChallenge } from './lib/oauth-state.js';
 import { getPlatform } from './lib/oauth-platforms.js';
 import {
   createVault,
@@ -94,8 +94,19 @@ async function handleStart(request, platformName, ctx) {
     return json({ error: `Server misconfigured: missing ${platform.clientIdEnv}` }, 500);
   }
 
+  // Generate PKCE verifier+challenge if the platform requires it.
+  // The verifier is stashed inside the signed state (HMAC-protected,
+  // round-trips through the OAuth provider invisibly), so the callback
+  // can recover it without server-side session storage.
+  let pkceVerifier = null;
+  let challenge = null;
+  if (platform.usesPkce) {
+    pkceVerifier = generatePkceVerifier();
+    challenge = await pkceChallenge(pkceVerifier);
+  }
+
   const state = await signState(
-    { uid: user.id, platform: platformName },
+    { uid: user.id, platform: platformName, pkceVerifier },
     ctx.env.OAUTH_STATE_SECRET
   );
 
@@ -104,7 +115,8 @@ async function handleStart(request, platformName, ctx) {
     clientId,
     state,
     redirectUri: callbackRedirectUri(origin, platformName),
-    scope: platform.scope
+    scope: platform.scope,
+    pkceChallenge: challenge
   });
 
   return json({ authUrl });
@@ -154,7 +166,8 @@ async function handleCallback(request, platformName, ctx) {
       code,
       clientId,
       clientSecret,
-      redirectUri: callbackRedirectUri(origin, platformName)
+      redirectUri: callbackRedirectUri(origin, platformName),
+      pkceVerifier: payload.pv  // present if the platform required PKCE
     });
   } catch (err) {
     console.error(`[oauth ${platformName}] exchange failed:`, err);
