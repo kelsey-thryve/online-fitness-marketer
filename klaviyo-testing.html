@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Klaviyo Integration — Testing Instructions — Trainer Launch</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="style.css" />
+<meta name="robots" content="noindex,nofollow" />
+<style>
+  .legal { padding: 60px 0 80px; }
+  .legal h1 { font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 8px; }
+  .legal .updated { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 40px; }
+  .legal h2 { font-size: 1.6rem; margin-top: 48px; margin-bottom: 16px; }
+  .legal h3 { font-size: 1.1rem; margin-top: 28px; margin-bottom: 10px; color: var(--text); }
+  .legal p, .legal li { color: var(--text-muted); margin-bottom: 14px; }
+  .legal ul, .legal ol { padding-left: 22px; margin-bottom: 14px; }
+  .legal li { margin-bottom: 8px; }
+  .legal strong { color: var(--text); font-weight: 600; }
+  .legal a { color: var(--accent); border-bottom: 1px solid transparent; transition: border-color 0.15s; }
+  .legal a:hover { border-bottom-color: var(--accent); }
+  .legal code { background: var(--bg-input); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; color: var(--text); }
+  .legal table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  .legal table th, .legal table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); color: var(--text-muted); }
+  .legal table th { color: var(--text); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .callout {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px; padding: 16px 20px; margin: 16px 0;
+  }
+  .callout p { color: var(--text); margin: 0; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      <img src="logo.svg" alt="Trainer Launch" />
+      <span class="brand-text">Trainer Launch</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html#how">How it works</a>
+      <a href="index.html#deliverables">Deliverables</a>
+      <a href="index.html#pricing">Pricing</a>
+      <a href="login.html" class="btn btn-secondary btn-sm">Log in</a>
+    </div>
+  </div>
+</nav>
+
+<main class="container-narrow legal">
+  <h1>Klaviyo Integration — Testing Instructions</h1>
+  <p class="updated">For the Klaviyo OAuth review team · Last updated: June 25, 2026</p>
+
+  <p>This document walks you through testing the Trainer Launch OAuth integration with Klaviyo end-to-end. The integration lets fitness coaches connect their Klaviyo account to Trainer Launch so we can publish AI-generated email campaigns, templates, and lists to their account on their behalf.</p>
+
+  <div class="callout">
+    <p><strong>Test environment:</strong> The production app at <a href="https://trainerlaunch.app">https://trainerlaunch.app</a>. No separate staging environment — Trainer Launch is a single environment SaaS product. Test accounts can sign up freely; we do not require a payment method.</p>
+  </div>
+
+  <h2>1. About Trainer Launch</h2>
+
+  <p>Trainer Launch is an AI-powered marketing platform for online fitness coaches and creators. From a short intake form, we generate a complete launch kit (sales page, email sequence, ad copy, scripts, video scripts, ManyChat DM flow, launch plan, ad graphic templates) personalised to the coach's brand and offer.</p>
+
+  <p>The Klaviyo integration lets coaches publish the generated email sequence and audience lists to their own Klaviyo account in one click, rather than copy-pasting between platforms.</p>
+
+  <h3>Operated by</h3>
+  <p>Trainer Launch is a product of Thryve Growth. Contact for security/integration questions: <a href="mailto:kelsey@trainerlaunch.app">kelsey@trainerlaunch.app</a>.</p>
+
+  <h2>2. Test account setup</h2>
+
+  <ol>
+    <li>Visit <a href="https://trainerlaunch.app">https://trainerlaunch.app</a> and click <strong>Start your launch</strong> (or any "Sign up" button)</li>
+    <li>Enter any valid email address you control and a password</li>
+    <li>You'll receive a confirmation email from <code>kelsey@trainerlaunch.app</code> (sent via Resend, authenticated via SPF/DKIM/DMARC for <code>trainerlaunch.app</code>). Click the link to confirm.</li>
+    <li>Confirmation redirects you to <code>https://trainerlaunch.app/dashboard.html</code> with your session already established</li>
+  </ol>
+
+  <p>You'll also need a Klaviyo account in any tier — a free trial account is sufficient for testing the OAuth flow.</p>
+
+  <h2>3. Install flow — connecting Klaviyo</h2>
+
+  <ol>
+    <li>From the dashboard, scroll to the <strong>Connections</strong> section</li>
+    <li>You'll see four platforms listed: Klaviyo, Meta Ads, Google Ads, Duda. Only Klaviyo is currently enabled — the others show "Coming soon."</li>
+    <li>Click <strong>Connect</strong> next to Klaviyo</li>
+    <li>You will be redirected to <code>https://www.klaviyo.com/oauth/authorize?...</code> with the standard Klaviyo consent screen</li>
+    <li>The consent screen will list the scopes Trainer Launch is requesting:
+      <ul>
+        <li><code>campaigns:read</code>, <code>campaigns:write</code></li>
+        <li><code>lists:read</code>, <code>lists:write</code></li>
+        <li><code>templates:read</code>, <code>templates:write</code></li>
+        <li><code>profiles:read</code>, <code>profiles:write</code></li>
+      </ul>
+    </li>
+    <li>Click <strong>Allow</strong> to authorize the connection</li>
+    <li>Klaviyo will redirect you to <code>https://trainerlaunch.app/api/oauth/klaviyo/callback?code=...&state=...</code></li>
+    <li>Our server validates the signed state token, exchanges the code (with PKCE S256) for an access + refresh token, stores those tokens in an Anthropic Managed Agents vault (encrypted at rest), and records the connection in our database</li>
+    <li>You are redirected to <code>https://trainerlaunch.app/dashboard.html?connect=ok&platform=klaviyo</code></li>
+    <li>A green success banner appears: <strong>"Connected to Klaviyo."</strong></li>
+    <li>The Connections panel updates to show Klaviyo as <strong>Connected</strong>, with a Disconnect button replacing the Connect button</li>
+  </ol>
+
+  <h2>4. Core functionality — what the integration does</h2>
+
+  <p>After connection, the Trainer Launch dashboard becomes able to publish generated content to the coach's Klaviyo account. The Phase 1 publish flow (currently in development at time of OAuth review) will:</p>
+
+  <ul>
+    <li><strong>Create email templates</strong> in the coach's Klaviyo (uses <code>templates:write</code>) — one per generated email in the launch sequence</li>
+    <li><strong>Create or update a list</strong> for the launch audience (uses <code>lists:read</code>, <code>lists:write</code>)</li>
+    <li><strong>Create campaigns</strong> as drafts on the coach's behalf, scheduled to send at the times in the generated launch plan (uses <code>campaigns:read</code>, <code>campaigns:write</code>)</li>
+    <li><strong>Read profiles</strong> for segment validation and basic audience analytics inside Trainer Launch (uses <code>profiles:read</code>)</li>
+    <li><strong>Update profile attributes</strong> for tagging when a coach manually imports their CRM during onboarding (uses <code>profiles:write</code>)</li>
+  </ul>
+
+  <p>Every Klaviyo write action happens only at the coach's explicit instruction (clicking <strong>Go Live</strong> after reviewing the generated content). Trainer Launch never auto-sends or auto-publishes without the coach approving the assets.</p>
+
+  <h2>5. Uninstall / disconnect flow</h2>
+
+  <ol>
+    <li>From the dashboard Connections section, click <strong>Disconnect</strong> next to Klaviyo</li>
+    <li>A browser confirm dialog asks "Disconnect Klaviyo? You can re-connect anytime."</li>
+    <li>On confirm, our server:
+      <ul>
+        <li>Deletes the OAuth credential from the Anthropic Managed Agents vault (revoking the stored token)</li>
+        <li>Deletes the <code>platform_connections</code> row in our database</li>
+      </ul>
+    </li>
+    <li>A green success banner confirms: <strong>"Disconnected from Klaviyo."</strong></li>
+    <li>The Connections panel shows Klaviyo as <strong>Not connected</strong> with a Connect button</li>
+  </ol>
+
+  <p>From the coach's side, they can also revoke at any time directly from their Klaviyo account at <strong>Settings → API Keys → OAuth Apps → Trainer Launch → Revoke</strong>. Our integration handles revoked tokens gracefully: the next API call will fail, the connection status will be updated to <code>expired</code>, and the user will be prompted to re-connect.</p>
+
+  <h2>6. Test scenarios</h2>
+
+  <table>
+    <thead>
+      <tr><th>Scenario</th><th>Expected behavior</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>User denies consent on Klaviyo's consent screen</td>
+        <td>Redirected to <code>/dashboard.html?connect=error&amp;platform=klaviyo&amp;reason=access_denied</code> with a friendly banner: "Klaviyo: You denied the authorization request."</td>
+      </tr>
+      <tr>
+        <td>User re-connects an already-connected Klaviyo account</td>
+        <td>Overwrites the existing connection (unique constraint <code>(user_id, platform)</code>). The old vault credential is replaced with the new one. UI shows "Connected" with the latest connection timestamp.</td>
+      </tr>
+      <tr>
+        <td>State token expired (user takes more than 10 minutes to authorize)</td>
+        <td>Redirected to <code>/dashboard.html?connect=error&amp;platform=klaviyo&amp;reason=state_invalid</code> with banner: "Klaviyo: Session expired during connect. Try again."</td>
+      </tr>
+      <tr>
+        <td>Network error during token exchange</td>
+        <td>Redirected with <code>reason=token_exchange_failed</code>. No partial state is saved (vault credential is rolled back if downstream DB write fails).</td>
+      </tr>
+      <tr>
+        <td>User clicks Connect while not authenticated</td>
+        <td><code>requireAuth()</code> on the dashboard redirects them to <code>/login.html</code> first.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>7. Security and data handling</h2>
+
+  <ul>
+    <li><strong>OAuth state is HMAC-signed</strong> with a server-side secret (SHA-256 HMAC, 10-minute TTL). The state token encodes the user ID and PKCE verifier inside the signed payload — no server-side session storage required.</li>
+    <li><strong>PKCE (RFC 7636, S256 method)</strong> is used for the code exchange.</li>
+    <li><strong>Token storage:</strong> Klaviyo access and refresh tokens are stored in Anthropic's Managed Agents vault (encrypted at rest, auto-refreshed before expiry). They are never persisted in our application database.</li>
+    <li><strong>Database storage:</strong> Only opaque references (vault ID + credential ID) are stored in our <code>platform_connections</code> table — never the actual tokens.</li>
+    <li><strong>RLS:</strong> Every table is protected by Supabase Row-Level Security policies keyed off the authenticated user's ID.</li>
+    <li><strong>Server-side environment:</strong> All token exchanges happen in Netlify Edge Functions; the Klaviyo client secret is read from a Netlify environment variable and never exposed to the browser.</li>
+  </ul>
+
+  <h2>8. Documents</h2>
+
+  <ul>
+    <li>Privacy Policy: <a href="https://trainerlaunch.app/privacy.html">https://trainerlaunch.app/privacy.html</a></li>
+    <li>Data Deletion Policy: <a href="https://trainerlaunch.app/data-deletion.html">https://trainerlaunch.app/data-deletion.html</a></li>
+    <li>Data Retention Policy: <a href="https://trainerlaunch.app/data-retention.html">https://trainerlaunch.app/data-retention.html</a></li>
+    <li>Data Storage Policy: <a href="https://trainerlaunch.app/data-storage.html">https://trainerlaunch.app/data-storage.html</a></li>
+    <li>Security Policy: <a href="https://github.com/kelsey-thryve/online-fitness-marketer/blob/main/SECURITY.md">https://github.com/kelsey-thryve/online-fitness-marketer/blob/main/SECURITY.md</a></li>
+    <li>Terms of Service: <a href="https://trainerlaunch.app/terms.html">https://trainerlaunch.app/terms.html</a></li>
+  </ul>
+
+  <h2>9. Questions or issues during review</h2>
+
+  <p>For anything blocking testing, please contact <a href="mailto:kelsey@trainerlaunch.app">kelsey@trainerlaunch.app</a> — we typically respond within 1 business day. For security-specific questions, <a href="mailto:security@trainerlaunch.app">security@trainerlaunch.app</a>.</p>
+</main>
+
+<footer>
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <div>© 2026 Trainer Launch, a Thryve Growth product · AI-powered launches for fitness creators</div>
+      <div style="display: flex; gap: 20px; font-size: 0.9rem;">
+        <a href="privacy.html" style="color: var(--text-muted);">Privacy</a>
+        <a href="data-deletion.html" style="color: var(--text-muted);">Data deletion</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
