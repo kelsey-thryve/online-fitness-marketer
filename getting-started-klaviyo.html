@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Getting started with Trainer Launch & Klaviyo — Trainer Launch</title>
+<meta name="description" content="Step-by-step guide to generate your first AI-powered launch kit and publish it to Klaviyo in one click." />
+<link rel="icon" href="logo.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="style.css" />
+<style>
+  .legal { padding: 60px 0 80px; }
+  .legal h1 { font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 8px; }
+  .legal .updated { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 40px; }
+  .legal h2 { font-size: 1.5rem; margin-top: 48px; margin-bottom: 14px; }
+  .legal h3 { font-size: 1.1rem; margin-top: 28px; margin-bottom: 10px; color: var(--text); }
+  .legal p, .legal li { color: var(--text-muted); margin-bottom: 14px; }
+  .legal ul, .legal ol { padding-left: 22px; margin-bottom: 14px; }
+  .legal li { margin-bottom: 8px; }
+  .legal strong { color: var(--text); font-weight: 600; }
+  .legal a { color: var(--accent); border-bottom: 1px solid transparent; transition: border-color 0.15s; }
+  .legal a:hover { border-bottom-color: var(--accent); }
+  .legal code { background: var(--bg-input); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; color: var(--text); }
+  .step-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 24px 26px; margin-bottom: 16px;
+    display: flex; gap: 20px; align-items: flex-start;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--accent-gradient); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 1rem;
+  }
+  .step-body h3 { margin-top: 0; margin-bottom: 6px; }
+  .step-body p:last-child { margin-bottom: 0; }
+  .tldr {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 6px; padding: 14px 20px; margin: 18px 0 32px;
+  }
+  .tldr p { margin: 0; color: var(--text); }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      <img src="logo.svg" alt="Trainer Launch" />
+      <span class="brand-text">Trainer Launch</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html#how">How it works</a>
+      <a href="index.html#deliverables">Deliverables</a>
+      <a href="login.html" class="btn btn-secondary btn-sm">Log in</a>
+    </div>
+  </div>
+</nav>
+
+<main class="container-narrow legal">
+  <h1>Get started with Trainer Launch and Klaviyo</h1>
+  <p class="updated">Last updated: June 25, 2026 · ~5 minute read</p>
+
+  <div class="tldr">
+    <p><strong>TL;DR</strong> — Sign up, generate your launch kit, connect Klaviyo, click Go Live. About 30 minutes total, and your full launch sequence lands in your Klaviyo account ready to send.</p>
+  </div>
+
+  <p>Trainer Launch is an AI marketing system built for online fitness coaches. From a short intake about your challenge, audience, and offer, we generate a complete launch kit — sales page, email sequence, ad copy, video scripts, DM flow, and a day-by-day plan. The Klaviyo integration publishes the email side of that kit directly to your Klaviyo account in one click. Here's how to set it up.</p>
+
+  <h2>What you'll need</h2>
+  <ul>
+    <li>A Klaviyo account (any tier — a free trial works for testing)</li>
+    <li>Your challenge details ready: who it's for, the offer, your voice samples, your brand colors and logo</li>
+    <li>About 30 minutes</li>
+  </ul>
+
+  <h2>The four steps</h2>
+
+  <div class="step-card">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h3>Create your Trainer Launch account</h3>
+      <p>Visit <a href="https://trainerlaunch.app">trainerlaunch.app</a> and click <strong>Start your launch</strong>. Sign up with your email — no credit card needed to try. Confirm your email from the link we send, and you'll land on your dashboard automatically.</p>
+    </div>
+  </div>
+
+  <div class="step-card">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h3>Generate your launch kit</h3>
+      <p>From the dashboard, click <strong>+ New launch</strong>. Walk through the intake — about 20 minutes — covering your challenge, audience, offer, voice, and goals. The AI then generates eight personalised deliverables in 3–5 minutes: positioning brief, sales page copy, 5-email sequence, three video scripts, five ad variations, a ManyChat DM flow, a launch-week plan, and ad graphic templates.</p>
+      <p>Review each one, edit anything you want to change. You own the output.</p>
+    </div>
+  </div>
+
+  <div class="step-card">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <h3>Connect Klaviyo</h3>
+      <p>Back on your dashboard, scroll to the <strong>Connections</strong> section and click <strong>Connect</strong> next to Klaviyo. You'll be redirected to Klaviyo's standard authorisation screen showing the scopes Trainer Launch is requesting (campaigns, lists, templates, and profiles — read and write).</p>
+      <p>Click <strong>Allow</strong>. You're redirected back to your Trainer Launch dashboard with a green "Connected to Klaviyo" banner, and the Connections panel updates to show Klaviyo as connected.</p>
+      <p>Your Klaviyo access and refresh tokens are stored encrypted in Anthropic's Managed Agents vault — never in our application database. You can disconnect any time from the same Connections panel.</p>
+    </div>
+  </div>
+
+  <div class="step-card">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <h3>Click "Go Live" to publish to Klaviyo</h3>
+      <p>Open the launch you generated in step 2 and click <strong>Go Live</strong>. Trainer Launch publishes to your Klaviyo account:</p>
+      <ul>
+        <li>Your <strong>5-email pre-launch nurture sequence</strong> as templates in your library</li>
+        <li>A new <strong>audience list</strong> named for the launch</li>
+        <li>Each email scheduled as a <strong>draft campaign</strong> on the date from your generated launch-week plan</li>
+      </ul>
+      <p>Open Klaviyo, review every draft, edit anything you want, and let Klaviyo handle delivery. Your launch is live.</p>
+    </div>
+  </div>
+
+  <h2>Common questions</h2>
+
+  <h3>Will Trainer Launch send emails on my behalf without my approval?</h3>
+  <p>No. Every campaign is created in your Klaviyo account as a <strong>draft</strong>, scheduled but unsent. You review and approve each one in Klaviyo before it ships. Trainer Launch never sends emails automatically.</p>
+
+  <h3>Can I edit the generated emails before they're published?</h3>
+  <p>Yes — inside Trainer Launch (before clicking Go Live) and inside Klaviyo (after, before they send). You own every piece of generated content.</p>
+
+  <h3>What happens if I disconnect Klaviyo later?</h3>
+  <p>Click <strong>Disconnect</strong> on the Connections panel. Trainer Launch immediately revokes its access token from the vault and removes the connection from our database. Existing campaigns, templates, and lists in your Klaviyo account stay where they are — they're yours.</p>
+
+  <h3>What scopes does Trainer Launch request?</h3>
+  <p>The minimum we need to publish your launch: <code>campaigns:read</code>, <code>campaigns:write</code>, <code>lists:read</code>, <code>lists:write</code>, <code>templates:read</code>, <code>templates:write</code>, <code>profiles:read</code>, <code>profiles:write</code>.</p>
+
+  <h3>What about Meta, Google Ads, or Duda?</h3>
+  <p>Other platform integrations are coming soon — they'll appear in your Connections panel when available. Klaviyo is the first integration we're shipping because email is the highest-ROI channel for most fitness coaches.</p>
+
+  <h2>Need help?</h2>
+  <p>Email <a href="mailto:kelsey@trainerlaunch.app">kelsey@trainerlaunch.app</a> for support. For security questions, <a href="mailto:security@trainerlaunch.app">security@trainerlaunch.app</a>.</p>
+
+  <p style="margin-top: 40px;">
+    <a href="login.html" class="btn btn-primary">Start your first launch →</a>
+  </p>
+</main>
+
+<footer>
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <div>© 2026 Trainer Launch, a Thryve Growth product · AI-powered launches for fitness creators</div>
+      <div style="display: flex; gap: 20px; font-size: 0.9rem;">
+        <a href="privacy.html" style="color: var(--text-muted);">Privacy</a>
+        <a href="data-deletion.html" style="color: var(--text-muted);">Data deletion</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
