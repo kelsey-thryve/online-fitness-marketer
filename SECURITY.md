@@ -19,16 +19,18 @@ Please include in your report:
 
 ## Response SLA
 
-We aim to respond as follows:
+Timelines start from the moment a vulnerability is confirmed (not when initially reported). Triage is the determination of severity and reproducibility; fix targets are when a patched release is shipped.
 
-| Severity | Acknowledgement | Triage | Fix target |
+| Severity | Acknowledgement | Triage complete | Fix target |
 |---|---|---|---|
-| Critical | 1 business day | 3 days | 30 days |
-| High | 1 business day | 7 days | 30 days |
-| Medium | 2 business days | 14 days | 90 days |
-| Low | 5 business days | 30 days | Best effort |
+| Critical | 1 business day | 24 hours | **72 hours** |
+| High | 1 business day | 3 days | **7 days** |
+| Medium | 2 business days | 7 days | 30 days |
+| Low | 5 business days | 30 days | Best effort / 90 days |
 
 We'll keep you updated as we investigate and remediate, and we'll let you know before we publish any related security advisory.
+
+Automated dependency vulnerabilities surfaced by Dependabot are evaluated within 1 business day of the alert; upstream patches with no breaking changes are merged the same day.
 
 ## Scope
 
