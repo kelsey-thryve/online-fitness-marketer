@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Information Security Policy — Trainer Launch</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="style.css" />
+<style>
+  .legal { padding: 60px 0 80px; }
+  .legal h1 { font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 8px; }
+  .legal .updated { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 40px; }
+  .legal h2 { font-size: 1.5rem; margin-top: 48px; margin-bottom: 14px; }
+  .legal h3 { font-size: 1.1rem; margin-top: 28px; margin-bottom: 10px; color: var(--text); }
+  .legal p, .legal li { color: var(--text-muted); margin-bottom: 14px; }
+  .legal ul, .legal ol { padding-left: 22px; margin-bottom: 14px; }
+  .legal li { margin-bottom: 8px; }
+  .legal strong { color: var(--text); font-weight: 600; }
+  .legal a { color: var(--accent); border-bottom: 1px solid transparent; transition: border-color 0.15s; }
+  .legal a:hover { border-bottom-color: var(--accent); }
+  .legal code { background: var(--bg-input); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; color: var(--text); }
+  .legal table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  .legal table th, .legal table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 0.95rem; }
+  .legal table th { color: var(--text); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      <img src="logo.svg" alt="Trainer Launch" />
+      <span class="brand-text">Trainer Launch</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html#how">How it works</a>
+      <a href="index.html#deliverables">Deliverables</a>
+      <a href="login.html" class="btn btn-secondary btn-sm">Log in</a>
+    </div>
+  </div>
+</nav>
+
+<main class="container-narrow legal">
+  <h1>Information Security Policy</h1>
+  <p class="updated">Last updated: June 25, 2026 · v1.0</p>
+
+  <p>This document is the canonical Information Security Policy for Trainer Launch, operated by Thryve Growth. It describes how we classify, protect, and govern information across our application, infrastructure, and operations. It consolidates and references our published policies in one place for partner reviews, security questionnaires, and audits.</p>
+
+  <h2>1. Scope and applicability</h2>
+  <p>This policy applies to all systems, data, and personnel involved in operating Trainer Launch, including:</p>
+  <ul>
+    <li>Customer data (account credentials, AI-generated content, connected-platform metadata)</li>
+    <li>OAuth tokens granted by customers for connected platforms (Klaviyo, Meta Ads, Google Ads, Duda)</li>
+    <li>Source code, configuration, and build/deploy pipelines</li>
+    <li>Company devices, accounts, and access credentials used to operate the service</li>
+  </ul>
+
+  <h2>2. Roles and responsibilities</h2>
+  <p>Thryve Growth's leadership is responsible for the overall information security program, including policy approval, risk acceptance, and incident escalation. Every team member is responsible for following this policy and reporting any incident or suspected vulnerability to <a href="mailto:security@trainerlaunch.app">security@trainerlaunch.app</a>.</p>
+
+  <h2>3. Data classification</h2>
+
+  <table>
+    <thead><tr><th>Class</th><th>Examples</th><th>Storage location</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Confidential</strong></td>
+        <td>OAuth access &amp; refresh tokens; user passwords; service-role API keys</td>
+        <td>Anthropic Managed Agents vault (tokens), Supabase Auth (hashed passwords), Netlify env vars (service keys)</td>
+      </tr>
+      <tr>
+        <td><strong>Customer Personal Data</strong></td>
+        <td>Email addresses, names, business names, generated launch content</td>
+        <td>Supabase managed PostgreSQL (US AWS region)</td>
+      </tr>
+      <tr>
+        <td><strong>Internal</strong></td>
+        <td>Application logs, deployment records, telemetry</td>
+        <td>Netlify, Supabase, GitHub</td>
+      </tr>
+      <tr>
+        <td><strong>Public</strong></td>
+        <td>Marketing site, policy documents, GitHub repository contents</td>
+        <td>Netlify CDN, GitHub</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>4. Access control</h2>
+  <ul>
+    <li><strong>Customer accounts</strong> are protected by Supabase Auth (bcrypt-hashed passwords, JWT sessions, email confirmation required) and Row-Level Security policies enforced at the database layer. A customer can only access their own rows in every table — there is no application-layer carve-out.</li>
+    <li><strong>Administrative access</strong> to GitHub, Netlify, Supabase, Anthropic, the registered domain, and our email provider requires multi-factor authentication. Privileged accounts are reviewed quarterly.</li>
+    <li><strong>Customer OAuth tokens</strong> are stored exclusively in Anthropic's Managed Agents vault. They are never stored in our application database. Only opaque references (vault ID + credential ID) are persisted.</li>
+    <li><strong>Service-role secrets</strong> are stored in Netlify environment variables, scoped to server-side edge functions, and never exposed to browser code.</li>
+  </ul>
+
+  <h2>5. Data protection</h2>
+  <ul>
+    <li><strong>Encryption in transit:</strong> TLS 1.2 or higher on all inbound and outbound connections. HSTS is enforced at the TLD level — <code>trainerlaunch.app</code> is on the browser HSTS preload list, so all traffic is HTTPS-only.</li>
+    <li><strong>Encryption at rest:</strong> AES-256 encryption on Supabase (managed PostgreSQL and Storage) and on Anthropic's Managed Agents vault.</li>
+    <li><strong>CSRF protection:</strong> OAuth flows use HMAC-signed state tokens with a 10-minute TTL.</li>
+    <li><strong>PKCE:</strong> OAuth code exchanges use RFC 7636 PKCE (S256 method).</li>
+    <li><strong>Open-redirect protection:</strong> Same-origin path validation on post-auth return URLs.</li>
+  </ul>
+
+  <h2>6. Software development and dependency security</h2>
+  <ul>
+    <li><strong>GitHub CodeQL</strong> static analysis on every commit to <code>main</code>.</li>
+    <li><strong>Dependabot</strong> alerts and updates for vulnerable dependencies. Critical alerts are evaluated within 1 business day.</li>
+    <li><strong>Secret Scanning</strong> blocks credentials from being committed.</li>
+    <li><strong>Code review:</strong> All material changes are reviewed before merging to <code>main</code>.</li>
+    <li><strong>Branch protection:</strong> Direct pushes to <code>main</code> are restricted.</li>
+  </ul>
+
+  <h2>7. Endpoint and device security</h2>
+  <ul>
+    <li>Full-disk encryption (FileVault / BitLocker) on all company devices</li>
+    <li>OS-level firewall and anti-malware enabled by default</li>
+    <li>Automatic OS security updates enabled</li>
+    <li>Screen lock on inactivity (≤ 5 minutes), strong device login + biometric authentication</li>
+    <li>Password manager (1Password) for all credentials — no plaintext credential storage</li>
+    <li>Production database credentials are never cached on developer devices; all access is via short-lived service tokens via the cloud console</li>
+  </ul>
+
+  <h2>8. Vulnerability management and incident response</h2>
+  <p>Our published <a href="https://github.com/kelsey-thryve/online-fitness-marketer/blob/main/SECURITY.md">Vulnerability Disclosure Policy</a> documents:</p>
+  <ul>
+    <li>Reporting channels: GitHub Private Vulnerability Reporting and <a href="mailto:security@trainerlaunch.app">security@trainerlaunch.app</a></li>
+    <li>Acknowledgement, triage, and fix-target SLAs by severity (critical fix within 72 hours; high within 7 days)</li>
+    <li>Scope and out-of-scope items</li>
+    <li>Safe-harbor terms for good-faith research</li>
+  </ul>
+
+  <h2>9. Data retention, storage, and deletion</h2>
+  <p>The following policies are published and binding:</p>
+  <ul>
+    <li><a href="data-retention.html">Data Retention Policy</a></li>
+    <li><a href="data-storage.html">Data Storage Policy</a></li>
+    <li><a href="data-deletion.html">Data Deletion Policy</a></li>
+    <li><a href="privacy.html">Privacy Policy</a></li>
+  </ul>
+  <p>Customer data is deleted within 30 days of account closure or platform disconnection. OAuth credentials are revoked from the vault immediately on disconnect.</p>
+
+  <h2>10. Vendor and third-party risk</h2>
+  <p>We rely on the following providers for critical infrastructure:</p>
+  <ul>
+    <li><strong>Netlify</strong> — application hosting, edge functions, CDN</li>
+    <li><strong>Supabase</strong> — PostgreSQL database, authentication, file storage</li>
+    <li><strong>Anthropic</strong> — AI model API, Managed Agents vault for OAuth credentials</li>
+    <li><strong>Resend</strong> — transactional email delivery</li>
+    <li><strong>GitHub</strong> — source code management, security scanning</li>
+    <li><strong>GoDaddy</strong> — domain registration</li>
+  </ul>
+  <p>Each vendor maintains its own published security program; we restrict our reliance to vendors with documented controls equivalent to or stronger than our own.</p>
+
+  <h2>11. Business continuity</h2>
+  <p>Source code is version-controlled in GitHub and can be redeployed from any commit. Application data is hosted by Supabase, which provides point-in-time recovery and managed backups on paid plans. Static content is served from Netlify's CDN with rollback to any prior deployment available.</p>
+
+  <h2>12. Logging and monitoring</h2>
+  <p>Netlify provides request and function-execution logs. Supabase logs authentication events and database access. GitHub logs repository access and code-scanning alerts. Anthropic logs API usage. We retain operational logs for a minimum of 30 days.</p>
+
+  <h2>13. Compliance and exclusions</h2>
+  <p>We are committed to applicable data protection regulations including GDPR (for EU customers) and CCPA (for California customers). We do not currently hold SOC 2, ISO 27001, or HIPAA attestations. Customer data is not subject to PCI-DSS as we do not process or store payment-card data — payments are handled by upstream PCI-compliant providers.</p>
+
+  <h2>14. Policy review</h2>
+  <p>This policy is reviewed and updated at least annually, or earlier when significant changes occur to our infrastructure, threat model, or regulatory environment. Material changes are version-tagged at the top of this document.</p>
+
+  <h2>15. Contact</h2>
+  <ul>
+    <li>Security questions: <a href="mailto:security@trainerlaunch.app">security@trainerlaunch.app</a></li>
+    <li>Privacy questions: <a href="mailto:privacy@trainerlaunch.app">privacy@trainerlaunch.app</a></li>
+    <li>General contact: <a href="mailto:kelsey@trainerlaunch.app">kelsey@trainerlaunch.app</a></li>
+  </ul>
+</main>
+
+<footer>
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <div>© 2026 Trainer Launch, a Thryve Growth product · AI-powered launches for fitness creators</div>
+      <div style="display: flex; gap: 20px; font-size: 0.9rem;">
+        <a href="privacy.html" style="color: var(--text-muted);">Privacy</a>
+        <a href="data-deletion.html" style="color: var(--text-muted);">Data deletion</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
