@@ -30,7 +30,11 @@ export async function requireAuth() {
 export async function requireGuest() {
   const user = await getUser();
   if (user) {
-    window.location.href = 'dashboard.html';
+    // Honor ?return_to= for flows that send signed-in users back to where they started
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get('return_to');
+    const dest = (raw && raw.startsWith('/') && !raw.startsWith('//')) ? raw : 'dashboard.html';
+    window.location.href = dest;
   }
 }
 

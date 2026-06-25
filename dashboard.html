@@ -62,7 +62,7 @@
     </div>
   </div>
 
-  <div class="dash-challenges" style="margin-top: 24px;">
+  <div id="connections" class="dash-challenges" style="margin-top: 24px; scroll-margin-top: 80px;">
     <div class="dash-challenges-header">
       <h2>Connections</h2>
       <span style="color: var(--text-muted); font-size: 0.9rem;">
@@ -341,8 +341,38 @@
     }
   }
 
+  // Handle deep links from /install-klaviyo.html (or other install pages):
+  // ?install=<platform> auto-triggers the Connect flow once the
+  // Connections panel has rendered. Removes the query param afterward
+  // so refresh doesn't re-trigger.
+  async function handleAutoInstall() {
+    const params = new URLSearchParams(window.location.search);
+    const platform = params.get('install');
+    if (!platform || !PLATFORM_META[platform]) return;
+    if (!PLATFORM_META[platform].enabled) return;
+
+    const banner = document.getElementById('connect-banner');
+    banner.innerHTML = `<div class="alert alert-info">Authorising ${escapeHtml(PLATFORM_META[platform].label)}…</div>`;
+
+    // Clean the URL so a refresh doesn't re-trigger
+    window.history.replaceState({}, '', '/dashboard.html#connections');
+
+    // Wait for the Connections panel to render, then click the matching
+    // Connect button to use the same code path as a normal click
+    const start = Date.now();
+    while (Date.now() - start < 3000) {
+      const btn = document.querySelector(
+        `#connection-list button[data-action="connect"][data-platform="${platform}"]`
+      );
+      if (btn) { btn.click(); return; }
+      await new Promise(r => setTimeout(r, 100));
+    }
+    banner.innerHTML = `<div class="alert alert-error">Couldn’t find the ${escapeHtml(PLATFORM_META[platform].label)} connect button. Try again.</div>`;
+  }
+
   showConnectBanner();
-  loadConnections();
+  await loadConnections();
+  await handleAutoInstall();
 </script>
 
 </body>
