@@ -38,7 +38,15 @@ export async function signUp(email, password, metadata = {}) {
   return await supabase.auth.signUp({
     email,
     password,
-    options: { data: metadata }
+    options: {
+      data: metadata,
+      // After the user clicks the confirmation link in their email,
+      // Supabase redirects them here with the session in the URL hash.
+      // The Supabase client (detectSessionInUrl is on by default) picks
+      // up the session automatically, so requireAuth() on dashboard.html
+      // sees them as logged-in and renders the dashboard.
+      emailRedirectTo: `${window.location.origin}/dashboard.html`
+    }
   });
 }
 
