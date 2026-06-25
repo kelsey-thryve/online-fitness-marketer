@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Terms Of Service — Trainer Launch</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="style.css" />
+<style>
+  .legal { padding: 60px 0 80px; }
+  .legal h1 { font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 8px; }
+  .legal .updated { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 40px; }
+  .legal h2 { font-size: 1.6rem; margin-top: 48px; margin-bottom: 16px; }
+  .legal h3 { font-size: 1.1rem; margin-top: 28px; margin-bottom: 10px; color: var(--text); }
+  .legal p, .legal li { color: var(--text-muted); margin-bottom: 14px; }
+  .legal ul { padding-left: 22px; margin-bottom: 14px; }
+  .legal li { margin-bottom: 8px; }
+  .legal strong { color: var(--text); font-weight: 600; }
+  .legal a { color: var(--accent); border-bottom: 1px solid transparent; transition: border-color 0.15s; }
+  .legal a:hover { border-bottom-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      <img src="logo.svg" alt="Trainer Launch" />
+      <span class="brand-text">Trainer Launch</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html#how">How it works</a>
+      <a href="index.html#deliverables">Deliverables</a>
+      <a href="index.html#pricing">Pricing</a>
+      <a href="login.html" class="btn btn-secondary btn-sm">Log in</a>
+    </div>
+  </div>
+</nav>
+
+<main class="container-narrow legal">
+ <main class="container-narrow legal">
+  <h1>Terms of Service</h1>
+  <p class="updated">Last updated: June 25, 2026</p>
+
+  <p>Trainer Launch is a product of Thryve Growth ("we", "us", "our"). Trainer Launch provides an AI-powered marketing platform for fitness coaches and creators. These Terms of Service govern your access to and use of Trainer Launch, including our website, applications, and related services.</p>
+
+  <p>By accessing or using Trainer Launch, you agree to be bound by these Terms. If you do not agree to these Terms, you must not use the platform.</p>
+
+  <h2>Eligibility</h2>
+
+  <p>You must be at least 18 years old to use Trainer Launch. By using the platform, you represent that you meet this requirement and have the authority to enter into these Terms.</p>
+
+  <h2>Accounts</h2>
+
+  <p>You are responsible for maintaining the security of your account and all activity that occurs under it.</p>
+
+  <p>You agree to:</p>
+
+  <ul>
+    <li>Provide accurate and current account information</li>
+    <li>Keep your login credentials confidential</li>
+    <li>Notify us promptly of any unauthorized use of your account</li>
+    <li>Accept responsibility for all activity occurring under your account</li>
+  </ul>
+
+  <p>We may suspend or terminate accounts that violate these Terms.</p>
+
+  <h2>Subscriptions and payments</h2>
+
+  <p>Certain features of Trainer Launch may require payment.</p>
+
+  <p>By subscribing, you agree that:</p>
+
+  <ul>
+    <li>Fees will be charged according to the subscription plan you select</li>
+    <li>Subscriptions automatically renew unless cancelled before the next billing cycle</li>
+    <li>You authorize us and our payment providers to charge your selected payment method</li>
+    <li>Pricing may change with reasonable notice</li>
+  </ul>
+
+  <p>Payments are processed through third-party payment providers. We do not store full payment card details.</p>
+
+  <p>Unless required by law, subscription fees are non-refundable.</p>
+
+  <h2>Acceptable use</h2>
+
+  <p>You agree not to:</p>
+
+  <ul>
+    <li>Violate any applicable law or regulation</li>
+    <li>Attempt to gain unauthorized access to Trainer Launch systems or data</li>
+    <li>Interfere with the operation of the platform</li>
+    <li>Upload malicious software or harmful code</li>
+    <li>Use the platform to infringe the rights of others</li>
+    <li>Reverse engineer, copy, or exploit Trainer Launch without authorization</li>
+  </ul>
+
+  <h2>AI-generated content</h2>
+
+  <p>Trainer Launch uses artificial intelligence to generate marketing assets, campaign recommendations, advertising copy, creative briefs, and related content.</p>
+
+  <p>You are responsible for reviewing and approving all content before publication or use.</p>
+
+  <p>We do not guarantee that AI-generated content will be accurate, complete, compliant with platform policies, legally compliant, or suitable for your specific objectives.</p>
+
+  <h2>Connected platform integrations</h2>
+
+  <p>Trainer Launch integrates with third-party services including Meta, Google Ads, Klaviyo, and Duda.</p>
+
+  <p>By connecting these services, you authorize Trainer Launch to access and interact with those accounts solely for the actions you initiate through the platform.</p>
+
+  <p>Your use of third-party services remains subject to their own terms, privacy policies, and platform rules.</p>
+
+  <h2>User content</h2>
+
+  <p>You retain ownership of the content, assets, and information you upload to Trainer Launch.</p>
+
+  <p>You grant us a limited license to store, process, display, and transmit that content solely for the purpose of operating and providing the platform.</p>
+
+  <p>We do not use your uploaded content to train AI models.</p>
+
+  <h2>Intellectual property</h2>
+
+  <p>Trainer Launch, including its software, branding, designs, platform functionality, and underlying technology, is owned by Thryve Growth and protected by applicable intellectual property laws.</p>
+
+  <p>Except as expressly permitted, you may not reproduce, distribute, modify, reverse engineer, or create derivative works based on Trainer Launch.</p>
+
+  <h2>Disclaimer</h2>
+
+  <p>Trainer Launch is provided on an "as is" and "as available" basis.</p>
+
+  <p>We do not guarantee that the platform will be uninterrupted, secure, error-free, or available at all times.</p>
+
+  <p>To the maximum extent permitted by law, we disclaim all warranties, express or implied.</p>
+
+  <h2>Limitation of liability</h2>
+
+  <p>To the maximum extent permitted by law, Trainer Launch and Thryve Growth will not be liable for any indirect, incidental, special, consequential, or punitive damages.</p>
+
+  <p>This includes loss of profits, revenue, business opportunities, goodwill, or data arising from your use of the platform.</p>
+
+  <p>Our total liability for any claim relating to Trainer Launch will not exceed the amount paid by you to Trainer Launch during the twelve months preceding the claim.</p>
+
+  <h2>Privacy</h2>
+
+  <p>Your use of Trainer Launch is also governed by our Privacy Policy.</p>
+
+  <p>Please review our <a href="privacy.html">Privacy Policy</a> to understand how we collect, use, and protect your information.</p>
+
+  <h2>Termination</h2>
+
+  <p>We may suspend or terminate access to Trainer Launch if you violate these Terms, engage in unlawful conduct, or misuse the platform.</p>
+
+  <p>Upon termination, your right to use Trainer Launch immediately ceases.</p>
+
+  <h2>Changes to these Terms</h2>
+
+  <p>We may update these Terms from time to time.</p>
+
+  <p>Material changes may be communicated via email or an in-app notice.</p>
+
+  <p>The "Last updated" date at the top reflects the most recent revision.</p>
+
+  <h2>Governing law</h2>
+
+  <p>These Terms are governed by the laws of the United States.</p>
+
+  <p>Any dispute arising from these Terms shall be subject to the courts having jurisdiction over Thryve Growth's principal place of business.</p>
+
+  <h2>Contact</h2>
+
+  <p>Questions about these Terms? Email <a href="mailto:support@trainerlaunch.app">support@trainerlaunch.app</a>.</p>
+
+  <p>Trainer Launch is a product of Thryve Growth.</p>
+</main>
+
+</main>
+
+<footer>
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <div>© 2026 Trainer Launch, a Thryve Growth product · AI-powered launches for fitness creators</div>
+      <div style="display: flex; gap: 20px; font-size: 0.9rem;">
+        <a href="privacy.html" style="color: var(--text-muted);">Privacy</a>
+        <a href="data-deletion.html" style="color: var(--text-muted);">Data deletion</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
