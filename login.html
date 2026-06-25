@@ -51,7 +51,7 @@
       </div>
       <div class="field">
         <label>Email</label>
-        <input type="email" name="email" required autocomplete="email" value="kelsey@thryvegrowth.com">
+        <input type="email" name="email" required autocomplete="email">
       </div>
       <div class="field">
         <label id="password-label">Password</label>
@@ -71,8 +71,21 @@
 <script type="module">
   import { signIn, signUp, requireGuest } from './auth.js';
 
-  // Redirect already-logged-in users to dashboard
+  // Redirect already-logged-in users to dashboard (or return_to if specified)
   requireGuest();
+
+  // Honor ?return_to= so flows that send users to log in (e.g.
+  // /install-klaviyo.html) can resume after auth. Only accept same-origin
+  // paths to prevent open-redirect attacks.
+  function getReturnTo() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get('return_to');
+    if (!raw) return 'dashboard.html';
+    // Must start with `/` and not `//` (which would be protocol-relative)
+    if (raw.startsWith('/') && !raw.startsWith('//')) return raw;
+    return 'dashboard.html';
+  }
+  const RETURN_TO = getReturnTo();
 
   let mode = 'signin';
 
@@ -123,7 +136,7 @@
       if (mode === 'signin') {
         const { error } = await signIn(email, password);
         if (error) throw error;
-        window.location.href = 'dashboard.html';
+        window.location.href = RETURN_TO;
       } else {
         const firstName    = formEl.firstName.value.trim();
         const lastName     = formEl.lastName.value.trim();
@@ -143,7 +156,7 @@
           showAlert('success', 'Account created. Check your email to confirm, then log in.');
           window.switchMode('signin');
         } else {
-          window.location.href = 'dashboard.html';
+          window.location.href = RETURN_TO;
         }
       }
     } catch (err) {
