@@ -337,4 +337,4 @@ export default async (request) => {
   return json({ error: `Unknown action: ${action}` }, 404);
 };
 
-export const config = { path: '/api/oauth/*' };
+export const config = { path: '/api/oauth/:platform/:action' };
