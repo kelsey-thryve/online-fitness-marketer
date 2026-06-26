@@ -7,4 +7,4 @@
 
 [[edge_functions]]
   function = "oauth"
-  path = "/api/oauth/*"
+  path = "/api/oauth/:platform/:action"
