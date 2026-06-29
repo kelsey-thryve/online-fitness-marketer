@@ -34,15 +34,15 @@
      KLAVIYO_CLIENT_SECRET        — added at Task #5
    ============================================================ */
 
-import { getUserFromRequest } from './lib/server-auth.js';
-import { signState, verifyState, generatePkceVerifier, pkceChallenge } from './lib/oauth-state.js';
-import { getPlatform } from './lib/oauth-platforms.js';
+import { getUserFromRequest } from '../../lib/server-auth.js';
+import { signState, verifyState, generatePkceVerifier, pkceChallenge } from '../../lib/oauth-state.js';
+import { getPlatform } from '../../lib/oauth-platforms.js';
 import {
   createVault,
   addMcpOAuthCredential,
   deleteCredential
-} from './lib/anthropic-vault.js';
-import { upsert, select, deleteRows } from './lib/supabase-admin.js';
+} from '../../lib/anthropic-vault.js';
+import { upsert, select, deleteRows } from '../../lib/supabase-admin.js';
 
 // ---------- helpers ----------
 
@@ -337,4 +337,10 @@ export default async (request) => {
   return json({ error: `Unknown action: ${action}` }, 404);
 };
 
-export const config = { path: '/api/oauth/:platform/:action' };
+export const config = {
+  path: [
+    '/api/oauth/:platform/start',
+    '/api/oauth/:platform/callback',
+    '/api/oauth/:platform/disconnect'
+  ]
+};
