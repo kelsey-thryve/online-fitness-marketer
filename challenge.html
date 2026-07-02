@@ -798,8 +798,15 @@ Realistic for a solo coach. Clean Markdown.`
       })
     });
     if (!res.ok) {
-      let detail = '';
-      try { detail = JSON.stringify(await res.json()); } catch (_) { detail = await res.text(); }
+      // Read the body ONCE as text — trying res.json() then res.text() on the
+      // same Response throws "body stream already read" because res.json()
+      // consumes the stream during its parse attempt.
+      const rawText = await res.text();
+      let detail = rawText;
+      try {
+        const parsed = JSON.parse(rawText);
+        detail = parsed?.error?.message || parsed?.error || JSON.stringify(parsed);
+      } catch (_) { /* rawText is fine */ }
       throw new Error(`Claude proxy ${res.status}: ${detail}`);
     }
     const data = await res.json();
