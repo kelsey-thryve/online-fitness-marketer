@@ -7,6 +7,57 @@
 <link rel="icon" href="logo.svg" type="image/svg+xml" />
 <link rel="stylesheet" href="style.css" />
 <script src="config.js"></script>
+<style>
+  .color-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .color-row { grid-template-columns: 1fr; } }
+  .color-picker {
+    display: flex; gap: 10px; align-items: center;
+    background: var(--bg-input); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 10px;
+  }
+  .color-picker input[type="color"] {
+    width: 44px; height: 44px; border: none; border-radius: 8px;
+    background: transparent; cursor: pointer; padding: 0;
+  }
+  .color-picker input[type="text"] {
+    background: transparent; border: none; flex: 1; color: var(--text);
+    font-family: monospace; font-size: 0.95rem;
+  }
+
+  .upload-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 880px) { .upload-row { grid-template-columns: 1fr; } }
+  .upload-tile {
+    background: var(--bg-input); border: 1px dashed var(--border-strong);
+    border-radius: var(--radius); padding: 18px;
+    text-align: center; cursor: pointer;
+    transition: all 0.15s; position: relative; min-height: 180px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .upload-tile:hover { border-color: var(--accent); background: var(--bg-card); }
+  .upload-tile input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .upload-tile-title { font-weight: 600; font-size: 0.95rem; }
+  .upload-tile-sub { font-size: 0.82rem; color: var(--text-dim); margin-top: 4px; }
+  .upload-tile.has-image { border-style: solid; padding: 0; overflow: hidden; }
+  .upload-tile .preview {
+    width: 100%; height: 180px; object-fit: cover; border-radius: var(--radius);
+  }
+  .upload-tile .replace-btn {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(0,0,0,0.7); color: white; border: none;
+    padding: 4px 10px; border-radius: 6px; font-size: 0.75rem;
+    cursor: pointer; font-family: inherit;
+  }
+  .upload-tile.uploading::after {
+    content: 'Uploading…'; position: absolute; inset: 0;
+    background: rgba(10,10,15,0.85); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; font-weight: 500;
+  }
+
+  .profile-section { margin-bottom: 32px; }
+  .profile-section h2 { font-size: 1.2rem; margin-bottom: 4px; }
+  .profile-section p.section-desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 18px; }
+</style>
 </head>
 <body>
 
@@ -26,35 +77,112 @@
 <div class="container-narrow" style="padding-top: 32px; padding-bottom: 60px;">
   <h1 style="margin-bottom: 6px;">Your profile</h1>
   <p style="color: var(--text-muted); margin-bottom: 28px;">
-    These details personalise your dashboard and get used across your launches.
+    Fill this in once — it pre-fills the "About you", "Voice &amp; positioning" and "Brand visuals" steps
+    on every new launch so you don't have to retype them.
   </p>
 
   <div id="alert"></div>
 
-  <div class="card">
-    <form id="profile-form" onsubmit="return submitProfile(event)">
+  <form id="profile-form" onsubmit="return submitProfile(event)">
+
+    <div class="card profile-section">
+      <h2>About you</h2>
+      <p class="section-desc">The coach behind the launches.</p>
       <div class="field-row">
-        <div class="field">
-          <label>First name</label>
-          <input type="text" name="firstName" autocomplete="given-name" required>
-        </div>
-        <div class="field">
-          <label>Last name</label>
-          <input type="text" name="lastName" autocomplete="family-name" required>
-        </div>
+        <div class="field"><label>Your full name</label><input type="text" name="fullName" autocomplete="name"></div>
+        <div class="field"><label>Business / brand name</label><input type="text" name="businessName" autocomplete="organization"></div>
       </div>
-      <div class="field">
-        <label>Business name</label>
-        <input type="text" name="businessName" autocomplete="organization" required>
-      </div>
+      <div class="field"><label>Social handle</label><input type="text" name="handle" placeholder="e.g. @yourbrand"></div>
+      <div class="field"><label>Your fitness niche</label><input type="text" name="niche" placeholder="e.g. strength for women over 40"></div>
+      <div class="field"><label>Your credentials / qualifications</label><textarea name="credentials" placeholder="Certs, education, athletic background"></textarea></div>
+      <div class="field"><label>Strongest client testimonial / case study</label><textarea name="topTestimonial" placeholder="Name, transformation, key numbers"></textarea></div>
       <div class="field">
         <label>Email</label>
         <input type="email" name="email" disabled>
         <span class="field-hint">Contact support to change your email address.</span>
       </div>
-      <button type="submit" class="btn btn-primary" id="submit-btn">Save profile</button>
-    </form>
-  </div>
+    </div>
+
+    <div class="card profile-section">
+      <h2>Voice &amp; positioning</h2>
+      <p class="section-desc">How you sound — and what makes this different.</p>
+      <div class="field"><label>Tone words</label>
+        <div class="checkbox-group" data-name="tone">
+          <label class="check-pill"><input type="checkbox" value="Direct"> Direct</label>
+          <label class="check-pill"><input type="checkbox" value="Warm"> Warm</label>
+          <label class="check-pill"><input type="checkbox" value="Bold"> Bold</label>
+          <label class="check-pill"><input type="checkbox" value="Playful"> Playful</label>
+          <label class="check-pill"><input type="checkbox" value="Technical"> Technical</label>
+          <label class="check-pill"><input type="checkbox" value="No-BS"> No-BS</label>
+          <label class="check-pill"><input type="checkbox" value="Empathetic"> Empathetic</label>
+          <label class="check-pill"><input type="checkbox" value="Funny"> Funny</label>
+          <label class="check-pill"><input type="checkbox" value="Contrarian"> Contrarian</label>
+          <label class="check-pill"><input type="checkbox" value="Inspirational"> Inspirational</label>
+        </div>
+      </div>
+      <div class="field"><label>Words / vibes to AVOID</label><textarea name="avoidWords"></textarea></div>
+      <div class="field"><label>Unique mechanism</label><textarea name="uniqueMechanism" placeholder="The method, system or angle that's yours"></textarea></div>
+      <div class="field"><label>Contrarian belief</label><textarea name="contrarianBelief" placeholder="What does the industry get wrong?"></textarea></div>
+    </div>
+
+    <div class="card profile-section">
+      <h2>Brand visuals</h2>
+      <p class="section-desc">Colours + images used to render ad graphics for every launch.</p>
+      <div class="field">
+        <label>Brand colours</label>
+        <div class="color-row">
+          <div class="color-picker">
+            <input type="color" data-color-target="brandPrimary" value="#6366f1">
+            <input type="text" data-color-text="brandPrimary" value="#6366f1">
+          </div>
+          <div class="color-picker">
+            <input type="color" data-color-target="brandSecondary" value="#10b981">
+            <input type="text" data-color-text="brandSecondary" value="#10b981">
+          </div>
+          <div class="color-picker">
+            <input type="color" data-color-target="brandAccent" value="#ffffff">
+            <input type="text" data-color-text="brandAccent" value="#ffffff">
+          </div>
+        </div>
+        <span class="field-hint">Primary · Secondary · Accent.</span>
+        <input type="hidden" name="brandPrimary"   value="#6366f1">
+        <input type="hidden" name="brandSecondary" value="#10b981">
+        <input type="hidden" name="brandAccent"    value="#ffffff">
+      </div>
+      <div class="field">
+        <label>Brand images</label>
+        <div class="upload-row">
+          <label class="upload-tile" data-slot="logoUrl">
+            <input type="file" accept="image/*">
+            <div class="upload-tile-title">Logo / brand mark</div>
+            <div class="upload-tile-sub">PNG · ideally transparent</div>
+          </label>
+          <label class="upload-tile" data-slot="photoUrl">
+            <input type="file" accept="image/*">
+            <div class="upload-tile-title">Photo of you</div>
+            <div class="upload-tile-sub">JPG / PNG · square works best</div>
+          </label>
+          <label class="upload-tile" data-slot="appUrl">
+            <input type="file" accept="image/*">
+            <div class="upload-tile-title">App / product screenshot</div>
+            <div class="upload-tile-sub">PNG · portrait works best</div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card profile-section">
+      <h2>Additional brand details</h2>
+      <p class="section-desc">Optional — not used in the wizard yet, but saved for reference.</p>
+      <div class="field"><label>Brand history / story</label><textarea name="history"></textarea></div>
+      <div class="field"><label>What sets you apart</label><textarea name="whatSetsApart"></textarea></div>
+      <div class="field"><label>Brand messaging</label><textarea name="brandMessaging"></textarea></div>
+      <div class="field"><label>Website URL</label><input type="url" name="websiteUrl" placeholder="https://"></div>
+    </div>
+
+    <div id="form-alert"></div>
+    <button type="submit" class="btn btn-primary" id="submit-btn">Save profile</button>
+  </form>
 </div>
 
 <footer>
@@ -64,7 +192,7 @@
 </footer>
 
 <script type="module">
-  import { requireAuth, signOut, supabase } from './auth.js';
+  import { requireAuth, signOut, supabase, uploadImage } from './auth.js';
 
   const user = await requireAuth();
   if (!user) { /* redirected */ }
@@ -72,17 +200,119 @@
   window.doSignOut = signOut;
 
   const form = document.getElementById('profile-form');
-  const meta = user.user_metadata || {};
-  form.firstName.value = meta.first_name || '';
-  form.lastName.value = meta.last_name || '';
-  form.businessName.value = meta.business_name || '';
   form.email.value = user.email || '';
 
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
   function showAlert(type, msg) {
     document.getElementById('alert').innerHTML = `<div class="alert alert-${type}">${escapeHtml(msg)}</div>`;
   }
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  /* ---------- Brand colour pickers ---------- */
+  document.querySelectorAll('input[type="color"][data-color-target]').forEach(picker => {
+    const targetName = picker.dataset.colorTarget;
+    const textInput = document.querySelector(`input[data-color-text="${targetName}"]`);
+    const hidden = document.querySelector(`input[name="${targetName}"]`);
+    picker.addEventListener('input', () => {
+      textInput.value = picker.value;
+      hidden.value = picker.value;
+    });
+    textInput.addEventListener('change', () => {
+      if (/^#[0-9a-fA-F]{6}$/.test(textInput.value)) {
+        picker.value = textInput.value;
+        hidden.value = textInput.value;
+      }
+    });
+  });
+
+  /* ---------- Tone pills ---------- */
+  document.addEventListener('change', e => {
+    if (e.target.matches('.check-pill input[type="checkbox"]')) {
+      e.target.parentElement.classList.toggle('checked', e.target.checked);
+    }
+  });
+
+  /* ---------- Image upload tiles ---------- */
+  const uploadedUrls = {}; // slot -> url, kept outside the form since file inputs can't hold URLs
+
+  function renderUploadTile(tile, slot, url) {
+    tile.classList.remove('uploading');
+    tile.classList.add('has-image');
+    tile.innerHTML = `<img class="preview" src="${url}" alt=""><button type="button" class="replace-btn">Replace</button><input type="file" accept="image/*">`;
+    const newInput = tile.querySelector('input[type="file"]');
+    const replaceBtn = tile.querySelector('.replace-btn');
+    replaceBtn.addEventListener('click', (ev) => { ev.preventDefault(); newInput.click(); });
+    wireUploadInput(tile, slot, newInput);
+  }
+
+  function wireUploadInput(tile, slot, fileInput) {
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      tile.classList.add('uploading');
+      try {
+        const url = await uploadImage(file, user.id);
+        uploadedUrls[slot] = url;
+        renderUploadTile(tile, slot, url);
+      } catch (err) {
+        tile.classList.remove('uploading');
+        showAlert('error', 'Upload failed: ' + err.message);
+      }
+    });
+  }
+
+  document.querySelectorAll('.upload-tile').forEach(tile => {
+    const slot = tile.dataset.slot;
+    wireUploadInput(tile, slot, tile.querySelector('input[type="file"]'));
+  });
+
+  /* ---------- Load existing profile ---------- */
+  const { data: profile, error: loadError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (loadError) {
+    showAlert('error', `Couldn't load your profile: ${loadError.message}`);
+  } else if (profile) {
+    form.fullName.value = profile.full_name || '';
+    form.businessName.value = profile.business_name || '';
+    form.handle.value = profile.handle || '';
+    form.niche.value = profile.niche || '';
+    form.credentials.value = profile.credentials || '';
+    form.topTestimonial.value = (Array.isArray(profile.testimonials) && profile.testimonials[0]) || '';
+    form.avoidWords.value = profile.avoid_words || '';
+    form.uniqueMechanism.value = profile.unique_mechanism || '';
+    form.contrarianBelief.value = profile.contrarian_belief || '';
+    form.history.value = profile.history || '';
+    form.whatSetsApart.value = profile.what_sets_apart || '';
+    form.brandMessaging.value = profile.brand_messaging || '';
+    form.websiteUrl.value = profile.website_url || '';
+
+    (profile.tone || []).forEach(t => {
+      const cb = document.querySelector(`.checkbox-group[data-name="tone"] input[value="${CSS.escape(t)}"]`);
+      if (cb) { cb.checked = true; cb.parentElement.classList.add('checked'); }
+    });
+
+    ['brandPrimary', 'brandSecondary', 'brandAccent'].forEach(name => {
+      const col = { brandPrimary: profile.brand_primary, brandSecondary: profile.brand_secondary, brandAccent: profile.brand_accent }[name];
+      if (!col) return;
+      const picker = document.querySelector(`input[type="color"][data-color-target="${name}"]`);
+      const textInput = document.querySelector(`input[data-color-text="${name}"]`);
+      const hidden = document.querySelector(`input[name="${name}"]`);
+      if (picker) picker.value = col;
+      if (textInput) textInput.value = col;
+      if (hidden) hidden.value = col;
+    });
+
+    [['logoUrl', profile.logo_url], ['photoUrl', profile.photo_url], ['appUrl', profile.app_url]].forEach(([slot, url]) => {
+      if (!url) return;
+      uploadedUrls[slot] = url;
+      const tile = document.querySelector(`.upload-tile[data-slot="${slot}"]`);
+      if (tile) renderUploadTile(tile, slot, url);
+    });
   }
 
   window.submitProfile = async function(e) {
@@ -92,20 +322,46 @@
     const originalText = btn.textContent;
     btn.textContent = 'Saving…';
 
-    const firstName = form.firstName.value.trim();
-    const lastName = form.lastName.value.trim();
-    const businessName = form.businessName.value.trim();
+    const tone = Array.from(document.querySelectorAll('.checkbox-group[data-name="tone"] input:checked')).map(el => el.value);
+    const topTestimonial = form.topTestimonial.value.trim();
+
+    const payload = {
+      user_id: user.id,
+      full_name: form.fullName.value.trim() || null,
+      business_name: form.businessName.value.trim() || null,
+      handle: form.handle.value.trim() || null,
+      niche: form.niche.value.trim() || null,
+      credentials: form.credentials.value.trim() || null,
+      testimonials: topTestimonial ? [topTestimonial] : [],
+      tone,
+      avoid_words: form.avoidWords.value.trim() || null,
+      unique_mechanism: form.uniqueMechanism.value.trim() || null,
+      contrarian_belief: form.contrarianBelief.value.trim() || null,
+      history: form.history.value.trim() || null,
+      what_sets_apart: form.whatSetsApart.value.trim() || null,
+      brand_messaging: form.brandMessaging.value.trim() || null,
+      website_url: form.websiteUrl.value.trim() || null,
+      brand_primary: form.brandPrimary.value || null,
+      brand_secondary: form.brandSecondary.value || null,
+      brand_accent: form.brandAccent.value || null,
+      logo_url: uploadedUrls.logoUrl || null,
+      photo_url: uploadedUrls.photoUrl || null,
+      app_url: uploadedUrls.appUrl || null
+    };
 
     try {
-      const { error } = await supabase.auth.updateUser({
+      const { error } = await supabase.from('profiles').upsert(payload, { onConflict: 'user_id' });
+      if (error) throw error;
+
+      // Keep auth user_metadata (used for the dashboard greeting) in sync.
+      await supabase.auth.updateUser({
         data: {
-          first_name: firstName,
-          last_name: lastName,
-          business_name: businessName,
-          full_name: `${firstName} ${lastName}`
+          first_name: (form.fullName.value.trim().split(' ')[0]) || undefined,
+          business_name: form.businessName.value.trim() || undefined,
+          full_name: form.fullName.value.trim() || undefined
         }
       });
-      if (error) throw error;
+
       showAlert('success', 'Profile saved.');
     } catch (err) {
       showAlert('error', err.message || 'Something went wrong.');
