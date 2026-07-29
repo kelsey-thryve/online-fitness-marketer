@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Your profile — Trainer Launch</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="style.css" />
+<script src="config.js"></script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="dashboard.html" class="nav-brand">
+      <img src="logo.svg" alt="Trainer Launch" />
+      <span class="brand-text">Trainer Launch</span>
+    </a>
+    <div class="nav-links">
+      <a href="dashboard.html">← Dashboard</a>
+      <a href="#" onclick="doSignOut(); return false;" class="btn btn-ghost btn-sm">Sign out</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container-narrow" style="padding-top: 32px; padding-bottom: 60px;">
+  <h1 style="margin-bottom: 6px;">Your profile</h1>
+  <p style="color: var(--text-muted); margin-bottom: 28px;">
+    These details personalise your dashboard and get used across your launches.
+  </p>
+
+  <div id="alert"></div>
+
+  <div class="card">
+    <form id="profile-form" onsubmit="return submitProfile(event)">
+      <div class="field-row">
+        <div class="field">
+          <label>First name</label>
+          <input type="text" name="firstName" autocomplete="given-name" required>
+        </div>
+        <div class="field">
+          <label>Last name</label>
+          <input type="text" name="lastName" autocomplete="family-name" required>
+        </div>
+      </div>
+      <div class="field">
+        <label>Business name</label>
+        <input type="text" name="businessName" autocomplete="organization" required>
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" name="email" disabled>
+        <span class="field-hint">Contact support to change your email address.</span>
+      </div>
+      <button type="submit" class="btn btn-primary" id="submit-btn">Save profile</button>
+    </form>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    © 2026 Trainer Launch
+  </div>
+</footer>
+
+<script type="module">
+  import { requireAuth, signOut, supabase } from './auth.js';
+
+  const user = await requireAuth();
+  if (!user) { /* redirected */ }
+
+  window.doSignOut = signOut;
+
+  const form = document.getElementById('profile-form');
+  const meta = user.user_metadata || {};
+  form.firstName.value = meta.first_name || '';
+  form.lastName.value = meta.last_name || '';
+  form.businessName.value = meta.business_name || '';
+  form.email.value = user.email || '';
+
+  function showAlert(type, msg) {
+    document.getElementById('alert').innerHTML = `<div class="alert alert-${type}">${escapeHtml(msg)}</div>`;
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  window.submitProfile = async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = 'Saving…';
+
+    const firstName = form.firstName.value.trim();
+    const lastName = form.lastName.value.trim();
+    const businessName = form.businessName.value.trim();
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          first_name: firstName,
+          last_name: lastName,
+          business_name: businessName,
+          full_name: `${firstName} ${lastName}`
+        }
+      });
+      if (error) throw error;
+      showAlert('success', 'Profile saved.');
+    } catch (err) {
+      showAlert('error', err.message || 'Something went wrong.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
+    return false;
+  };
+</script>
+
+</body>
+</html>
