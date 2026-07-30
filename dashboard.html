@@ -110,7 +110,7 @@
   }
 
   // Stats
-  const challenges = listChallenges(user.id);
+  const challenges = await listChallenges(user.id);
   document.getElementById('stat-total').textContent = challenges.length;
   const now = new Date();
   const thisMonth = challenges.filter(c => {
