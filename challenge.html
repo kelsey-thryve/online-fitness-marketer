@@ -24,52 +24,6 @@
   .tier-card li { padding: 4px 0; padding-left: 16px; position: relative; }
   .tier-card li::before { content: '·'; position: absolute; left: 4px; color: var(--accent); }
 
-  .color-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-  @media (max-width: 640px) { .color-row { grid-template-columns: 1fr; } }
-  .color-picker {
-    display: flex; gap: 10px; align-items: center;
-    background: var(--bg-input); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 10px;
-  }
-  .color-picker input[type="color"] {
-    width: 44px; height: 44px; border: none; border-radius: 8px;
-    background: transparent; cursor: pointer; padding: 0;
-  }
-  .color-picker input[type="text"] {
-    background: transparent; border: none; flex: 1; color: var(--text);
-    font-family: monospace; font-size: 0.95rem;
-  }
-
-  .upload-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-  @media (max-width: 880px) { .upload-row { grid-template-columns: 1fr; } }
-  .upload-tile {
-    background: var(--bg-input); border: 1px dashed var(--border-strong);
-    border-radius: var(--radius); padding: 18px;
-    text-align: center; cursor: pointer;
-    transition: all 0.15s; position: relative; min-height: 180px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-  }
-  .upload-tile:hover { border-color: var(--accent); background: var(--bg-card); }
-  .upload-tile input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .upload-tile-title { font-weight: 600; font-size: 0.95rem; }
-  .upload-tile-sub { font-size: 0.82rem; color: var(--text-dim); margin-top: 4px; }
-  .upload-tile.has-image { border-style: solid; padding: 0; overflow: hidden; }
-  .upload-tile .preview {
-    width: 100%; height: 180px; object-fit: cover; border-radius: var(--radius);
-  }
-  .upload-tile .replace-btn {
-    position: absolute; top: 8px; right: 8px;
-    background: rgba(0,0,0,0.7); color: white; border: none;
-    padding: 4px 10px; border-radius: 6px; font-size: 0.75rem;
-    cursor: pointer; font-family: inherit;
-  }
-  .upload-tile.uploading::after {
-    content: 'Uploading…'; position: absolute; inset: 0;
-    background: rgba(10,10,15,0.85); color: white;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.9rem; font-weight: 500;
-  }
-
   .graphics-grid {
     display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px;
     padding: 24px;
@@ -111,6 +65,7 @@
   <div class="container-narrow">
     <div class="form-wrap">
       <div class="form-progress" id="form-progress"></div>
+      <div id="profile-banner"></div>
 
       <!-- Step 1: Campaign tier (NEW) -->
       <div class="step-panel" data-step="1">
@@ -192,23 +147,8 @@
         <div class="field"><label>What have they already tried (that didn't work)? *</label><textarea name="alreadyTried" required></textarea></div>
       </div>
 
-      <!-- Step 4: About you -->
+      <!-- Step 4: Offer -->
       <div class="step-panel" data-step="4">
-        <div class="step-label" data-step-label></div>
-        <h2 class="step-title">About you</h2>
-        <p class="step-desc">A bit about the coach behind the launch.</p>
-        <div class="field-row">
-          <div class="field"><label>Your full name *</label><input type="text" name="fullName" required></div>
-          <div class="field"><label>Business / brand name *</label><input type="text" name="businessName" required></div>
-        </div>
-        <div class="field"><label>Social handle *</label><input type="text" name="handle" placeholder="e.g. @yourbrand" required></div>
-        <div class="field"><label>Your fitness niche *</label><input type="text" name="niche" placeholder="e.g. strength for women over 40" required></div>
-        <div class="field"><label>Your credentials / qualifications *</label><textarea name="credentials" placeholder="Certs, education, athletic background" required></textarea></div>
-        <div class="field"><label>Strongest client testimonial / case study *</label><textarea name="topTestimonial" placeholder="Name, transformation, key numbers" required></textarea></div>
-      </div>
-
-      <!-- Step 5: Offer -->
-      <div class="step-panel" data-step="5">
         <div class="step-label" data-step-label></div>
         <h2 class="step-title">The offer</h2>
         <p class="step-desc">Price, structure, and what's inside.</p>
@@ -222,83 +162,8 @@
         <div class="field"><label>Biggest objection you expect *</label><textarea name="biggestObjection" placeholder='e.g. "I don\'t have time"' required></textarea></div>
       </div>
 
-      <!-- Step 6: Voice & positioning -->
-      <div class="step-panel" data-step="6">
-        <div class="step-label" data-step-label></div>
-        <h2 class="step-title">Voice & positioning</h2>
-        <p class="step-desc">How you sound — and what makes this different.</p>
-        <div class="field"><label>Tone words *</label>
-          <div class="checkbox-group" data-name="tone">
-            <label class="check-pill"><input type="checkbox" value="Direct"> Direct</label>
-            <label class="check-pill"><input type="checkbox" value="Warm"> Warm</label>
-            <label class="check-pill"><input type="checkbox" value="Bold"> Bold</label>
-            <label class="check-pill"><input type="checkbox" value="Playful"> Playful</label>
-            <label class="check-pill"><input type="checkbox" value="Technical"> Technical</label>
-            <label class="check-pill"><input type="checkbox" value="No-BS"> No-BS</label>
-            <label class="check-pill"><input type="checkbox" value="Empathetic"> Empathetic</label>
-            <label class="check-pill"><input type="checkbox" value="Funny"> Funny</label>
-            <label class="check-pill"><input type="checkbox" value="Contrarian"> Contrarian</label>
-            <label class="check-pill"><input type="checkbox" value="Inspirational"> Inspirational</label>
-          </div>
-        </div>
-        <div class="field"><label>Words / vibes to AVOID *</label><textarea name="avoidWords" required></textarea></div>
-        <div class="field"><label>Unique mechanism *</label><textarea name="uniqueMechanism" placeholder="The method, system or angle that's yours" required></textarea></div>
-        <div class="field"><label>Contrarian belief *</label><textarea name="contrarianBelief" placeholder="What does the industry get wrong?" required></textarea></div>
-      </div>
-
-      <!-- Step 7: Brand visuals (NEW) -->
-      <div class="step-panel" data-step="7">
-        <div class="step-label" data-step-label></div>
-        <h2 class="step-title">Brand visuals</h2>
-        <p class="step-desc">Colours + images for your ad graphics. Used to render 4 ready-to-share creatives at the end.</p>
-
-        <div class="field">
-          <label>Brand colours *</label>
-          <div class="color-row">
-            <div class="color-picker">
-              <input type="color" data-color-target="brandPrimary" value="#6366f1">
-              <input type="text" data-color-text="brandPrimary" value="#6366f1">
-            </div>
-            <div class="color-picker">
-              <input type="color" data-color-target="brandSecondary" value="#10b981">
-              <input type="text" data-color-text="brandSecondary" value="#10b981">
-            </div>
-            <div class="color-picker">
-              <input type="color" data-color-target="brandAccent" value="#ffffff">
-              <input type="text" data-color-text="brandAccent" value="#ffffff">
-            </div>
-          </div>
-          <span class="field-hint">Primary · Secondary · Accent. Used in every generated graphic.</span>
-          <input type="hidden" name="brandPrimary"   value="#6366f1">
-          <input type="hidden" name="brandSecondary" value="#10b981">
-          <input type="hidden" name="brandAccent"    value="#ffffff">
-        </div>
-
-        <div class="field">
-          <label>Upload brand images (optional)</label>
-          <div class="upload-row">
-            <label class="upload-tile" data-slot="logoUrl">
-              <input type="file" accept="image/*">
-              <div class="upload-tile-title">Logo / brand mark</div>
-              <div class="upload-tile-sub">PNG · ideally transparent</div>
-            </label>
-            <label class="upload-tile" data-slot="photoUrl">
-              <input type="file" accept="image/*">
-              <div class="upload-tile-title">Photo of you</div>
-              <div class="upload-tile-sub">JPG / PNG · square works best</div>
-            </label>
-            <label class="upload-tile" data-slot="appUrl">
-              <input type="file" accept="image/*">
-              <div class="upload-tile-title">App / product screenshot</div>
-              <div class="upload-tile-sub">PNG · portrait works best</div>
-            </label>
-          </div>
-          <span class="field-hint">All optional — but adding a photo dramatically improves the announcement graphic.</span>
-        </div>
-      </div>
-
-      <!-- Step 8: Marketing -->
-      <div class="step-panel" data-step="8">
+      <!-- Step 5: Marketing -->
+      <div class="step-panel" data-step="5">
         <div class="step-label" data-step-label></div>
         <h2 class="step-title">Marketing strategy</h2>
         <p class="step-desc">How you'll promote this launch.</p>
@@ -393,14 +258,14 @@
 </footer>
 
 <script type="module">
-  import { requireAuth, saveChallenge, getChallenge, getAccessToken, uploadImage, supabase } from './auth.js';
+  import { requireAuth, saveChallenge, getChallenge, getAccessToken, supabase } from './auth.js';
   import { TEMPLATES, renderGraphic, downloadCanvas, canvasToBlob } from './graphics.js';
 
   const user = await requireAuth();
   if (!user) { /* redirected */ }
 
   const cfg = window.TRAINER_LAUNCH_CONFIG || {};
-  const TOTAL_STEPS = 8;
+  const TOTAL_STEPS = 5;
 
   const DELIVERABLES = [
     { id: 'positioning', title: 'Positioning Brief',         icon: '01' },
@@ -436,7 +301,7 @@
     }
   } else {
     showSection('form-section'); showStep(1);
-    prefillFromProfile();
+    checkProfileComplete();
   }
 
   /* ================================================================
@@ -481,20 +346,9 @@
     panel.querySelectorAll('input[required], textarea[required], select[required]').forEach(el => {
       if (!el.value.trim()) missing.push(el);
     });
-    let needsCheck = false;
-    panel.querySelectorAll('label').forEach(l => {
-      if (l.textContent.trim().endsWith('*') && l.nextElementSibling?.classList?.contains('checkbox-group')) {
-        const any = l.nextElementSibling.querySelectorAll('input[type="checkbox"]:checked').length > 0;
-        if (!any) needsCheck = true;
-      }
-    });
     if (missing.length) {
       missing[0].focus();
       showFormAlert('Please fill in the required fields before continuing.');
-      return false;
-    }
-    if (needsCheck) {
-      showFormAlert('Please select at least one option.');
       return false;
     }
     clearFormAlert();
@@ -504,17 +358,7 @@
   function captureStep() {
     const panel = getCurrentPanel();
     panel.querySelectorAll('input, textarea, select').forEach(el => {
-      if (el.type === 'checkbox') {
-        const groupEl = el.closest('.checkbox-group');
-        if (!groupEl) return;
-        const groupName = groupEl.dataset.name;
-        if (!formData[groupName]) formData[groupName] = [];
-        el.parentElement.classList.toggle('checked', el.checked);
-        if (el.checked && !formData[groupName].includes(el.value)) formData[groupName].push(el.value);
-        else if (!el.checked) formData[groupName] = formData[groupName].filter(v => v !== el.value);
-      } else if (el.name) {
-        formData[el.name] = el.value.trim();
-      }
+      if (el.name) formData[el.name] = el.value.trim();
     });
   }
 
@@ -532,12 +376,6 @@
   function showFormAlert(msg) { document.getElementById('form-alert').innerHTML = `<div class="alert alert-error">${msg}</div>`; }
   function clearFormAlert() { document.getElementById('form-alert').innerHTML = ''; }
 
-  document.addEventListener('change', e => {
-    if (e.target.matches('.check-pill input[type="checkbox"]')) {
-      e.target.parentElement.classList.toggle('checked', e.target.checked);
-    }
-  });
-
   /* ---------- Tier card selection ---------- */
   document.querySelectorAll('.tier-card').forEach(card => {
     card.addEventListener('click', () => {
@@ -548,137 +386,49 @@
     });
   });
 
-  /* ---------- Brand colour pickers ---------- */
-  document.querySelectorAll('input[type="color"][data-color-target]').forEach(picker => {
-    const targetName = picker.dataset.colorTarget;
-    const textInput = document.querySelector(`input[data-color-text="${targetName}"]`);
-    const hidden = document.querySelector(`input[name="${targetName}"]`);
-    picker.addEventListener('input', () => {
-      textInput.value = picker.value;
-      hidden.value = picker.value;
-    });
-    textInput.addEventListener('change', () => {
-      if (/^#[0-9a-fA-F]{6}$/.test(textInput.value)) {
-        picker.value = textInput.value;
-        hidden.value = textInput.value;
-      }
-    });
-  });
+  /* ---------- Profile: "About you", "Voice & positioning" and "Brand
+     visuals" are no longer collected in the wizard — they live on the
+     coach's profile (profile.html) and are pulled in fresh here. ---------- */
 
-  /* ---------- Image upload tiles ---------- */
-  function setUploadTilePreview(tile, slot, url) {
-    tile.classList.remove('uploading');
-    tile.classList.add('has-image');
-    tile.innerHTML = `<img class="preview" src="${url}" alt=""><button type="button" class="replace-btn">Replace</button><input type="file" accept="image/*">`;
-    const newInput = tile.querySelector('input[type="file"]');
-    const replaceBtn = tile.querySelector('.replace-btn');
-    replaceBtn.addEventListener('click', (ev) => { ev.preventDefault(); newInput.click(); });
-    wireUploadInput(tile, slot, newInput);
+  function applyProfileToFormData(profile) {
+    formData.fullName        = profile?.full_name || '';
+    formData.businessName    = profile?.business_name || '';
+    formData.handle          = profile?.handle || '';
+    formData.niche           = profile?.niche || '';
+    formData.credentials     = profile?.credentials || '';
+    formData.topTestimonial  = (Array.isArray(profile?.testimonials) && profile.testimonials[0]) || '';
+    formData.tone            = profile?.tone || [];
+    formData.avoidWords      = profile?.avoid_words || '';
+    formData.uniqueMechanism = profile?.unique_mechanism || '';
+    formData.contrarianBelief = profile?.contrarian_belief || '';
+    formData.brandPrimary    = profile?.brand_primary || '#6366f1';
+    formData.brandSecondary  = profile?.brand_secondary || '#10b981';
+    formData.brandAccent     = profile?.brand_accent || '#ffffff';
+    formData.logoUrl         = profile?.logo_url || '';
+    formData.photoUrl        = profile?.photo_url || '';
+    formData.appUrl          = profile?.app_url || '';
   }
 
-  function wireUploadInput(tile, slot, fileInput) {
-    fileInput.addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      tile.classList.add('uploading');
-      try {
-        const url = await uploadImage(file, user.id);
-        formData[slot] = url;
-        setUploadTilePreview(tile, slot, url);
-      } catch (err) {
-        tile.classList.remove('uploading');
-        alert('Upload failed: ' + err.message);
-      }
-    });
-  }
-
-  document.querySelectorAll('.upload-tile').forEach(tile => {
-    wireUploadInput(tile, tile.dataset.slot, tile.querySelector('input[type="file"]'));
-  });
-
-  /* ---------- Prefill from saved profile (new launches only) ---------- */
-  async function prefillFromProfile() {
+  async function fetchProfile() {
     const { data: profile } = await supabase
       .from('profiles')
       .select('*')
       .eq('user_id', user.id)
       .maybeSingle();
-    if (!profile) return;
-
-    const setVal = (name, val) => {
-      const el = document.querySelector(`[name="${name}"]`);
-      if (el && val) { el.value = val; formData[name] = val; }
-    };
-
-    setVal('fullName', profile.full_name);
-    setVal('businessName', profile.business_name);
-    setVal('handle', profile.handle);
-    setVal('niche', profile.niche);
-    setVal('credentials', profile.credentials);
-    setVal('topTestimonial', Array.isArray(profile.testimonials) ? profile.testimonials[0] : '');
-    setVal('avoidWords', profile.avoid_words);
-    setVal('uniqueMechanism', profile.unique_mechanism);
-    setVal('contrarianBelief', profile.contrarian_belief);
-
-    if (Array.isArray(profile.tone) && profile.tone.length) {
-      formData.tone = [];
-      profile.tone.forEach(t => {
-        const cb = document.querySelector(`.checkbox-group[data-name="tone"] input[value="${CSS.escape(t)}"]`);
-        if (cb) {
-          cb.checked = true;
-          cb.parentElement.classList.add('checked');
-          formData.tone.push(t);
-        }
-      });
-    }
-
-    [['brandPrimary', profile.brand_primary], ['brandSecondary', profile.brand_secondary], ['brandAccent', profile.brand_accent]]
-      .forEach(([name, col]) => {
-        if (!col) return;
-        const picker = document.querySelector(`input[type="color"][data-color-target="${name}"]`);
-        const textInput = document.querySelector(`input[data-color-text="${name}"]`);
-        const hidden = document.querySelector(`input[name="${name}"]`);
-        if (picker) picker.value = col;
-        if (textInput) textInput.value = col;
-        if (hidden) hidden.value = col;
-        formData[name] = col;
-      });
-
-    [['logoUrl', profile.logo_url], ['photoUrl', profile.photo_url], ['appUrl', profile.app_url]]
-      .forEach(([slot, url]) => {
-        if (!url) return;
-        formData[slot] = url;
-        const tile = document.querySelector(`.upload-tile[data-slot="${slot}"]`);
-        if (tile) setUploadTilePreview(tile, slot, url);
-      });
+    return profile;
   }
 
-  async function syncProfileFromForm() {
-    const f = formData;
-    const payload = {
-      user_id: user.id,
-      full_name: f.fullName || null,
-      business_name: f.businessName || null,
-      handle: f.handle || null,
-      niche: f.niche || null,
-      credentials: f.credentials || null,
-      testimonials: f.topTestimonial ? [f.topTestimonial] : [],
-      tone: f.tone || [],
-      avoid_words: f.avoidWords || null,
-      unique_mechanism: f.uniqueMechanism || null,
-      contrarian_belief: f.contrarianBelief || null,
-      brand_primary: f.brandPrimary || null,
-      brand_secondary: f.brandSecondary || null,
-      brand_accent: f.brandAccent || null,
-      logo_url: f.logoUrl || null,
-      photo_url: f.photoUrl || null,
-      app_url: f.appUrl || null
-    };
-    try {
-      await supabase.from('profiles').upsert(payload, { onConflict: 'user_id' });
-    } catch (err) {
-      console.warn('Profile sync failed:', err.message);
-    }
+  // Warn up front if there's no profile yet, so the coach can fill it in
+  // before generating a kit with blank name/niche/tone/brand fields.
+  async function checkProfileComplete() {
+    const profile = await fetchProfile();
+    const complete = !!(profile && profile.full_name && profile.business_name);
+    const banner = document.getElementById('profile-banner');
+    banner.innerHTML = complete ? '' : `
+      <div class="alert alert-info" style="margin-bottom: 24px;">
+        Heads up — your <a href="profile.html">profile</a> isn't filled in yet.
+        Your name, niche, credentials, tone and brand colours/images are pulled from there automatically for every launch.
+      </div>`;
   }
 
   /* ================================================================
@@ -967,6 +717,9 @@ Realistic for a solo coach. Clean Markdown.`
   async function submitForm() {
     showSection('generating-section');
     renderTasks();
+    // Pull the coach's profile fresh at the moment of creation, so the
+    // kit always reflects their latest name/niche/voice/brand details.
+    applyProfileToFormData(await fetchProfile());
     const intake = buildIntakeBlock();
     const errEl = document.getElementById('gen-error');
     errEl.classList.add('hidden');
@@ -996,7 +749,6 @@ Realistic for a solo coach. Clean Markdown.`
         graphics: generatedGraphics
       };
       saveChallenge(user.id, record);
-      await syncProfileFromForm();
 
       document.getElementById('result-title').firstChild.textContent = (formData.challengeName || 'Your launch kit') + ' ';
       updateTierBadge(formData.campaignTier);
