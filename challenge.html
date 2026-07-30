@@ -636,6 +636,7 @@ Realistic for a solo coach. Clean Markdown.`
       body: JSON.stringify({
         model: cfg.MODEL || 'claude-opus-4-5',
         max_tokens: maxTokens,
+        stream: true,
         messages: [{ role: 'user', content: prompt }]
       })
     });
@@ -651,8 +652,42 @@ Realistic for a solo coach. Clean Markdown.`
       } catch (_) { /* rawText is fine */ }
       throw new Error(`Claude proxy ${res.status}: ${detail}`);
     }
-    const data = await res.json();
-    return (data.content || []).map(b => b.text || '').join('').trim();
+
+    // Streaming keeps each request under Netlify's edge-function execution
+    // limit — a non-streaming call can otherwise sit blocked waiting for a
+    // long completion (e.g. the 8000-token sales page / launch plan) and
+    // time out before Anthropic ever finishes. Reassemble the SSE deltas
+    // into the final text.
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let text = '';
+    let streamError = null;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const lines = buffer.split('\n');
+      buffer = lines.pop(); // keep the trailing partial line for the next chunk
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const dataStr = line.slice(6).trim();
+        if (!dataStr) continue;
+        let evt;
+        try { evt = JSON.parse(dataStr); } catch { continue; }
+        if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
+          text += evt.delta.text;
+        } else if (evt.type === 'error') {
+          streamError = evt.error?.message || 'Stream error';
+        }
+      }
+    }
+
+    if (streamError) throw new Error(`Claude proxy stream error: ${streamError}`);
+    return text.trim();
   }
 
   /* ================================================================
