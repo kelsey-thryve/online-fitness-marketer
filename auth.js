@@ -79,29 +79,69 @@ export async function uploadImage(file, userId) {
   return data.publicUrl;
 }
 
-/* --- Challenge storage (localStorage, scoped by user id) --- */
+/* --- Launch storage (Supabase `launches` table) ---
+   Was localStorage — blew past the browser's ~5-10MB per-origin quota
+   once a few launches' generated graphics were embedded as base64. */
 
-function challengesKey(userId) {
-  return `trainerlaunch:challenges:${userId}`;
+function rowToChallenge(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    tier: row.kit?.tier,
+    createdAt: row.created_at,
+    deliverableCount: row.kit?.deliverableCount,
+    intake: row.intake || {},
+    docs: row.kit?.docs || {},
+    graphics: row.kit?.graphics || {}
+  };
 }
 
-export function listChallenges(userId) {
-  try {
-    return JSON.parse(localStorage.getItem(challengesKey(userId)) || '[]');
-  } catch { return []; }
+export async function listChallenges(userId) {
+  const { data, error } = await supabase
+    .from('launches')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+  if (error) {
+    console.error('listChallenges failed:', error.message);
+    return [];
+  }
+  return (data || []).map(rowToChallenge);
 }
 
-export function saveChallenge(userId, challenge) {
-  const list = listChallenges(userId);
-  list.unshift(challenge);
-  localStorage.setItem(challengesKey(userId), JSON.stringify(list));
+export async function saveChallenge(userId, challenge) {
+  const { data, error } = await supabase
+    .from('launches')
+    .insert({
+      user_id: userId,
+      name: challenge.name || 'Untitled launch',
+      status: 'ready',
+      intake: challenge.intake || {},
+      kit: {
+        tier: challenge.tier,
+        deliverableCount: challenge.deliverableCount,
+        docs: challenge.docs || {},
+        graphics: challenge.graphics || {}
+      }
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return rowToChallenge(data);
 }
 
-export function getChallenge(userId, id) {
-  return listChallenges(userId).find(c => c.id === id);
+export async function getChallenge(userId, id) {
+  const { data, error } = await supabase
+    .from('launches')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('id', id)
+    .maybeSingle();
+  if (error || !data) return null;
+  return rowToChallenge(data);
 }
 
-export function deleteChallenge(userId, id) {
-  const list = listChallenges(userId).filter(c => c.id !== id);
-  localStorage.setItem(challengesKey(userId), JSON.stringify(list));
+export async function deleteChallenge(userId, id) {
+  const { error } = await supabase.from('launches').delete().eq('user_id', userId).eq('id', id);
+  if (error) throw error;
 }

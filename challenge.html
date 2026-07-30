@@ -258,8 +258,8 @@
 </footer>
 
 <script type="module">
-  import { requireAuth, saveChallenge, getChallenge, getAccessToken, supabase } from './auth.js';
-  import { TEMPLATES, renderGraphic, downloadCanvas, canvasToBlob } from './graphics.js';
+  import { requireAuth, saveChallenge, getChallenge, getAccessToken, uploadImage, supabase } from './auth.js';
+  import { TEMPLATES, renderGraphic, canvasToBlob } from './graphics.js';
 
   const user = await requireAuth();
   if (!user) { /* redirected */ }
@@ -280,14 +280,14 @@
   let currentStep = 1;
   const formData = {};
   const generatedDocs = {};
-  const generatedGraphics = {};  // { templateId: dataURL }
+  const generatedGraphics = {};  // { templateId: Supabase Storage URL }
 
   /* ----- existing record? ----- */
   const params = new URLSearchParams(window.location.search);
   const existingId = params.get('id');
 
   if (existingId) {
-    const record = getChallenge(user.id, existingId);
+    const record = await getChallenge(user.id, existingId);
     if (record) {
       Object.assign(formData, record.intake || {});
       Object.assign(generatedDocs, record.docs || {});
@@ -745,7 +745,9 @@ Realistic for a solo coach. Clean Markdown.`
     };
     for (const tpl of TEMPLATES) {
       const canvas = await renderGraphic(tpl.id, graphicsCtx);
-      generatedGraphics[tpl.id] = canvas.toDataURL('image/png');
+      const blob = await canvasToBlob(canvas);
+      const file = new File([blob], `${tpl.id}.png`, { type: 'image/png' });
+      generatedGraphics[tpl.id] = await uploadImage(file, user.id);
     }
   }
 
@@ -773,17 +775,14 @@ Realistic for a solo coach. Clean Markdown.`
       await generateAllGraphics();
       markTask('graphics', 'done');
 
-      const record = {
-        id: 'launch_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+      const record = await saveChallenge(user.id, {
         name: formData.challengeName,
         tier: formData.campaignTier,
-        createdAt: new Date().toISOString(),
         deliverableCount: DELIVERABLES.length,
         intake: formData,
         docs: generatedDocs,
         graphics: generatedGraphics
-      };
-      saveChallenge(user.id, record);
+      });
 
       document.getElementById('result-title').firstChild.textContent = (formData.challengeName || 'Your launch kit') + ' ';
       updateTierBadge(formData.campaignTier);
@@ -900,14 +899,24 @@ Realistic for a solo coach. Clean Markdown.`
     });
   }
 
-  function downloadSingleGraphic(tplId) {
-    const dataUrl = generatedGraphics[tplId];
-    if (!dataUrl) return;
-    const a = document.createElement('a');
-    const safe = (formData.challengeName || 'launch').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
-    a.href = dataUrl;
-    a.download = `${safe}-${tplId}.png`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  async function downloadSingleGraphic(tplId) {
+    const url = generatedGraphics[tplId];
+    if (!url) return;
+    // The graphic now lives at a Supabase Storage URL (a different origin),
+    // so the `download` attribute alone won't force a download — fetch it
+    // to a blob first and download that instead.
+    try {
+      const blob = await (await fetch(url)).blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const safe = (formData.challengeName || 'launch').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+      a.href = objectUrl;
+      a.download = `${safe}-${tplId}.png`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(objectUrl);
+    } catch (err) {
+      alert('Download failed: ' + err.message);
+    }
   }
 
   function downloadAllGraphics() {
