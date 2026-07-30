@@ -393,7 +393,7 @@
 </footer>
 
 <script type="module">
-  import { requireAuth, saveChallenge, getChallenge, getAccessToken, uploadImage } from './auth.js';
+  import { requireAuth, saveChallenge, getChallenge, getAccessToken, uploadImage, supabase } from './auth.js';
   import { TEMPLATES, renderGraphic, downloadCanvas, canvasToBlob } from './graphics.js';
 
   const user = await requireAuth();
@@ -436,6 +436,7 @@
     }
   } else {
     showSection('form-section'); showStep(1);
+    prefillFromProfile();
   }
 
   /* ================================================================
@@ -565,9 +566,17 @@
   });
 
   /* ---------- Image upload tiles ---------- */
-  document.querySelectorAll('.upload-tile').forEach(tile => {
-    const slot = tile.dataset.slot;
-    const fileInput = tile.querySelector('input[type="file"]');
+  function setUploadTilePreview(tile, slot, url) {
+    tile.classList.remove('uploading');
+    tile.classList.add('has-image');
+    tile.innerHTML = `<img class="preview" src="${url}" alt=""><button type="button" class="replace-btn">Replace</button><input type="file" accept="image/*">`;
+    const newInput = tile.querySelector('input[type="file"]');
+    const replaceBtn = tile.querySelector('.replace-btn');
+    replaceBtn.addEventListener('click', (ev) => { ev.preventDefault(); newInput.click(); });
+    wireUploadInput(tile, slot, newInput);
+  }
+
+  function wireUploadInput(tile, slot, fileInput) {
     fileInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -575,19 +584,102 @@
       try {
         const url = await uploadImage(file, user.id);
         formData[slot] = url;
-        tile.classList.remove('uploading');
-        tile.classList.add('has-image');
-        tile.innerHTML = `<img class="preview" src="${url}" alt=""><button type="button" class="replace-btn">Replace</button><input type="file" accept="image/*">`;
-        const newInput = tile.querySelector('input[type="file"]');
-        const replaceBtn = tile.querySelector('.replace-btn');
-        replaceBtn.addEventListener('click', (ev) => { ev.preventDefault(); newInput.click(); });
-        newInput.addEventListener('change', (ev) => fileInput.dispatchEvent(new Event('change')));
+        setUploadTilePreview(tile, slot, url);
       } catch (err) {
         tile.classList.remove('uploading');
         alert('Upload failed: ' + err.message);
       }
     });
+  }
+
+  document.querySelectorAll('.upload-tile').forEach(tile => {
+    wireUploadInput(tile, tile.dataset.slot, tile.querySelector('input[type="file"]'));
   });
+
+  /* ---------- Prefill from saved profile (new launches only) ---------- */
+  async function prefillFromProfile() {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (!profile) return;
+
+    const setVal = (name, val) => {
+      const el = document.querySelector(`[name="${name}"]`);
+      if (el && val) { el.value = val; formData[name] = val; }
+    };
+
+    setVal('fullName', profile.full_name);
+    setVal('businessName', profile.business_name);
+    setVal('handle', profile.handle);
+    setVal('niche', profile.niche);
+    setVal('credentials', profile.credentials);
+    setVal('topTestimonial', Array.isArray(profile.testimonials) ? profile.testimonials[0] : '');
+    setVal('avoidWords', profile.avoid_words);
+    setVal('uniqueMechanism', profile.unique_mechanism);
+    setVal('contrarianBelief', profile.contrarian_belief);
+
+    if (Array.isArray(profile.tone) && profile.tone.length) {
+      formData.tone = [];
+      profile.tone.forEach(t => {
+        const cb = document.querySelector(`.checkbox-group[data-name="tone"] input[value="${CSS.escape(t)}"]`);
+        if (cb) {
+          cb.checked = true;
+          cb.parentElement.classList.add('checked');
+          formData.tone.push(t);
+        }
+      });
+    }
+
+    [['brandPrimary', profile.brand_primary], ['brandSecondary', profile.brand_secondary], ['brandAccent', profile.brand_accent]]
+      .forEach(([name, col]) => {
+        if (!col) return;
+        const picker = document.querySelector(`input[type="color"][data-color-target="${name}"]`);
+        const textInput = document.querySelector(`input[data-color-text="${name}"]`);
+        const hidden = document.querySelector(`input[name="${name}"]`);
+        if (picker) picker.value = col;
+        if (textInput) textInput.value = col;
+        if (hidden) hidden.value = col;
+        formData[name] = col;
+      });
+
+    [['logoUrl', profile.logo_url], ['photoUrl', profile.photo_url], ['appUrl', profile.app_url]]
+      .forEach(([slot, url]) => {
+        if (!url) return;
+        formData[slot] = url;
+        const tile = document.querySelector(`.upload-tile[data-slot="${slot}"]`);
+        if (tile) setUploadTilePreview(tile, slot, url);
+      });
+  }
+
+  async function syncProfileFromForm() {
+    const f = formData;
+    const payload = {
+      user_id: user.id,
+      full_name: f.fullName || null,
+      business_name: f.businessName || null,
+      handle: f.handle || null,
+      niche: f.niche || null,
+      credentials: f.credentials || null,
+      testimonials: f.topTestimonial ? [f.topTestimonial] : [],
+      tone: f.tone || [],
+      avoid_words: f.avoidWords || null,
+      unique_mechanism: f.uniqueMechanism || null,
+      contrarian_belief: f.contrarianBelief || null,
+      brand_primary: f.brandPrimary || null,
+      brand_secondary: f.brandSecondary || null,
+      brand_accent: f.brandAccent || null,
+      logo_url: f.logoUrl || null,
+      photo_url: f.photoUrl || null,
+      app_url: f.appUrl || null
+    };
+    try {
+      await supabase.from('profiles').upsert(payload, { onConflict: 'user_id' });
+    } catch (err) {
+      console.warn('Profile sync failed:', err.message);
+    }
+  }
 
   /* ================================================================
      INTAKE & PROMPTS
@@ -904,6 +996,7 @@ Realistic for a solo coach. Clean Markdown.`
         graphics: generatedGraphics
       };
       saveChallenge(user.id, record);
+      await syncProfileFromForm();
 
       document.getElementById('result-title').firstChild.textContent = (formData.challengeName || 'Your launch kit') + ' ';
       updateTierBadge(formData.campaignTier);
