@@ -260,6 +260,8 @@
 <script type="module">
   import { requireAuth, saveChallenge, getChallenge, getAccessToken, uploadImage, supabase } from './auth.js';
   import { TEMPLATES, renderGraphic, canvasToBlob } from './graphics.js';
+  import { marked } from 'https://cdn.jsdelivr.net/npm/marked/+esm';
+  import DOMPurify from 'https://cdn.jsdelivr.net/npm/dompurify/+esm';
 
   const user = await requireAuth();
   if (!user) { /* redirected */ }
@@ -269,7 +271,7 @@
 
   const DELIVERABLES = [
     { id: 'positioning', title: 'Positioning Brief',         icon: '01' },
-    { id: 'sales',       title: 'Sales Page Copy',           icon: '02' },
+    { id: 'sales',       title: 'Website Page',              icon: '02' },
     { id: 'emails',      title: 'Pre-launch Email Sequence', icon: '03' },
     { id: 'scripts',     title: '3 Video Scripts',           icon: '04' },
     { id: 'ads',         title: '5 Ad Variations',           icon: '05' },
@@ -544,16 +546,18 @@ One-page strategic brief for this challenge. Sections:
 Tier note: tune positioning toward ${tier === 'high' ? 'premium / exclusive cohort framing' : 'accessible / open-enrollment framing'}.
 Clean Markdown.`,
 
-      sales: `# YOUR TASK: SALES PAGE COPY
+      sales: `# YOUR TASK: WEBSITE SALES PAGE
 
-Long-form direct-response sales page. Sections in order:
-1. Pre-headline · 2. Headline (BIG promise) · 3. Sub-headline · 4. CTA #1 (button copy for ${ctaPrimary})
-5. Opening "you" section · 6. The problem · 7. The mechanism · 8. Offer stack
-9. Social proof (case study from the testimonial) · 10. About the coach
-11. Objection-handling block · 12. FAQ (5) · 13. Final CTA + scarcity
+Output a COMPLETE, SELF-CONTAINED HTML document for a long-form direct-response sales page. This gets rendered directly as a live webpage, not read as copy — so it must be real, valid HTML, not Markdown.
 
-${tier === 'high' ? 'Frame the CTA as booking a call / submitting an application; never reveal a checkout link.' : 'Frame the CTA as buying / enrolling now; show the price clearly and reduce friction.'}
-Use the coach's voice. Avoid the listed words. Paste-ready Markdown.`,
+Requirements:
+- Full HTML5 document: <!DOCTYPE html>, <html>, <head> (with <title> and a single <style> block holding ALL the CSS inline), <body>. No external stylesheets, fonts, or scripts, and no JavaScript.
+- Responsive, modern styling using the coach's brand colours — Primary ${formData.brandPrimary || '#6366f1'}, Secondary ${formData.brandSecondary || '#10b981'}, Accent ${formData.brandAccent || '#ffffff'} — for headings, buttons, and accents. System font stack only.
+- Sections in order: pre-headline · headline (BIG promise) · sub-headline · CTA button (${ctaPrimary}) · opening "you" section · the problem · the mechanism · offer stack · social proof (case study from the testimonial) · about the coach · objection-handling · FAQ (5) · final CTA + scarcity.
+- ${tier === 'high' ? 'CTA buttons read like booking a call / applying — never a checkout link.' : 'CTA buttons read like buying / enrolling now — show the price clearly.'}
+- Use the coach's voice. Avoid the listed words.
+
+Output ONLY the raw HTML document. No Markdown code fences, no commentary before or after it.`,
 
       emails: `# YOUR TASK: PRE-LAUNCH EMAIL SEQUENCE
 
@@ -767,7 +771,7 @@ Realistic for a solo coach. Clean Markdown.`
         const prompt = buildPrompt(d.id, intake, generatedDocs);
         const maxTokens = (d.id === 'plan' || d.id === 'sales') ? 8000 : 4096;
         const output = await callClaude(prompt, maxTokens);
-        generatedDocs[d.id] = output;
+        generatedDocs[d.id] = d.id === 'sales' ? stripCodeFence(output) : output;
         markTask(d.id, 'done');
       }
 
@@ -823,14 +827,31 @@ Realistic for a solo coach. Clean Markdown.`
       const panel = document.createElement('div');
       panel.className = 'doc-panel' + (i === 0 ? ' active' : '');
       panel.id = `panel-${d.id}`;
-      panel.innerHTML = `
-        <div class="doc-header">
-          <h3>${d.title}</h3>
-          <button class="btn btn-secondary btn-sm" data-doc="${d.id}">Copy</button>
-        </div>
-        <div class="doc-body">${escapeHtml(generatedDocs[d.id] || '')}</div>
-      `;
-      docsContainer.appendChild(panel);
+
+      if (d.id === 'sales') {
+        // Real, live-previewed HTML webpage — not Markdown copy.
+        panel.innerHTML = `
+          <div class="doc-header">
+            <h3>${d.title}</h3>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-secondary btn-sm" data-doc="${d.id}">Copy HTML</button>
+              <button class="btn btn-primary btn-sm" id="download-sales-html">Download HTML</button>
+            </div>
+          </div>
+          <iframe id="sales-preview" title="Website page preview" style="width: 100%; height: 70vh; border: none; background: #fff;"></iframe>
+        `;
+        docsContainer.appendChild(panel);
+        panel.querySelector('#sales-preview').srcdoc = generatedDocs[d.id] || '';
+      } else {
+        panel.innerHTML = `
+          <div class="doc-header">
+            <h3>${d.title}</h3>
+            <button class="btn btn-secondary btn-sm" data-doc="${d.id}">Copy</button>
+          </div>
+          <div class="doc-body">${DOMPurify.sanitize(marked.parse(generatedDocs[d.id] || ''))}</div>
+        `;
+        docsContainer.appendChild(panel);
+      }
     });
 
     // Graphics tab
@@ -884,6 +905,8 @@ Realistic for a solo coach. Clean Markdown.`
     });
     const dlAll = document.getElementById('download-all-graphics');
     if (dlAll) dlAll.onclick = downloadAllGraphics;
+    const dlSalesHtml = document.getElementById('download-sales-html');
+    if (dlSalesHtml) dlSalesHtml.onclick = () => downloadHtmlDoc('sales');
   }
 
   function selectTab(id) {
@@ -923,6 +946,18 @@ Realistic for a solo coach. Clean Markdown.`
     TEMPLATES.forEach(tpl => downloadSingleGraphic(tpl.id));
   }
 
+  function downloadHtmlDoc(id) {
+    const html = generatedDocs[id];
+    if (!html) return;
+    const safe = (formData.challengeName || 'launch').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `${safe}-website-page.html`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   window.downloadAll = function() {
     const f = formData;
     let out = `TRAINER LAUNCH KIT\n${f.challengeName || 'Untitled launch'}\nTier: ${f.campaignTier === 'high' ? 'High-ticket' : 'Low-ticket'}\nCoach: ${f.fullName || ''} — ${f.businessName || ''}\n${new Date().toLocaleString()}\n\n`;
@@ -942,6 +977,14 @@ Realistic for a solo coach. Clean Markdown.`
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // Claude sometimes wraps HTML output in a Markdown code fence despite
+  // being told not to — strip it if present so we're left with raw HTML.
+  function stripCodeFence(s) {
+    const trimmed = String(s).trim();
+    const match = trimmed.match(/^```[a-z]*\n([\s\S]*?)\n```$/i);
+    return match ? match[1].trim() : trimmed;
   }
 </script>
 
